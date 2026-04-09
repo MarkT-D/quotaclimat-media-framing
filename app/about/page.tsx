@@ -1,5 +1,4 @@
 "use client";
-import { BookOpen, Cpu, Users } from "lucide-react";
 
 const Logo = () => (
   <svg width="44" height="44" viewBox="0 0 42 42" fill="none">
@@ -22,29 +21,6 @@ const team = [
   { name: "Mark Temchenko", role: "Data Pipeline & Engineering", icon: "⚙️", track: "CME" },
 ];
 
-const missions = [
-  {
-    id: "M1",
-    icon: BookOpen,
-    label: "Mission 1 — Empirical",
-    body: "We map how media attention is distributed across environmental sectors and compare it with actual greenhouse gas emissions data. The goal is to surface where coverage is misleadingly out of proportion with real-world impact.",
-    rqs: ["How is media attention distributed across stage, crisis domain, and sector?", "To what extent does coverage of a sector correspond to its GHG share?"],
-  },
-  {
-    id: "M2",
-    icon: Cpu,
-    label: "Mission 2 — Technical",
-    body: "We build and evaluate transformer-based classifiers (BERT, CamemBERT, RobBERT) for French and Dutch news text to detect framing patterns that keyword dictionaries miss. We compare these against QuotaClimat's existing approach.",
-    rqs: ["How can transformer models classify agenda-setting and framing patterns?"],
-  },
-  {
-    id: "M3",
-    icon: Users,
-    label: "Mission 3 — Applied",
-    body: "We interview environmental NGOs to understand what they actually need from media monitoring and design the dashboard to serve those needs. We also test whether the pipeline scales to Dutch-language coverage.",
-    rqs: ["What do sector-specific NGOs need from computational media analysis?", "Can the pipeline apply to Dutch newspaper coverage?"],
-  },
-];
 
 export default function AboutPage() {
   return (
@@ -89,38 +65,6 @@ export default function AboutPage() {
           This prototype uses mock data to simulate what the final system will produce. The full version will
           analyse 74 French outlets in real time, with Dutch-language support being tested in parallel.
         </p>
-      </div>
-
-      {/* Three missions */}
-      <div>
-        <p className="text-sm font-medium mb-3" style={{ color: "var(--t1)" }}>Three research missions</p>
-        <div className="space-y-3">
-          {missions.map((m) => {
-            const Icon = m.icon;
-            return (
-              <div key={m.id} className="rounded-xl p-4" style={{ background: "var(--bg)", border: "0.5px solid var(--border)" }}>
-                <div className="flex items-center gap-2 mb-2">
-                  <div
-                    className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                    style={{ background: "var(--green-l)" }}
-                  >
-                    <Icon className="w-3.5 h-3.5" style={{ color: "var(--green)" }} />
-                  </div>
-                  <p className="text-sm font-medium" style={{ color: "var(--t1)" }}>{m.label}</p>
-                </div>
-                <p className="text-sm leading-relaxed mb-2" style={{ color: "var(--t2)", lineHeight: 1.7 }}>{m.body}</p>
-                <ul className="space-y-1">
-                  {m.rqs.map((rq) => (
-                    <li key={rq} className="flex gap-2 text-xs" style={{ color: "var(--t2)" }}>
-                      <span className="shrink-0" style={{ color: "var(--red)" }}>›</span>
-                      {rq}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
-        </div>
       </div>
 
       {/* Partner */}

@@ -86,6 +86,19 @@ const FRAME_DEFS = [
     ),
   },
   {
+    key: "Morality",
+    short: "Morality",
+    color: "#7C3AED",
+    bg: "#EDE9FE",
+    iconFill: "#7C3AED",
+    desc: "Ethical and moral judgements — framing environmental issues as right vs. wrong.",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+      </svg>
+    ),
+  },
+  {
     key: "Economic Consequences",
     short: "Economic",
     color: "#EF9F27",
@@ -96,19 +109,6 @@ const FRAME_DEFS = [
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#854F0B" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
         <line x1="12" y1="1" x2="12" y2="23" />
         <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-      </svg>
-    ),
-  },
-  {
-    key: "Morality",
-    short: "Morality",
-    color: "#7C3AED",
-    bg: "#EDE9FE",
-    iconFill: "#7C3AED",
-    desc: "Ethical and moral judgements — framing environmental issues as right vs. wrong.",
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
       </svg>
     ),
   },
@@ -295,46 +295,6 @@ export default function OverviewPage() {
           </div>
         </Card>
 
-        {/* Stage distribution */}
-        <Card>
-          <CardTitle>Causal stage distribution</CardTitle>
-          <CardSub>What aspects do articles focus on?</CardSub>
-          {stageRows.map((row) => (
-            <BarRow key={row.label} label={row.label} pct={row.pct} color={row.color} />
-          ))}
-          <Insight variant="red">
-            Solutions are critically underrepresented at {solutionPct}%. Research shows solution framing increases reader action intent significantly.
-          </Insight>
-        </Card>
-      </div>
-
-      {/* Row 2: Media vs GHG + Frame cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Media vs emissions */}
-        <Card>
-          <CardTitle>Media attention vs. real emissions</CardTitle>
-          <CardSub>Coverage share vs. sector GHG share</CardSub>
-          <div className="flex gap-4 mb-4 text-[11px]" style={{ color: "var(--t2)" }}>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: "var(--red)" }} />
-              Media coverage
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: "var(--green)" }} />
-              GHG emissions
-            </span>
-          </div>
-          {sectorData.slice(0, 5).map((s) => {
-            const mediaPct = Math.round((s.count / ARTICLES.length) * 100);
-            return (
-              <DualRow key={s.sector} label={s.sector} media={mediaPct} ghg={s.ghgShare} />
-            );
-          })}
-          <Insight variant="green">
-            Energy receives less coverage than its emissions warrant. Transport is over-indexed relative to its GHG share.
-          </Insight>
-        </Card>
-
         {/* Frame 2x2 cards */}
         <Card>
           <CardTitle>Frame distribution</CardTitle>
@@ -365,6 +325,46 @@ export default function OverviewPage() {
               );
             })}
           </div>
+        </Card>
+      </div>
+
+      {/* Row 2: Media vs GHG + Stage bars */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Media vs emissions */}
+        <Card>
+          <CardTitle>Media attention vs. real emissions</CardTitle>
+          <CardSub>Coverage share vs. sector GHG share</CardSub>
+          <div className="flex gap-4 mb-4 text-[11px]" style={{ color: "var(--t2)" }}>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: "var(--red)" }} />
+              Media coverage
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: "var(--green)" }} />
+              GHG emissions
+            </span>
+          </div>
+          {sectorData.slice(0, 5).map((s) => {
+            const mediaPct = Math.round((s.count / ARTICLES.length) * 100);
+            return (
+              <DualRow key={s.sector} label={s.sector} media={mediaPct} ghg={s.ghgShare} />
+            );
+          })}
+          <Insight variant="green">
+            Energy receives less coverage than its emissions warrant. Transport is over-indexed relative to its GHG share.
+          </Insight>
+        </Card>
+
+        {/* Stage distribution */}
+        <Card>
+          <CardTitle>Causal stage distribution</CardTitle>
+          <CardSub>What aspects do articles focus on?</CardSub>
+          {stageRows.map((row) => (
+            <BarRow key={row.label} label={row.label} pct={row.pct} color={row.color} />
+          ))}
+          <Insight variant="red">
+            Solutions are critically underrepresented at {solutionPct}%. Research shows solution framing increases reader action intent significantly.
+          </Insight>
         </Card>
       </div>
 
