@@ -44,9 +44,7 @@ export default function AboutPage() {
           <p className="text-sm leading-relaxed" style={{ color: "var(--green)", lineHeight: 1.75 }}>
             We are a team of six students in Computational Social Science at the University of Amsterdam,
             working with QuotaClimat to build a media analysis pipeline for environmental journalism.
-            The core question driving our work: is French and Belgian media coverage of the climate crisis
-            actually proportional to how serious each environmental sector is? In most cases, it is not.
-            This platform is our attempt to make that gap visible and useful.
+            The core question driving our work: How do patterns of environmental media reporting in France conflict with accurate and balanced coverage of environmental crises?
           </p>
         </div>
       </div>
