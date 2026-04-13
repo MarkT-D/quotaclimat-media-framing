@@ -197,7 +197,7 @@ export default function OverviewPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-medium" style={{ color: "var(--t1)" }}>Overview</h1>
+          <h1 className="text-xl font-medium" style={{ color: "var(--t1)" }}>Overview page</h1>
           <p className="text-xs mt-0.5" style={{ color: "var(--t2)" }}>
             Environmental media coverage · France &amp; Belgium · 2024
           </p>
