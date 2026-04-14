@@ -1,14 +1,15 @@
 "use client";
-import { use } from "react";
+import { use, useState } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell,
 } from "recharts";
-import { ArrowLeft, ExternalLink, AlertTriangle, CheckCircle, Info } from "lucide-react";
+import { ArrowLeft, ExternalLink, AlertTriangle, CheckCircle, Info, Lightbulb } from "lucide-react";
 import { ARTICLES, OUTLETS, FRAMES } from "@/lib/mockData";
 import Badge from "@/components/Badge";
+import ExplainPanel from "@/components/ExplainPanel";
 
 const FRAME_COLORS = ["var(--red)", "#EF9F27", "var(--red-m)", "#7C3AED", "var(--green)"];
 
@@ -27,6 +28,8 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
   const article = ARTICLES.find((a) => a.id === id);
   if (!article) notFound();
 
+  const [explainOpen, setExplainOpen] = useState(false);
+
   const outlet = OUTLETS.find((o) => o.id === article.outlet);
   const misiPct = Math.round(article.misinformationScore * 100);
   const misiColor = misiPct < 20 ? "var(--green)" : misiPct < 50 ? "#D4A017" : "var(--red)";
@@ -44,6 +47,7 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
   }));
 
   return (
+    <>
     <div className="max-w-4xl mx-auto space-y-5">
       {/* Back */}
       <Link href="/search" className="inline-flex items-center gap-1.5 text-sm transition-colors"
@@ -172,6 +176,18 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
         </div>
       </div>
 
+      {/* Explain button */}
+      <div className="flex justify-center">
+        <button
+          onClick={() => setExplainOpen(true)}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-75"
+          style={{ background: "var(--bg)", border: "0.5px solid var(--border)", color: "var(--t1)" }}
+        >
+          <Lightbulb className="w-4 h-4" style={{ color: "var(--red)" }} />
+          Explain classifications
+        </button>
+      </div>
+
       {/* Classification */}
       <div className="rounded-xl p-5" style={{ background: "var(--bg)", border: "0.5px solid var(--border)" }}>
         <p className="text-sm font-medium mb-3" style={{ color: "var(--t1)" }}>Classification details</p>
@@ -193,5 +209,10 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
         </p>
       </div>
     </div>
+
+    {explainOpen && (
+      <ExplainPanel article={article} onClose={() => setExplainOpen(false)} />
+    )}
+    </>
   );
 }
