@@ -1,0 +1,47 @@
+program: classifier.py
+method: bayes
+metric:
+  name: eval/f1_macro
+  goal: maximize
+parameters:
+  #variables
+  learning_rate:
+    distribution: log_uniform_values
+    min: 1e-5
+    max: 5e-5
+  weight_decay:
+    values: [0.0, 0.01, 0.1]
+  warmup_ratio:
+    values: [0.0, 0.05, 0.1]
+  lr_scheduler_type:
+    values: ["linear", "cosine", "polynomial"]
+  per_device_train_batch_size:
+    values: [8, 16]
+  gradient_accumulation_steps:
+    values: [1, 2, 4]
+
+  #constants
+  num_train_epochs:
+    value: 5
+  per_device_eval_batch_size:
+    value: 16
+  output_dir:
+    value: "$HOME/roberta_frame_classifier"
+  ddp_find_unused_parameters:
+    value: false
+  eval_strategy:
+    value: "epoch"
+  bf16:
+    value: true
+  save_strategy:
+    value: "no"
+  load_best_model_at_end:
+    value: false
+  report_to:
+    value: "wandb"
+
+command:
+  - torchrun
+  - "--nproc_per_node=4"
+  - ${program}
+  - ${args}
