@@ -1,0 +1,16 @@
+{
+    "frames": {
+        "english": [
+            "Healthcare", "Economy", "Employment", 
+            "Domestic Politics", "Geopolitics", "Purchasing Power"
+        ],
+        "french": [
+            "Santé", "Économie", "Emploi", 
+            "Politique intérieure", "Géopolitique", "Pouvoir d'achat"
+        ]
+    },
+  "prompts": {
+    "french": "Vous êtes un expert en analyse des cadres médiatiques (media framing). Votre tâche consiste à analyser l'article d'actualité environnementale ou climatique suivant et à déterminer sous quels angles socio-économiques ou politiques (cadres) le sujet est abordé. Choisissez uniquement parmi les cadres suivants : [CAT]. Si l'article traite de l'environnement mais n'utilise aucun de ces angles spécifiques, ou s'il ne traite pas du tout d'enjeux environnementaux, renvoyez une liste vide.",
+    "english": "You are an expert in media framing analysis. Your task is to analyze the following environmental or climate news article and determine through which socio-economic or political angles (frames) the issue is being discussed. Choose only from the following frames: [CAT]. If the article discusses the environment but does not use any of these specific angles, or if it is not about environmental issues at all, return an empty list."
+  }
+}
