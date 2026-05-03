@@ -34,42 +34,6 @@ print(predictions)
 # [['Économie', "Pouvoir d'achat"]]
 ```
 
-Markdown
-# Media Framing Classification Pipeline
-
-This repository contains the data processing, zero-shot labeling, and model training pipeline for a multi-label media framing classifier. It utilizes `vLLM` for automated dataset generation and `XLM-RoBERTa-Longformer` for the final classification architecture.
-
-## Pipeline Components
-
-### `preprocessor.py`
-Handles the initial dataset cleaning and standardization. 
-* Strips invalid Unicode characters and normalizes whitespace.
-* Prepares the raw article data for the downstream labeling pipeline.
-
-### `labeller.py`
-An optimized, procedural batch-processing script for generating ground-truth labels using `vLLM` and guided JSON decoding.
-* **Bucketing:** Sorts articles by character length. This prevents short articles from being padded to the maximum length of the longest article in the batch, drastically reducing wasted token generation.
-* **Chunking:** Processes and writes data to disk in discrete chunks. This acts as an automatic checkpointing system, preventing data loss if the cluster job is interrupted.
-* **Architecture:** Explicitly written as a procedural script rather than an object-oriented class to minimize overhead, ensure strict VRAM garbage collection, and optimize execution on high-performance compute clusters.
-
-### `classifier.py`
-The core object-oriented module for the XLM-RoBERTa framing classifier. It handles dataset tokenization, model training, metric computation (using macro-averaged, binarized scoring), inference, and SHAP integration.
-
-#### Inference
-Load a fine-tuned model checkpoint to predict frames on unseen data.
-
-```python
-from classifier import FrameClassifier
-
-classifier = FrameClassifier(model_id_or_path="$HOME/roberta_frame_classifier/best_model")
-
-texts = ["Title: Crise de l'énergie\nBody: Les prix explosent."]
-predictions = classifier.predict(texts)
-
-print(predictions)
-# [['Économie', "Pouvoir d'achat"]]
-```
-
 #### Explainability (SHAP)
 
 ```python
