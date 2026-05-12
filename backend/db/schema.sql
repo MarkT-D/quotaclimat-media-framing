@@ -3,6 +3,7 @@
 
 CREATE TABLE articles (
     id              SERIAL PRIMARY KEY,
+    source_id       TEXT,               -- original ID from the source (LexisNexis URN, French DB id, …)
 
     -- Core content
     title           TEXT NOT NULL,
@@ -18,6 +19,10 @@ CREATE TABLE articles (
 
     -- Sector classification
     sector          TEXT,               -- e.g. Energy, Transport, Agriculture …
+
+    -- French-specific research dimensions (NULL until classified)
+    stage           TEXT,               -- e.g. Concepts généraux, Causes, Conséquences, Solutions
+    crisis_domain   TEXT,               -- e.g. Climat, Biodiversité, Ressources naturelles
 
     -- LexisNexis subject / geographic / industry tags (raw strings)
     ln_subject      TEXT,
