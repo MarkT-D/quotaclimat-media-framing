@@ -17,12 +17,26 @@ CREATE TABLE articles (
     url             TEXT NOT NULL UNIQUE,
     query_source    TEXT,               -- scraper query that produced this row
 
-    -- Sector classification
-    sector          TEXT,               -- e.g. Energy, Transport, Agriculture …
+    -- Sector classification (one row can belong to multiple sectors)
+    sector_transport        BOOLEAN,
+    sector_buildings        BOOLEAN,
+    sector_energy           BOOLEAN,
+    sector_industry         BOOLEAN,
+    sector_agriculture      BOOLEAN,
+    sector_water            BOOLEAN,
+    sector_ecosystem        BOOLEAN,
+    sector_resource_economy BOOLEAN,
 
-    -- French-specific research dimensions (NULL until classified)
-    stage           TEXT,               -- e.g. Concepts généraux, Causes, Conséquences, Solutions
-    crisis_domain   TEXT,               -- e.g. Climat, Biodiversité, Ressources naturelles
+    -- Stage (French-specific, article can cover multiple stages)
+    stage_general_concepts  BOOLEAN,
+    stage_causes            BOOLEAN,
+    stage_consequences      BOOLEAN,
+    stage_solutions         BOOLEAN,
+
+    -- Crisis domain
+    domain_climate          BOOLEAN,
+    domain_biodiversity     BOOLEAN,
+    domain_resources        BOOLEAN,
 
     -- LexisNexis subject / geographic / industry tags (raw strings)
     ln_subject      TEXT,
