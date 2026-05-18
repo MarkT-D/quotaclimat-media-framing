@@ -1,11 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   CartesianGrid, Legend, Cell,
 } from "recharts";
 import { getOutletStats, FRAMES, STAGES } from "@/lib/mockData";
+import { useArticles } from "@/lib/useArticles";
 
 const OUTLET_PALETTE = [
   "#C8392B", "#2D6A4F", "#52B788", "#F09595", "#7C3AED",
@@ -28,8 +29,14 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function NewspapersPage() {
-  const allStats = getOutletStats().filter((o) => o.articleCount > 0);
-  const [selected, setSelected] = useState<string[]>(allStats.slice(0, 5).map((o) => o.id));
+  const { articles } = useArticles();
+  const allStats = useMemo(() => getOutletStats(articles), [articles]);
+  const [selected, setSelected] = useState<string[]>([]);
+  useEffect(() => {
+    if (selected.length === 0 && allStats.length > 0) {
+      setSelected(allStats.slice(0, 5).map((o) => o.id));
+    }
+  }, [allStats]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggle = (id: string) =>
     setSelected((prev) =>
@@ -74,7 +81,7 @@ export default function NewspapersPage() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
+    <div className="max-w-7xl mx-auto space-y-8 px-8 pt-8">
       <div>
         <h1 className="text-2xl font-semibold text-neutral-900">Newspapers</h1>
         <p className="text-sm text-neutral-500 mt-0.5">
@@ -120,8 +127,6 @@ export default function NewspapersPage() {
                 <thead>
                   <tr className="text-xs text-neutral-400 bg-neutral-50">
                     <th className="text-left px-5 py-2.5 font-medium">Outlet</th>
-                    <th className="text-left px-4 py-2.5 font-medium">Country</th>
-                    <th className="text-left px-4 py-2.5 font-medium">Type</th>
                     <th className="text-right px-4 py-2.5 font-medium">Articles</th>
                     <th className="text-right px-4 py-2.5 font-medium">Avg Misinfo</th>
                     <th className="text-right px-5 py-2.5 font-medium">Solution Rate</th>
@@ -137,8 +142,6 @@ export default function NewspapersPage() {
                         />
                         {o.name}
                       </td>
-                      <td className="px-4 py-3 text-neutral-500">{o.country}</td>
-                      <td className="px-4 py-3 text-neutral-500">{o.type}</td>
                       <td className="px-4 py-3 text-right text-neutral-700">{o.articleCount}</td>
                       <td className="px-4 py-3 text-right">
                         <span

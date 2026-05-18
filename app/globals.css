@@ -1,29 +1,117 @@
 @import "tailwindcss";
 
-:root {
-  --red: #C8392B;
-  --red-l: #FCEBEB;
-  --red-d: #791F1F;
-  --red-m: #F09595;
-  --green: #2D6A4F;
-  --green-l: #E8F5EE;
-  --green-d: #1B4332;
-  --green-m: #52B788;
-  --bg: #ffffff;
-  --bg2: #f9fafb;
-  --border: #e5e7eb;
-  --t1: #111827;
-  --t2: #6b7280;
+@font-face {
+  font-family: "OldNewspaperTypes";
+  src: url("/fonts/OldNewspaperTypes.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
-@theme inline {
-  --font-sans: var(--font-geist-sans);
+:root {
+  /* Mossy Broadsheet palette */
+  --red:   #B8402E;
+  --red-l: #F2E6E2;
+  --red-d: #7A2018;
+  --red-m: #D48878;
+  --green:   #4A6741;
+  --green-l: #D8E8C4;
+  --green-d: #2D4228;
+  --green-m: #A8BE8A;
+  --bg:     #F2EDE3;
+  --bg2:    #EAE4D8;
+  --border: #B8B0A4;
+  --t1:     #1C1A14;
+  --t2:     #7A7265;
+}
+
+html {
+  min-height: 100%;
+  background-color: #F2EDE3;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--bg2);
+  background: transparent;
   color: var(--t1);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: system-ui, sans-serif;
+  position: relative;
+  isolation: isolate; /* stacking context so body::before z-index:-1 sits above html */
 }
+
+/*
+  Full-document texture layer — lives in document space so it scrolls with content.
+  background-size: 100vw pins width to the viewport; height is auto-proportional.
+  Neither dimension depends on document height, so the background fit never
+  recalculates when the navbar collapses and the document height changes.
+*/
+body::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: #F2EDE3;
+  background-image:
+    linear-gradient(rgba(242, 237, 227, 0.82) 0%, rgba(242, 237, 227, 0.82) 100%),
+    url('/crumpled.png');
+  background-attachment: scroll;
+  background-size: auto, 100vw;
+  background-position: 0 0, center top;
+  background-blend-mode: normal, luminosity;
+}
+
+/*
+  Sticky header: fixed-attachment so the header's own background is also immune
+  to document-height changes. JS in NewspaperHeader.tsx offsets background-position-y
+  by -scrollY so the header always shows the same texture slice as the page top.
+*/
+.paper {
+  background-color: #F2EDE3;
+  background-image:
+    linear-gradient(rgba(242, 237, 227, 0.82) 0%, rgba(242, 237, 227, 0.82) 100%),
+    url('/crumpled.png');
+  background-attachment: fixed, fixed;
+  background-size: auto, 100vw;
+  background-position: 0 0, center top;
+  background-blend-mode: normal, luminosity;
+}
+
+/* Typewriter cursor */
+.typing-cursor {
+  display: inline-block;
+  width: 3px;
+  height: 0.75em;
+  background: currentColor;
+  margin-left: 3px;
+  vertical-align: baseline;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@keyframes scroll-bob {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(6px); }
+}
+
+.scroll-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #7A7265;
+  text-decoration: none;
+  animation: scroll-bob 2s ease-in-out infinite;
+  transition: color 0.2s;
+}
+
+.scroll-hint:hover { color: #000; }
 
 .recharts-tooltip-wrapper { outline: none; }

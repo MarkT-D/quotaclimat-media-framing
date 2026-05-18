@@ -24,7 +24,7 @@ const team = [
 
 export default function AboutPage() {
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6 px-8 pt-8">
 
       {/* Mission hero */}
       <div

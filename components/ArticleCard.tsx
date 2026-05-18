@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { type Article, OUTLETS } from "@/lib/mockData";
+import { type Article } from "@/lib/mockData";
 import Badge from "./Badge";
 
 interface Props {
@@ -7,9 +7,8 @@ interface Props {
 }
 
 export default function ArticleCard({ article }: Props) {
-  const outlet = OUTLETS.find((o) => o.id === article.outlet);
-  const misiPct = Math.round(article.misinformationScore * 100);
-  const misiColor = misiPct < 20 ? "var(--green)" : misiPct < 50 ? "#D4A017" : "var(--red)";
+  const misiPct = article.misinformationScore != null ? Math.round(article.misinformationScore * 100) : null;
+  const misiColor = misiPct == null ? "var(--t2)" : misiPct < 20 ? "var(--green)" : misiPct < 50 ? "#D4A017" : "var(--red)";
 
   return (
     <Link href={`/article/${article.id}`}>
@@ -23,7 +22,7 @@ export default function ArticleCard({ article }: Props) {
         onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
       >
         <p className="text-[11px] font-medium mb-1" style={{ color: "var(--red)" }}>
-          {outlet?.name} · {article.publishedAt}
+          {article.outlet} · {article.publishedAt}
         </p>
         <p className="text-sm font-medium leading-snug mb-2 line-clamp-2" style={{ color: "var(--t1)" }}>
           {article.title}
@@ -33,23 +32,25 @@ export default function ArticleCard({ article }: Props) {
         </p>
 
         <div className="flex flex-wrap gap-1.5 mb-3">
-          <Badge label={article.sector} size="sm" />
-          <Badge label={article.stage} size="sm" />
+          {article.sector && <Badge label={article.sector} size="sm" />}
+          {article.stage && <Badge label={article.stage} size="sm" />}
         </div>
 
-        {/* Misinfo bar */}
-        <div>
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-[10px]" style={{ color: "var(--t2)" }}>Misinfo risk</span>
-            <span className="text-[10px] font-medium" style={{ color: misiColor }}>{misiPct}%</span>
+        {/* Misinfo bar — only when score available */}
+        {misiPct != null && (
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-[10px]" style={{ color: "var(--t2)" }}>Misinfo risk</span>
+              <span className="text-[10px] font-medium" style={{ color: misiColor }}>{misiPct}%</span>
+            </div>
+            <div className="h-1 rounded-full" style={{ background: "var(--bg2)" }}>
+              <div
+                className="h-full rounded-full"
+                style={{ width: `${misiPct}%`, background: misiColor }}
+              />
+            </div>
           </div>
-          <div className="h-1 rounded-full" style={{ background: "var(--bg2)" }}>
-            <div
-              className="h-full rounded-full"
-              style={{ width: `${misiPct}%`, background: misiColor }}
-            />
-          </div>
-        </div>
+        )}
       </div>
     </Link>
   );

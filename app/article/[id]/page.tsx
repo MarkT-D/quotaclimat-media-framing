@@ -1,5 +1,5 @@
 "use client";
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
@@ -7,7 +7,8 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell,
 } from "recharts";
 import { ArrowLeft, ExternalLink, AlertTriangle, CheckCircle, Info, Lightbulb } from "lucide-react";
-import { ARTICLES, OUTLETS, FRAMES } from "@/lib/mockData";
+import { FRAMES } from "@/lib/mockData";
+import type { Article } from "@/lib/mockData";
 import Badge from "@/components/Badge";
 import ExplainPanel from "@/components/ExplainPanel";
 
@@ -25,14 +26,33 @@ const CustomTooltip = ({ active, payload }: any) => {
 
 export default function ArticlePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const article = ARTICLES.find((a) => a.id === id);
-  if (!article) notFound();
-
+  const [article, setArticle] = useState<Article | null>(null);
+  const [notFoundError, setNotFoundError] = useState(false);
   const [explainOpen, setExplainOpen] = useState(false);
 
-  const outlet = OUTLETS.find((o) => o.id === article.outlet);
-  const misiPct = Math.round(article.misinformationScore * 100);
-  const misiColor = misiPct < 20 ? "var(--green)" : misiPct < 50 ? "#D4A017" : "var(--red)";
+  useEffect(() => {
+    fetch(`/api/articles/${id}`)
+      .then((r) => {
+        if (!r.ok) throw r.status;
+        return r.json() as Promise<Article>;
+      })
+      .then(setArticle)
+      .catch((status) => {
+        if (status === 404) setNotFoundError(true);
+      });
+  }, [id]);
+
+  if (notFoundError) notFound();
+  if (!article) {
+    return (
+      <div className="max-w-4xl mx-auto px-8 pt-8">
+        <p style={{ color: "var(--t2)", fontFamily: "var(--font-podkova)" }}>Loading…</p>
+      </div>
+    );
+  }
+
+  const misiPct = article.misinformationScore != null ? Math.round(article.misinformationScore * 100) : null;
+  const misiColor = misiPct == null ? "var(--t2)" : misiPct < 20 ? "var(--green)" : misiPct < 50 ? "#D4A017" : "var(--red)";
 
   const frameBarData = FRAMES.map((f, i) => ({
     frame: f.split(" ").slice(0, 2).join(" "),
@@ -48,7 +68,7 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
 
   return (
     <>
-    <div className="max-w-4xl mx-auto space-y-5">
+    <div className="max-w-4xl mx-auto space-y-5 px-8 pt-8">
       {/* Back */}
       <Link href="/search" className="inline-flex items-center gap-1.5 text-sm transition-colors"
         style={{ color: "var(--t2)" }}>
@@ -59,15 +79,15 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
       {/* Article header */}
       <div className="rounded-xl p-5" style={{ background: "var(--bg)", border: "0.5px solid var(--border)" }}>
         <p className="text-[11px] font-medium mb-2" style={{ color: "var(--red)" }}>
-          {outlet?.name} · {article.publishedAt}
+          {article.outlet} · {article.publishedAt}
         </p>
         <h1 className="text-lg font-medium leading-snug mb-3" style={{ color: "var(--t1)" }}>
           {article.title}
         </h1>
         <div className="flex flex-wrap gap-1.5 mb-3">
-          <Badge label={article.sector} />
-          <Badge label={article.crisisDomain} />
-          <Badge label={article.stage} />
+          {article.sector && <Badge label={article.sector} />}
+          {article.crisisDomain && <Badge label={article.crisisDomain} />}
+          {article.stage && <Badge label={article.stage} />}
         </div>
         <p className="text-sm leading-relaxed mb-3" style={{
           color: "var(--t2)",
@@ -85,7 +105,6 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
           ))}
         </div>
         <div className="flex items-center gap-4 mt-3 text-xs" style={{ color: "var(--t2)" }}>
-          <span>{outlet?.country}</span>
           <span>{article.wordCount.toLocaleString()} words</span>
           {article.url && (
             <a href={article.url} target="_blank" rel="noopener noreferrer"
@@ -98,48 +117,50 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
 
       {/* Analysis panels */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Misinfo */}
-        <div className="rounded-xl p-5" style={{ background: "var(--bg)", border: `0.5px solid ${misiColor}` }}>
-          <div className="flex items-center gap-2 mb-3">
-            {misiPct >= 50
-              ? <AlertTriangle className="w-4 h-4" style={{ color: "var(--red)" }} />
-              : misiPct >= 20
-              ? <Info className="w-4 h-4" style={{ color: "#D4A017" }} />
-              : <CheckCircle className="w-4 h-4" style={{ color: "var(--green)" }} />}
-            <p className="text-sm font-medium" style={{ color: "var(--t1)" }}>Misinformation risk</p>
+        {/* Misinfo — hidden when not available */}
+        {misiPct != null && (
+          <div className="rounded-xl p-5" style={{ background: "var(--bg)", border: `0.5px solid ${misiColor}` }}>
+            <div className="flex items-center gap-2 mb-3">
+              {misiPct >= 50
+                ? <AlertTriangle className="w-4 h-4" style={{ color: "var(--red)" }} />
+                : misiPct >= 20
+                ? <Info className="w-4 h-4" style={{ color: "#D4A017" }} />
+                : <CheckCircle className="w-4 h-4" style={{ color: "var(--green)" }} />}
+              <p className="text-sm font-medium" style={{ color: "var(--t1)" }}>Misinformation risk</p>
+            </div>
+
+            <div className="flex items-end gap-1 mb-3">
+              <span className="text-5xl font-medium" style={{ color: misiColor }}>{misiPct}</span>
+              <span className="text-base mb-1" style={{ color: "var(--t2)" }}> / 100</span>
+            </div>
+
+            <div className="h-1.5 rounded-full mb-3" style={{ background: "var(--bg2)" }}>
+              <div className="h-full rounded-full" style={{ width: `${misiPct}%`, background: misiColor }} />
+            </div>
+
+            <span
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
+              style={misiPct < 20
+                ? { background: "var(--green-l)", color: "var(--green-d)" }
+                : misiPct < 50
+                ? { background: "#FEF9EE", color: "#7A4F00" }
+                : { background: "var(--red-l)", color: "var(--red-d)" }}
+            >
+              {misiPct < 20 ? "Low risk" : misiPct < 50 ? "Moderate" : "High risk"}
+            </span>
+
+            <p className="text-xs leading-relaxed mt-3" style={{ color: "var(--t2)" }}>
+              {misiPct < 20
+                ? "No significant signals. Coverage appears factually sound."
+                : misiPct < 50
+                ? "Moderate signals. Some claims warrant review against scientific sources."
+                : "High-risk signals. Manual review recommended."}
+            </p>
+            <p className="text-[10px] mt-3" style={{ color: "var(--t2)", opacity: 0.6 }}>
+              BERT-based enhancement pending.
+            </p>
           </div>
-
-          <div className="flex items-end gap-1 mb-3">
-            <span className="text-5xl font-medium" style={{ color: misiColor }}>{misiPct}</span>
-            <span className="text-base mb-1" style={{ color: "var(--t2)" }}> / 100</span>
-          </div>
-
-          <div className="h-1.5 rounded-full mb-3" style={{ background: "var(--bg2)" }}>
-            <div className="h-full rounded-full" style={{ width: `${misiPct}%`, background: misiColor }} />
-          </div>
-
-          <span
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
-            style={misiPct < 20
-              ? { background: "var(--green-l)", color: "var(--green-d)" }
-              : misiPct < 50
-              ? { background: "#FEF9EE", color: "#7A4F00" }
-              : { background: "var(--red-l)", color: "var(--red-d)" }}
-          >
-            {misiPct < 20 ? "Low risk" : misiPct < 50 ? "Moderate" : "High risk"}
-          </span>
-
-          <p className="text-xs leading-relaxed mt-3" style={{ color: "var(--t2)" }}>
-            {misiPct < 20
-              ? "No significant signals. Coverage appears factually sound."
-              : misiPct < 50
-              ? "Moderate signals. Some claims warrant review against scientific sources."
-              : "High-risk signals. Manual review recommended."}
-          </p>
-          <p className="text-[10px] mt-3" style={{ color: "var(--t2)", opacity: 0.6 }}>
-            BERT-based enhancement pending.
-          </p>
-        </div>
+        )}
 
         {/* Frame bar */}
         <div className="rounded-xl p-5" style={{ background: "var(--bg)", border: "0.5px solid var(--border)" }}>
@@ -156,7 +177,7 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
             </BarChart>
           </ResponsiveContainer>
           <p className="text-xs mt-2" style={{ color: "var(--t2)" }}>
-            Primary: <span className="font-medium" style={{ color: "var(--t1)" }}>{article.primaryFrame}</span>
+            Primary: <span className="font-medium" style={{ color: "var(--t1)" }}>{article.primaryFrame ?? "—"}</span>
           </p>
         </div>
 
@@ -193,10 +214,10 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
         <p className="text-sm font-medium mb-3" style={{ color: "var(--t1)" }}>Classification details</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { label: "Sector", value: article.sector },
-            { label: "Crisis domain", value: article.crisisDomain },
-            { label: "Causal stage", value: article.stage },
-            { label: "Primary frame", value: article.primaryFrame },
+            { label: "Sector", value: article.sector ?? "—" },
+            { label: "Crisis domain", value: article.crisisDomain ?? "—" },
+            { label: "Causal stage", value: article.stage ?? "—" },
+            { label: "Primary frame", value: article.primaryFrame ?? "—" },
           ].map(({ label, value }) => (
             <div key={label} className="rounded-lg p-3" style={{ background: "var(--bg2)" }}>
               <p className="text-[10px] mb-1" style={{ color: "var(--t2)" }}>{label}</p>

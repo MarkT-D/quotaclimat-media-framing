@@ -7,7 +7,7 @@ import { getArticleExplanation, type Token } from "@/lib/mockExplanations";
 
 type View = "misinfo" | "framing";
 
-// ── Color helpers ─────────────────────────────────────────────────────────────
+// Color helpers
 
 function misinfoColor(w: number): string {
   if (w < 0.06) return "transparent";
@@ -39,7 +39,7 @@ function tokenStyle(token: Token, view: View): React.CSSProperties {
   };
 }
 
-// ── Legend ────────────────────────────────────────────────────────────────────
+// Legend
 
 function Legend({ view }: { view: View }) {
   const stops = view === "misinfo"
@@ -58,7 +58,7 @@ function Legend({ view }: { view: View }) {
   );
 }
 
-// ── Highlighted text ──────────────────────────────────────────────────────────
+// Highlighted text
 
 function HighlightedText({ tokens, view }: { tokens: Token[]; view: View }) {
   const [hovered, setHovered] = useState<number | null>(null);
@@ -91,7 +91,7 @@ function HighlightedText({ tokens, view }: { tokens: Token[]; view: View }) {
   );
 }
 
-// ── Main panel ────────────────────────────────────────────────────────────────
+// Main panel
 
 export default function ExplainPanel({
   article,

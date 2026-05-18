@@ -126,7 +126,7 @@ export default function UploadPage() {
   const progressPct = status === "loading" ? Math.round((progress.length / PIPELINE_STEPS.length) * 100) : 100;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-5">
+    <div className="max-w-3xl mx-auto space-y-5 px-8 pt-8">
       {/* Hero */}
       <div className="rounded-xl p-5" style={{ background: "var(--green-l)", border: "0.5px solid rgba(45,106,79,0.2)" }}>
         <p className="text-sm font-medium mb-1" style={{ color: "var(--green-d)" }}>Analyse an article</p>
