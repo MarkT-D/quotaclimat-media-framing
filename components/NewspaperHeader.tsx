@@ -67,7 +67,7 @@ export default function NewspaperHeader() {
           transition: "max-height 0.4s ease, opacity 0.25s ease",
         }}>
           <div className="relative flex items-start justify-between pt-12 pb-6">
-            <div style={{ fontFamily: "var(--font-special-elite)", fontSize: 13, lineHeight: "17px", color: "#616161" }}>
+            <div style={{ fontFamily: "var(--font-plex-sans)", fontSize: 13, lineHeight: "17px", color: "#616161" }}>
               Tuesday, May 5, 2026 Vol. I — No. 17
             </div>
 
@@ -97,7 +97,7 @@ export default function NewspaperHeader() {
               </div>
             </div>
 
-            <div className="text-right" style={{ fontFamily: "var(--font-special-elite)", fontSize: 13, lineHeight: "20px", color: "#616161" }}>
+            <div className="text-right" style={{ fontFamily: "var(--font-plex-sans)", fontSize: 13, lineHeight: "20px", color: "#616161" }}>
               <div>Climate Desk</div>
             </div>
           </div>
@@ -115,7 +115,7 @@ export default function NewspaperHeader() {
                 <Link
                   href={link.href}
                   style={{
-                    fontFamily: "var(--font-special-elite)",
+                    fontFamily: "var(--font-plex-sans)",
                     fontSize: 13,
                     lineHeight: "14px",
                     color: active ? "#000" : "#616161",

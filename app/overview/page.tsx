@@ -14,12 +14,9 @@ import { useArticles } from "@/lib/useArticles";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const F = {
-  playfair:   "var(--font-playfair)",
-  playfairSC: "var(--font-playfair-sc)",
-  elite:      "var(--font-special-elite)",
-  podkova:    "var(--font-podkova)",
-  serif:      "var(--font-source-serif)",
-  quantico:   "var(--font-quantico)",
+  playfair: "var(--font-playfair)",
+  serif:    "var(--font-source-serif)",
+  plex:     "var(--font-plex-sans)",
 };
 
 const GHG_SHARES: Record<Sector, number> = {
@@ -166,7 +163,7 @@ function Rule({ color = "var(--border)", thick = false }: { color?: string; thic
 
 function SectionHead({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 22, lineHeight: "1.15", color: "var(--t1)", marginBottom: 4 }}>
+    <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 24, lineHeight: "1.15", color: "var(--t1)", marginBottom: 4 }}>
       {children}
     </div>
   );
@@ -179,7 +176,7 @@ function SectionMeta({ children, bg }: { children: React.ReactNode; bg?: string 
         <span style={{
           display: "inline-block", background: bg,
           padding: "3px 10px", lineHeight: "19px",
-          fontFamily: F.quantico, fontSize: 13, color: "var(--t2)",
+          fontFamily: F.plex, fontSize: 13, color: "var(--t2)",
           textTransform: "uppercase", letterSpacing: "0.01em",
         }}>
           {children}
@@ -188,7 +185,7 @@ function SectionMeta({ children, bg }: { children: React.ReactNode; bg?: string 
     );
   }
   return (
-    <div style={{ fontFamily: F.podkova, fontSize: 13, color: "var(--t2)", marginBottom: 18 }}>
+    <div style={{ fontFamily: F.plex, fontSize: 13, color: "var(--t2)", marginBottom: 18 }}>
       {children}
     </div>
   );
@@ -211,7 +208,7 @@ const CustomTooltip = ({ active, payload, label }: {
 }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background: "var(--bg)", border: "1px solid var(--t1)", padding: "8px 12px", fontFamily: F.podkova, fontSize: 12 }}>
+    <div style={{ background: "var(--bg)", border: "1px solid var(--t1)", padding: "8px 12px", fontFamily: F.plex, fontSize: 12 }}>
       <p style={{ color: "var(--t1)", marginBottom: 4, fontWeight: 600 }}>{label}</p>
       {payload.map((p, i) => (
         <p key={i} style={{ color: p.stroke ?? p.fill }}>{p.name}: <strong>{p.value}</strong></p>
@@ -237,7 +234,7 @@ const RadarTooltip = ({ active, payload }: {
     ["Top sector", d.topSector],
   ];
   return (
-    <div style={{ background: "var(--bg)", border: "1px solid var(--t1)", padding: "12px 16px", fontFamily: F.podkova, fontSize: 12, minWidth: 210 }}>
+    <div style={{ background: "var(--bg)", border: "1px solid var(--t1)", padding: "12px 16px", fontFamily: F.plex, fontSize: 12, minWidth: 210 }}>
       <p style={{ color: "var(--t1)", fontWeight: 700, marginBottom: 10, fontSize: 13 }}>{d.fullFrame}</p>
       {rows.map(([label, val, color]) => (
         <div key={label} style={{ display: "flex", justifyContent: "space-between", gap: 20, marginBottom: 4 }}>
@@ -269,7 +266,7 @@ const SectorTooltip = ({ active, payload }: {
     ["Top frame",  d.topFrame],
   ];
   return (
-    <div style={{ background: "var(--bg)", border: "1px solid var(--t1)", padding: "12px 16px", fontFamily: F.podkova, fontSize: 12, minWidth: 210 }}>
+    <div style={{ background: "var(--bg)", border: "1px solid var(--t1)", padding: "12px 16px", fontFamily: F.plex, fontSize: 12, minWidth: 210 }}>
       <p style={{ color: "var(--t1)", fontWeight: 700, marginBottom: 10, fontSize: 13 }}>{d.name}</p>
       {rows.map(([label, val, color]) => (
         <div key={label} style={{ display: "flex", justifyContent: "space-between", gap: 20, marginBottom: 4 }}>
@@ -290,7 +287,7 @@ function DotPlotRow({ sector, mediaPct, ghgShare, gap, y, plotLeft, plotWidth }:
   const over    = gap > 0;
   return (
     <g>
-      <text x={plotLeft - 8} y={y + 5} textAnchor="end" fontFamily={F.podkova} fontSize={11} fill="var(--t2)">{sector}</text>
+      <text x={plotLeft - 8} y={y + 5} textAnchor="end" fontFamily={F.plex} fontSize={11} fill="var(--t2)">{sector}</text>
       <line x1={plotLeft} x2={plotLeft + plotWidth} y1={y} y2={y} stroke="var(--bg2)" strokeWidth={1} />
       <line
         x1={Math.min(xGhg, xMedia)} x2={Math.max(xGhg, xMedia)} y1={y} y2={y}
@@ -301,7 +298,7 @@ function DotPlotRow({ sector, mediaPct, ghgShare, gap, y, plotLeft, plotWidth }:
       <text
         x={xMedia + (over ? 9 : -9)} y={y + 4}
         textAnchor={over ? "start" : "end"}
-        fontFamily={F.podkova} fontSize={10}
+        fontFamily={F.plex} fontSize={10}
         fill={over ? "var(--red)" : "var(--green)"}
       >
         {over ? "+" : ""}{gap}pp
@@ -316,7 +313,7 @@ function OutletCard({ outlet }: { outlet: OutletStat }) {
   const [hovAngle, setHovAngle] = useState<string | null>(null);
   return (
     <div style={{ padding: "16px 18px 18px", opacity: outlet.count === 0 ? 0.4 : 1 }}>
-      <div style={{ fontFamily: F.elite, fontSize: 12, color: "var(--t1)", marginBottom: 10 }}>
+      <div style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t1)", marginBottom: 10 }}>
         {outlet.name}
       </div>
       <Rule color="var(--border)" />
@@ -326,7 +323,7 @@ function OutletCard({ outlet }: { outlet: OutletStat }) {
       <Rule color="var(--border)" />
       {outlet.count > 0 && (
         <div style={{ marginTop: 10 }}>
-          <div style={{ fontFamily: F.podkova, fontSize: 10, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>Frames</div>
+          <div style={{ fontFamily: F.plex, fontSize: 10, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>Frames</div>
           <div style={{ display: "flex", height: 8 }}>
             {outlet.framePcts.map((fp) => (
               <div key={fp.frame}
@@ -338,9 +335,9 @@ function OutletCard({ outlet }: { outlet: OutletStat }) {
             ))}
           </div>
           <div style={{ height: 14, marginBottom: 6 }}>
-            {hovFrame && (() => { const f = FRAME_DEFS.find(d => d.key === hovFrame); const fp = outlet.framePcts.find(d => d.frame === hovFrame); return f && fp ? <span style={{ fontFamily: F.podkova, fontSize: 10, color: f.color, fontWeight: 600 }}>{f.short} · {fp.pct}%</span> : null; })()}
+            {hovFrame && (() => { const f = FRAME_DEFS.find(d => d.key === hovFrame); const fp = outlet.framePcts.find(d => d.frame === hovFrame); return f && fp ? <span style={{ fontFamily: F.plex, fontSize: 10, color: f.color, fontWeight: 600 }}>{f.short} · {fp.pct}%</span> : null; })()}
           </div>
-          <div style={{ fontFamily: F.podkova, fontSize: 10, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>Angles</div>
+          <div style={{ fontFamily: F.plex, fontSize: 10, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>Angles</div>
           <div style={{ display: "flex", height: 8 }}>
             {outlet.anglePcts.map((ap, i) => (
               <div key={ap.angle}
@@ -352,7 +349,7 @@ function OutletCard({ outlet }: { outlet: OutletStat }) {
             ))}
           </div>
           <div style={{ height: 14, marginBottom: 6 }}>
-            {hovAngle && (() => { const i = outlet.anglePcts.findIndex(a => a.angle === hovAngle); const ap = outlet.anglePcts[i]; return ap ? <span style={{ fontFamily: F.podkova, fontSize: 10, color: ANGLE_COLORS[i % ANGLE_COLORS.length], fontWeight: 600 }}>{ap.angle} · {ap.pct}%</span> : null; })()}
+            {hovAngle && (() => { const i = outlet.anglePcts.findIndex(a => a.angle === hovAngle); const ap = outlet.anglePcts[i]; return ap ? <span style={{ fontFamily: F.plex, fontSize: 10, color: ANGLE_COLORS[i % ANGLE_COLORS.length], fontWeight: 600 }}>{ap.angle} · {ap.pct}%</span> : null; })()}
           </div>
         </div>
       )}
@@ -470,10 +467,10 @@ export default function OverviewPage() {
 
         {/* Sub-strip */}
         <div className="flex justify-between items-center py-[7px]">
-          <span style={{ fontFamily: F.elite, fontSize: 13, color: "var(--t2)" }}>
+          <span style={{ fontFamily: F.plex, fontSize: 13, color: "var(--t2)" }}>
             Edition I · Dashboard · Data Desk
           </span>
-          <span style={{ fontFamily: F.elite, fontSize: 13, color: "var(--t2)" }}>
+          <span style={{ fontFamily: F.plex, fontSize: 13, color: "var(--t2)" }}>
             Updated {h}:{mn} CET
           </span>
         </div>
@@ -498,7 +495,7 @@ export default function OverviewPage() {
               const label  = c ? countryLabel(c) : "All";
               return (
                 <button key={c ?? "all"} onClick={() => setCountry(c)} style={{
-                  fontFamily: F.podkova, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em",
+                  fontFamily: F.plex, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em",
                   background: active ? "var(--t1)" : "transparent",
                   color: active ? "var(--bg)" : "var(--t2)",
                   border: `1px solid ${active ? "var(--t1)" : "var(--border)"}`,
@@ -520,14 +517,14 @@ export default function OverviewPage() {
               flex: 1, borderRight: i < STATS.length - 1 ? "1px solid var(--t1)" : "none",
               padding: "18px 22px 20px",
             }}>
-              <div style={{ fontFamily: F.podkova, fontSize: 11, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
+              <div style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
                 {stat.label}
               </div>
               <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 52, lineHeight: 1, color: "var(--t1)", marginBottom: 10 }}>
                 {stat.value}
               </div>
               <div style={{ borderTop: "1px solid var(--border)", paddingTop: 8 }}>
-                <div style={{ fontFamily: F.podkova, fontSize: 12, color: "var(--t2)" }}>{stat.sub}</div>
+                <div style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t2)" }}>{stat.sub}</div>
               </div>
             </div>
           ))}
@@ -548,8 +545,8 @@ export default function OverviewPage() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="2 5" vertical={false} stroke="var(--border)" />
-                <XAxis dataKey="month" tick={{ fontFamily: F.podkova, fontSize: 11, fill: "var(--t2)" }} axisLine={{ stroke: "var(--border)" }} tickLine={false} />
-                <YAxis tick={{ fontFamily: F.podkova, fontSize: 11, fill: "var(--t2)" }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="month" tick={{ fontFamily: F.plex, fontSize: 11, fill: "var(--t2)" }} axisLine={{ stroke: "var(--border)" }} tickLine={false} />
+                <YAxis tick={{ fontFamily: F.plex, fontSize: 11, fill: "var(--t2)" }} axisLine={false} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} />
                 <Area type="stepAfter" dataKey="articles" name="Articles"
                   stroke="var(--red)" strokeWidth={2}
@@ -567,7 +564,7 @@ export default function OverviewPage() {
             <ResponsiveContainer width="100%" height={240}>
               <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
                 <PolarGrid stroke="var(--border)" />
-                <PolarAngleAxis dataKey="frame" tick={{ fontFamily: F.podkova, fontSize: 10, fill: "var(--t2)" }} />
+                <PolarAngleAxis dataKey="frame" tick={{ fontFamily: F.plex, fontSize: 10, fill: "var(--t2)" }} />
                 <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
                 <Radar name="All outlets" dataKey="value"
                   stroke="var(--red)" fill="var(--red)" fillOpacity={0.18} strokeWidth={1.5}
@@ -582,7 +579,7 @@ export default function OverviewPage() {
                 return (
                   <div key={fd.key} className="flex items-center gap-2">
                     <span style={{ width: 9, height: 9, display: "inline-block", background: fd.color, flexShrink: 0 }} />
-                    <span style={{ fontFamily: F.podkova, fontSize: 11, color: "var(--t2)" }}>{fd.short} {pct}%</span>
+                    <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)" }}>{fd.short} {pct}%</span>
                   </div>
                 );
               })}
@@ -612,7 +609,7 @@ export default function OverviewPage() {
               {hoveredAngleBar ? (() => {
                 const i = angleBars.findIndex(x => x.angle === hoveredAngleBar);
                 const b = angleBars[i];
-                return b ? <span style={{ fontFamily: F.podkova, fontSize: 13, color: ANGLE_COLORS[i % ANGLE_COLORS.length], fontWeight: 600 }}>{b.angle} — {b.pct}%</span> : null;
+                return b ? <span style={{ fontFamily: F.plex, fontSize: 13, color: ANGLE_COLORS[i % ANGLE_COLORS.length], fontWeight: 600 }}>{b.angle} — {b.pct}%</span> : null;
               })() : (
                 <div style={{ display: "flex" }}>
                   {angleBars.map((b, i) => (
@@ -627,7 +624,7 @@ export default function OverviewPage() {
               {angleBars.map((b, i) => (
                 <div key={b.angle} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ width: 8, height: 8, display: "inline-block", background: ANGLE_COLORS[i % ANGLE_COLORS.length], flexShrink: 0 }} />
-                  <span style={{ fontFamily: F.podkova, fontSize: 11, color: "var(--t2)" }}>{b.angle}</span>
+                  <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)" }}>{b.angle}</span>
                 </div>
               ))}
             </div>
@@ -667,8 +664,8 @@ export default function OverviewPage() {
                 return (
                   <div key={s.sector} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     <span style={{ width: 8, height: 8, display: "inline-block", background: SECTOR_COLORS[i % SECTOR_COLORS.length], flexShrink: 0 }} />
-                    <span style={{ fontFamily: F.podkova, fontSize: 10, color: "var(--t2)", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.sector}</span>
-                    <span style={{ fontFamily: F.podkova, fontSize: 10, color: "var(--t1)", fontWeight: 600 }}>{pct}%</span>
+                    <span style={{ fontFamily: F.plex, fontSize: 10, color: "var(--t2)", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.sector}</span>
+                    <span style={{ fontFamily: F.plex, fontSize: 10, color: "var(--t1)", fontWeight: 600 }}>{pct}%</span>
                   </div>
                 );
               })}
@@ -708,7 +705,7 @@ export default function OverviewPage() {
               return (
                 <div key={d.domain} style={{ flex: 1 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                    <span style={{ fontFamily: F.podkova, fontSize: 13, color: "var(--t2)" }}>{d.domain}</span>
+                    <span style={{ fontFamily: F.plex, fontSize: 13, color: "var(--t2)" }}>{d.domain}</span>
                     <span style={{ fontFamily: F.playfair, fontSize: 22, lineHeight: 1, color: "var(--t1)" }}>{pct}%</span>
                   </div>
                   <div style={{ height: 2, background: "var(--bg2)" }}>
@@ -728,11 +725,11 @@ export default function OverviewPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
               <div className="flex items-center gap-3">
                 <svg width={14} height={14}><circle cx={7} cy={7} r={5} fill="var(--red)" /></svg>
-                <span style={{ fontFamily: F.podkova, fontSize: 12, color: "var(--t2)" }}>Media coverage (%)</span>
+                <span style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t2)" }}>Media coverage (%)</span>
               </div>
               <div className="flex items-center gap-3">
                 <svg width={14} height={14}><circle cx={7} cy={7} r={5} fill="var(--green)" /></svg>
-                <span style={{ fontFamily: F.podkova, fontSize: 12, color: "var(--t2)" }}>GHG emissions share (%)</span>
+                <span style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t2)" }}>GHG emissions share (%)</span>
               </div>
             </div>
             <EditorialNote>
@@ -746,7 +743,7 @@ export default function OverviewPage() {
                 return (
                   <g key={tick}>
                     <line x1={x} x2={x} y1={0} y2={svgH - 20} stroke="var(--bg2)" strokeWidth={0.5} strokeDasharray="2 3" />
-                    <text x={x} y={svgH - 4} textAnchor="middle" fontFamily={F.podkova} fontSize={9} fill="var(--t2)">{tick}%</text>
+                    <text x={x} y={svgH - 4} textAnchor="middle" fontFamily={F.plex} fontSize={9} fill="var(--t2)">{tick}%</text>
                   </g>
                 );
               })}
@@ -773,7 +770,7 @@ export default function OverviewPage() {
                   <g key={s.stage}>
                     <text x={x} y={32} textAnchor="middle" fill={color} fontFamily={F.playfair} fontSize={28}>{s.pct}%</text>
                     <line x1={x} x2={x} y1={40} y2={62} stroke={color} strokeWidth={1.5} />
-                    <text x={x} y={76} textAnchor="middle" fill="var(--t2)" fontFamily={F.podkova} fontSize={9}>
+                    <text x={x} y={76} textAnchor="middle" fill="var(--t2)" fontFamily={F.plex} fontSize={9}>
                       {s.stage.toUpperCase()}
                     </text>
                   </g>
@@ -789,10 +786,10 @@ export default function OverviewPage() {
         {/* Footer */}
         <div className="mt-8"><Rule /></div>
         <div className="flex justify-between items-center py-4">
-          <span style={{ fontFamily: F.elite, fontSize: 14, color: "var(--t2)" }}>
+          <span style={{ fontFamily: F.plex, fontSize: 14, color: "var(--t2)" }}>
             The Climate Narrative Lab · Edition I
           </span>
-          <span style={{ fontFamily: F.elite, fontSize: 14, color: "var(--t2)" }}>
+          <span style={{ fontFamily: F.plex, fontSize: 14, color: "var(--t2)" }}>
             Dashboard
           </span>
         </div>
