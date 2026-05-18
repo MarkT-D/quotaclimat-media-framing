@@ -7,76 +7,200 @@ const F = {
   serif:    "var(--font-source-serif)",
 };
 
+// ─── Edition data ─────────────────────────────────────────────────────────────
+
+type NumberStyle = "underline" | "bare" | "border";
+
 type Edition = {
-  number: string;
-  numberColor: string;
-  underline: boolean;
-  border: boolean;
-  numberSize: number;
-  titleSize: number;
-  numberMarginTop: number;
-  labelSide: "left" | "right";
   label: string;
+  number: string;
+  numberStyle: NumberStyle;
   title: string;
   italic: boolean;
   desc: string;
   cta: string;
   href: string;
+  Teaser: React.FC;
 };
 
-function Rule() {
-  return <div className="border-t border-[var(--t2)]" />;
+// ─── Placeholder teaser content ───────────────────────────────────────────────
+// Real teaser content fills in via a follow-up PR. These are explicit
+// placeholders — the structure is real, the text is obviously fake — so any
+// pre-launch screenshots aren't mistaken for production copy.
+
+function TeaserDashboard() {
+  return (
+    <div className="flex flex-col" style={{ gap: 12 }}>
+      <div className="flex items-baseline justify-between">
+        <span style={{
+          fontFamily: F.plex, fontSize: 11, color: "var(--t2)",
+          textTransform: "uppercase", letterSpacing: "0.04em",
+        }}>
+          Sector coverage placeholder
+        </span>
+        <span style={{ fontFamily: F.playfair, fontSize: 22, lineHeight: 1, color: "var(--red)" }}>
+          +12pp
+        </span>
+      </div>
+      <svg viewBox="0 0 100 40" preserveAspectRatio="none"
+        style={{ width: "100%", height: 60, display: "block" }}>
+        <rect x="2"  y="22" width="20" height="18" fill="var(--red)" />
+        <rect x="26" y="10" width="20" height="30" fill="var(--green)" />
+        <rect x="50" y="28" width="20" height="12" fill="var(--red-m)" />
+        <rect x="74" y="16" width="20" height="24" fill="var(--green-m)" />
+      </svg>
+    </div>
+  );
 }
 
-function EditionCard({ ed, height, padLeft, padRight }: {
-  ed: Edition;
-  height: number;
-  padLeft: number;
-  padRight: number;
-}) {
-  const labelLeft = ed.labelSide === "left";
+function TeaserReader() {
   return (
-    <Link href={ed.href} className="group block">
-      <div
-        className="relative flex flex-col"
-        style={{ height, paddingTop: 17, paddingBottom: 20, paddingLeft: padLeft, paddingRight: padRight }}
-      >
-        {/* Edition label - side alternates to mirror across the column divider */}
-        <div
-          className={`absolute top-[17px] ${labelLeft ? "left-0 text-left" : "right-0 text-right"}`}
-          style={{
-            fontFamily: F.plex,
-            fontSize: 13,
-            color: "var(--t2)",
-            letterSpacing: "0.04em",
-            textTransform: "uppercase",
-            paddingLeft:  labelLeft ? padLeft  : 0,
-            paddingRight: labelLeft ? 0 : padRight,
-          }}
-        >
+    <div className="flex flex-col" style={{ gap: 8 }}>
+      <div style={{
+        fontFamily: F.playfair, fontSize: 16, lineHeight: "20px", color: "var(--t1)",
+      }}>
+        Headline placeholder lorem ipsum dolor.
+      </div>
+      <div style={{
+        fontFamily: F.plex, fontSize: 11, color: "var(--t2)",
+        textTransform: "uppercase", letterSpacing: "0.04em",
+      }}>
+        Byline placeholder &middot; 2026
+      </div>
+      <div style={{
+        fontFamily: F.serif, fontStyle: "italic",
+        fontSize: 13, lineHeight: "18px", color: "var(--t2)",
+      }}>
+        Excerpt placeholder consectetur adipiscing elit, sed do eiusmod tempor incididunt.
+      </div>
+    </div>
+  );
+}
+
+function TeaserDiscrepancy() {
+  const outlets = [
+    { name: "Outlet A", color: "var(--red)" },
+    { name: "Outlet B", color: "var(--green)" },
+    { name: "Outlet C", color: "var(--red-m)" },
+  ];
+  return (
+    <div className="flex flex-col" style={{ gap: 10 }}>
+      {outlets.map(o => (
+        <div key={o.name} className="flex items-center" style={{ gap: 10 }}>
+          <span style={{
+            width: 8, height: 8, background: o.color,
+            display: "inline-block", flexShrink: 0,
+          }} />
+          <span style={{ fontFamily: F.plex, fontSize: 13, color: "var(--t1)" }}>
+            {o.name}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TeaserAbout() {
+  return (
+    <div className="flex flex-col" style={{ gap: 12 }}>
+      <div style={{
+        fontFamily: F.serif, fontStyle: "italic",
+        fontSize: 16, lineHeight: "24px", color: "var(--t1)",
+        borderLeft: "2px solid var(--t1)", paddingLeft: 12,
+      }}>
+        &ldquo;Quote placeholder lorem ipsum dolor sit amet consectetur.&rdquo;
+      </div>
+      <div style={{
+        fontFamily: F.plex, fontSize: 11, color: "var(--t2)",
+        textTransform: "uppercase", letterSpacing: "0.04em",
+      }}>
+        &mdash; Attribution placeholder
+      </div>
+    </div>
+  );
+}
+
+// ─── Edition list ─────────────────────────────────────────────────────────────
+
+const EDITIONS: Edition[] = [
+  {
+    label: "Edition I",
+    number: "01",
+    numberStyle: "underline",
+    title: "Dashboard",
+    italic: true,
+    desc: "Sector coverage vs. GHG proportionality across 74 outlets.",
+    cta: "Open dashboard",
+    href: "/overview",
+    Teaser: TeaserDashboard,
+  },
+  {
+    label: "Edition II",
+    number: "02",
+    numberStyle: "bare",
+    title: "The Reader",
+    italic: true,
+    desc: "Where reported emissions diverge from measurable impact.",
+    cta: "Pick & compare",
+    href: "/search",
+    Teaser: TeaserReader,
+  },
+  {
+    label: "Edition III",
+    number: "03",
+    numberStyle: "bare",
+    title: "Discrepancy desk",
+    italic: false,
+    desc: "Per-outlet framing patterns and publication statistics.",
+    cta: "Open desk",
+    href: "/newspapers",
+    Teaser: TeaserDiscrepancy,
+  },
+  {
+    label: "Special Edition",
+    number: "Special",
+    numberStyle: "border",
+    title: "About us",
+    italic: false,
+    desc: "Mission, methodology, and the research team behind the Lab.",
+    cta: "Read",
+    href: "/about",
+    Teaser: TeaserAbout,
+  },
+];
+
+// ─── EditionTeaser column ─────────────────────────────────────────────────────
+
+function EditionTeaser({ ed }: { ed: Edition }) {
+  return (
+    <Link href={ed.href} className="group block h-full">
+      <div className="flex flex-col h-full" style={{ padding: 16 }}>
+
+        {/* Edition label */}
+        <div style={{
+          fontFamily: F.plex, fontSize: 11, color: "var(--t2)",
+          textTransform: "uppercase", letterSpacing: "0.04em",
+          marginBottom: 8,
+        }}>
           {ed.label}
         </div>
 
-        {/* Number */}
-        <div
-          className="transition-transform duration-300 group-hover:-translate-y-1"
-          style={{ marginTop: ed.numberMarginTop }}
-        >
-          {ed.border ? (
+        {/* Edition number */}
+        <div className="transition-transform duration-300 group-hover:-translate-y-1">
+          {ed.numberStyle === "border" ? (
             <span style={{
               fontFamily: F.playfair, fontWeight: 400,
-              fontSize: ed.numberSize, lineHeight: "1",
-              color: ed.numberColor,
-              border: "1px solid var(--t1)", display: "inline-block", padding: "2px 10px",
+              fontSize: 28, lineHeight: 1, color: "var(--t1)",
+              border: "1px solid var(--t1)",
+              display: "inline-block", padding: "2px 10px",
             }}>
               {ed.number}
             </span>
           ) : (
             <span style={{
               fontFamily: F.playfair, fontWeight: 400,
-              fontSize: ed.numberSize, lineHeight: "1",
-              color: ed.numberColor,
-              textDecoration: ed.underline ? "underline" : "none",
+              fontSize: 56, lineHeight: 1, color: "var(--t1)",
+              textDecoration: ed.numberStyle === "underline" ? "underline" : "none",
             }}>
               {ed.number}
             </span>
@@ -86,36 +210,45 @@ function EditionCard({ ed, height, padLeft, padRight }: {
         {/* Title */}
         <div style={{
           fontFamily: F.playfair, fontWeight: 400,
-          fontSize: ed.titleSize, lineHeight: "1.1",
+          fontSize: 24, lineHeight: "28px",
           fontStyle: ed.italic ? "italic" : "normal",
-          color: "var(--t1)", marginTop: 10,
+          color: "var(--t1)",
+          marginTop: 12,
         }}>
           {ed.title}
         </div>
 
         {/* Description */}
-        <div
-          className="flex-1 mt-4"
-          style={{ fontFamily: F.plex, fontSize: 15, color: "var(--t2)", lineHeight: "21px" }}
-        >
+        <div style={{
+          fontFamily: F.serif, fontWeight: 300,
+          fontSize: 13, lineHeight: "18px",
+          color: "var(--t2)",
+          marginTop: 8,
+        }}>
           {ed.desc}
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-[var(--t1)] mb-3" style={{ boxShadow: "0 4px 4px rgba(0,0,0,0.25)" }} />
+        {/* Hairline divider */}
+        <div style={{
+          borderTop: "1px solid var(--border)",
+          marginTop: 16, marginBottom: 16,
+        }} />
+
+        {/* Placeholder teaser content — flex-1 fills remaining vertical space */}
+        <div style={{ flex: 1, minHeight: 0 }}>
+          <ed.Teaser />
+        </div>
 
         {/* CTA */}
-        <div className="flex items-center gap-1">
-          <span
-            className="transition-colors group-hover:text-black"
-            style={{ fontFamily: F.plex, fontSize: 14, color: "var(--t2)" }}
-          >
+        <div className="flex items-center gap-1" style={{ marginTop: 16 }}>
+          <span style={{
+            fontFamily: F.plex, fontSize: 11, color: "var(--t2)",
+            textTransform: "uppercase", letterSpacing: "0.04em",
+          }}>
             {ed.cta}
           </span>
-          <span
-            className="opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200"
-            style={{ fontFamily: F.plex, fontSize: 14, color: "var(--t1)" }}
-          >
+          <span className="opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200"
+            style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t1)" }}>
             &rarr;
           </span>
         </div>
@@ -124,56 +257,7 @@ function EditionCard({ ed, height, padLeft, padRight }: {
   );
 }
 
-type Slot = { ed: Edition; height: number };
-
-// Left column: Dashboard (top, 310px) + Discrepancy Desk (bottom, 190px)
-// Right column: The Reader (top, 240px) + About (bottom, 260px)
-// The inner borders are deliberately mis-aligned (310 vs 240) — that offset IS the asymmetry.
-const LEFT: Slot[] = [
-  {
-    height: 310,
-    ed: {
-      number: "01", numberColor: "var(--t1)", underline: true, border: false,
-      numberSize: 96, titleSize: 38, numberMarginTop: 60, labelSide: "right",
-      label: "Edition I", title: "Dashboard", italic: true,
-      desc: "Sector coverage vs. GHG proportionality across 74 outlets.",
-      cta: "Open Dashboard", href: "/overview",
-    },
-  },
-  {
-    height: 190,
-    ed: {
-      number: "02", numberColor: "var(--t1)", underline: false, border: false,
-      numberSize: 72, titleSize: 26, numberMarginTop: 24, labelSide: "right",
-      label: "Edition II", title: "The Reader", italic: true,
-      desc: "Where reported emissions diverge from measurable impact.",
-      cta: "Pick & compare", href: "/search",
-    },
-  },
-];
-
-const RIGHT: Slot[] = [
-  {
-    height: 240,
-    ed: {
-      number: "03", numberColor: "var(--t1)", underline: false, border: false,
-      numberSize: 76, titleSize: 28, numberMarginTop: 40, labelSide: "left",
-      label: "Edition III", title: "Discrepancy desk", italic: false,
-      desc: "Per-outlet framing patterns and publication statistics.",
-      cta: "Search & Upload", href: "/newspapers",
-    },
-  },
-  {
-    height: 260,
-    ed: {
-      number: "Special", numberColor: "var(--t1)", underline: false, border: true,
-      numberSize: 28, titleSize: 22, numberMarginTop: 28, labelSide: "left",
-      label: "Special Edition", title: "About us", italic: false,
-      desc: "Mission, methodology, and the research team behind the Lab.",
-      cta: "Explore", href: "/about",
-    },
-  },
-];
+// ─── Stats ticker ─────────────────────────────────────────────────────────────
 
 const TICKER_ITEMS = [
   "Coverage gaps", "Framing bias", "Sector proportionality",
@@ -182,107 +266,68 @@ const TICKER_ITEMS = [
 ];
 const TICKER_TEXT = TICKER_ITEMS.join("  ·  ") + "  ·  ";
 
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function HomePage() {
-  const now = new Date();
-  const h = now.getHours().toString().padStart(2, "0");
-  const m = now.getMinutes().toString().padStart(2, "0");
-
   return (
-    <div>
-      <div className="max-w-[1440px] mx-auto px-11">
+    <div className="max-w-[1440px] mx-auto px-11">
 
-        {/* Sub-strip */}
-        <div className="flex justify-between items-center py-[7px]">
-          <span style={{ fontFamily: F.plex, fontSize: 14, color: "var(--t2)", textTransform: "uppercase", lineHeight: "25px" }}>
-            Limited Edition &middot; The reading room
-          </span>
-          <span style={{ fontFamily: F.plex, fontSize: 14, color: "var(--t2)", textTransform: "uppercase", lineHeight: "25px" }}>
-            Updated {h}:{m} CET
-          </span>
+      {/* Hero pair — Welcome on left, intro on right.
+          Mobile (<lg): stacks single-column. Desktop: two columns top-aligned. */}
+      <div className="flex flex-col lg:flex-row gap-8 lg:gap-12"
+        style={{ paddingTop: 24, paddingBottom: 32 }}>
+        <div className="flex-1">
+          <TypingGreeting style={{
+            fontFamily: F.playfair, fontWeight: 400,
+            fontSize: 56, lineHeight: "60px",
+            color: "var(--t1)",
+          }} />
         </div>
-
-        {/* Hero */}
-        <div className="relative flex gap-12 pt-8 pb-16" style={{ minHeight: 470 }}>
-          <div className="flex-1 self-end">
-            <TypingGreeting style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 140, lineHeight: "130px", color: "var(--t1)" }} />
-          </div>
-          <div className="shrink-0 self-start" style={{ width: 491 }}>
-            <p style={{ fontFamily: F.serif, fontWeight: 400, fontSize: 24, lineHeight: "33px", color: "var(--t1)", marginBottom: 28 }}>
-              Climate journalism shapes how the public understands the crisis. But who shapes climate journalism?
-            </p>
-            <p style={{ fontFamily: F.serif, fontWeight: 300, fontSize: 17, lineHeight: "23px", color: "var(--t1)" }}>
-              The Climate Narrative Review tracks how 74 French and Belgian outlets frame the crisis &mdash; which sectors they cover, which they overlook, and whether reporting reflects actual emissions.
-            </p>
-          </div>
-          <div style={{ position: "absolute", bottom: 20, left: "50%", transform: "translateX(-50%)" }}>
-            <a href="#editions" className="scroll-hint" aria-label="Scroll to editions">
-              <div style={{ width: 15, height: 15, borderRight: "1px solid currentColor", borderBottom: "1px solid currentColor", transform: "rotate(45deg)" }} />
-            </a>
-          </div>
+        <div className="flex-1">
+          <p style={{
+            fontFamily: F.serif, fontWeight: 400,
+            fontSize: 20, lineHeight: "30px",
+            color: "var(--t1)",
+            marginBottom: 24,
+          }}>
+            Climate journalism shapes how the public understands the crisis. But who shapes climate journalism?
+          </p>
+          <p style={{
+            fontFamily: F.serif, fontWeight: 300,
+            fontSize: 16, lineHeight: "24px",
+            color: "var(--t1)",
+          }}>
+            The Climate Narrative Review tracks how 74 French and Belgian outlets frame the crisis &mdash; which sectors they cover, which they overlook, and whether reporting reflects actual emissions.
+          </p>
         </div>
+      </div>
 
-        <Rule />
-
-        {/* Ticker */}
-        <div className="py-[8px] overflow-hidden">
-          <div style={{ display: "flex", width: "max-content", whiteSpace: "nowrap", animation: "ticker 40s linear infinite", fontFamily: F.plex, fontSize: 16, color: "var(--t2)" }}>
-            <span>{TICKER_TEXT}</span>
-            <span aria-hidden="true">{TICKER_TEXT}</span>
-          </div>
+      {/* Stats ticker — section divider between hero pair and editions */}
+      <div style={{ borderTop: "1px solid var(--t1)" }} />
+      <div className="py-2 overflow-hidden">
+        <div style={{
+          display: "flex", width: "max-content", whiteSpace: "nowrap",
+          animation: "ticker 40s linear infinite",
+          fontFamily: F.plex, fontSize: 14, color: "var(--t2)",
+        }}>
+          <span>{TICKER_TEXT}</span>
+          <span aria-hidden="true">{TICKER_TEXT}</span>
         </div>
+      </div>
+      <div style={{ borderTop: "1px solid var(--t1)" }} />
 
-        <Rule />
-
-        {/* Section heading */}
-        <div id="editions" style={{ paddingTop: 44, paddingBottom: 66 }}>
-          <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 43, lineHeight: "45px", color: "var(--t1)" }}>
-            The index &mdash; four editions of<br />the Climate Narrative Review
+      {/* Four-up teaser grid — equal-width columns at xl+.
+          Tablet (md): 2-col. Mobile (<md): 1-col stacked.
+          Desktop height fixed to fit the in-viewport budget; smaller breakpoints let it grow. */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 xl:h-[320px]">
+        {EDITIONS.map((ed, i) => (
+          <div key={ed.href} style={{
+            borderRight: i < EDITIONS.length - 1 ? "1px solid var(--t1)" : "none",
+            borderBottom: "1px solid var(--t1)",
+          }}>
+            <EditionTeaser ed={ed} />
           </div>
-        </div>
-
-        <Rule />
-
-        {/* Edition cards — intentionally asymmetric two-column layout.
-            Left border between cards sits at 310px; right border at 240px.
-            The 70px offset is the visible asymmetry. */}
-        <div style={{ display: "flex" }}>
-
-          {/* Left column — 60% */}
-          <div style={{ flex: "3 3 0%", minWidth: 0 }}>
-            {LEFT.map((slot, j) => (
-              <div key={slot.ed.href}>
-                {j > 0 && <div style={{ borderTop: "1px solid var(--t1)" }} />}
-                <EditionCard ed={slot.ed} height={slot.height} padLeft={0} padRight={24} />
-              </div>
-            ))}
-          </div>
-
-          {/* Right column — 40% */}
-          <div style={{ flex: "2 2 0%", minWidth: 0, borderLeft: "1px solid var(--t1)" }}>
-            {RIGHT.map((slot, j) => (
-              <div key={slot.ed.href}>
-                {j > 0 && <div style={{ borderTop: "1px solid var(--t1)" }} />}
-                <EditionCard ed={slot.ed} height={slot.height} padLeft={24} padRight={0} />
-              </div>
-            ))}
-          </div>
-
-        </div>
-
-        <div className="mt-[45px]"><Rule /></div>
-
-        <Rule />
-
-        {/* Footer breadcrumb */}
-        <div className="flex justify-between items-center py-4">
-          <span style={{ fontFamily: F.plex, fontSize: 16, color: "var(--t2)" }}>
-            The Climate Narrative Review &middot; Home
-          </span>
-          <span style={{ fontFamily: F.plex, fontSize: 16, color: "var(--t2)" }}>
-            Limited Edition
-          </span>
-        </div>
-
+        ))}
       </div>
     </div>
   );
