@@ -1,16 +1,6 @@
 "use client";
 
-const Logo = () => (
-  <svg width="44" height="44" viewBox="0 0 42 42" fill="none">
-    <rect width="42" height="42" rx="11" fill="#2D6A4F" />
-    <rect x="8" y="12" width="18" height="2.5" rx="1.25" fill="white" />
-    <rect x="8" y="17.5" width="14" height="2.5" rx="1.25" fill="white" opacity="0.7" />
-    <rect x="8" y="23" width="16" height="2.5" rx="1.25" fill="white" opacity="0.5" />
-    <circle cx="31" cy="16" r="6.5" fill="#C8392B" />
-    <path d="M31 13 L31 16 L33 18" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-    <rect x="8" y="28.5" width="26" height="1.5" rx="0.75" fill="white" opacity="0.2" />
-  </svg>
-);
+import Logo from "@/components/Logo";
 
 const team = [
   { name: "Gabriella Beckley", role: "Literature & Framing Theory", icon: "📚", track: "RE" },
@@ -35,7 +25,7 @@ export default function AboutPage() {
           className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
           style={{ background: "#fff", border: "0.5px solid rgba(45,106,79,0.25)" }}
         >
-          <Logo />
+          <Logo size={44} />
         </div>
         <div>
           <h1 className="text-lg font-medium leading-snug mb-2" style={{ color: "var(--green-d)" }}>
