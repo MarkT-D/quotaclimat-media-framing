@@ -2,12 +2,9 @@ import Link from "next/link";
 import TypingGreeting from "@/components/TypingGreeting";
 
 const F = {
-  podkova:    "var(--font-podkova)",
-  quattro:    "var(--font-quattrocento)",
-  playfair:   "var(--font-playfair)",
-  playfairSC: "var(--font-playfair-sc)",
-  serif:      "var(--font-source-serif)",
-  quantico:   "var(--font-quantico)",
+  plex:     "var(--font-plex-sans)",
+  playfair: "var(--font-playfair)",
+  serif:    "var(--font-source-serif)",
 };
 
 type Edition = {
@@ -48,7 +45,7 @@ function EditionCard({ ed, height, padLeft, padRight }: {
         <div
           className={`absolute top-[17px] ${labelLeft ? "left-0 text-left" : "right-0 text-right"}`}
           style={{
-            fontFamily: F.podkova,
+            fontFamily: F.plex,
             fontSize: 13,
             color: "#616161",
             letterSpacing: "0.04em",
@@ -99,7 +96,7 @@ function EditionCard({ ed, height, padLeft, padRight }: {
         {/* Description */}
         <div
           className="flex-1 mt-4"
-          style={{ fontFamily: F.podkova, fontSize: 15, color: "#616161", lineHeight: "21px" }}
+          style={{ fontFamily: F.plex, fontSize: 15, color: "#616161", lineHeight: "21px" }}
         >
           {ed.desc}
         </div>
@@ -111,13 +108,13 @@ function EditionCard({ ed, height, padLeft, padRight }: {
         <div className="flex items-center gap-1">
           <span
             className="transition-colors group-hover:text-black"
-            style={{ fontFamily: F.podkova, fontSize: 14, color: "#616161" }}
+            style={{ fontFamily: F.plex, fontSize: 14, color: "#616161" }}
           >
             {ed.cta}
           </span>
           <span
             className="opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200"
-            style={{ fontFamily: F.podkova, fontSize: 14, color: "#000" }}
+            style={{ fontFamily: F.plex, fontSize: 14, color: "#000" }}
           >
             &rarr;
           </span>
@@ -196,10 +193,10 @@ export default function HomePage() {
 
         {/* Sub-strip */}
         <div className="flex justify-between items-center py-[7px]">
-          <span style={{ fontFamily: F.quantico, fontSize: 14, color: "#616161", textTransform: "uppercase", lineHeight: "25px" }}>
+          <span style={{ fontFamily: F.plex, fontSize: 14, color: "#616161", textTransform: "uppercase", lineHeight: "25px" }}>
             Limited Edition &middot; The reading room
           </span>
-          <span style={{ fontFamily: F.quantico, fontSize: 14, color: "#616161", textTransform: "uppercase", lineHeight: "25px" }}>
+          <span style={{ fontFamily: F.plex, fontSize: 14, color: "#616161", textTransform: "uppercase", lineHeight: "25px" }}>
             Updated {h}:{m} CET
           </span>
         </div>
@@ -228,7 +225,7 @@ export default function HomePage() {
 
         {/* Ticker */}
         <div className="py-[8px] overflow-hidden">
-          <div style={{ display: "flex", width: "max-content", whiteSpace: "nowrap", animation: "ticker 40s linear infinite", fontFamily: F.podkova, fontSize: 16, color: "#616161" }}>
+          <div style={{ display: "flex", width: "max-content", whiteSpace: "nowrap", animation: "ticker 40s linear infinite", fontFamily: F.plex, fontSize: 16, color: "#616161" }}>
             <span>{TICKER_TEXT}</span>
             <span aria-hidden="true">{TICKER_TEXT}</span>
           </div>
@@ -278,10 +275,10 @@ export default function HomePage() {
 
         {/* Footer breadcrumb */}
         <div className="flex justify-between items-center py-4">
-          <span style={{ fontFamily: F.podkova, fontSize: 16, color: "#616161" }}>
+          <span style={{ fontFamily: F.plex, fontSize: 16, color: "#616161" }}>
             The Climate Narrative Lab &middot; Home
           </span>
-          <span style={{ fontFamily: F.podkova, fontSize: 16, color: "#616161" }}>
+          <span style={{ fontFamily: F.plex, fontSize: 16, color: "#616161" }}>
             Limited Edition
           </span>
         </div>

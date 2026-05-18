@@ -8,13 +8,9 @@ import {
 import { useArticles } from "@/lib/useArticles";
 
 const F = {
-  oldNewspaper: "OldNewspaperTypes, var(--font-special-elite), var(--font-playfair-sc)",
-  elite:        "var(--font-special-elite)",
-  podkova:      "var(--font-podkova)",
-  playfair:     "var(--font-playfair)",
-  playfairSC:   "var(--font-playfair-sc)",
-  serif:        "var(--font-source-serif)",
-  quantico:     "var(--font-quantico)",
+  playfair: "var(--font-playfair)",
+  serif:    "var(--font-source-serif)",
+  plex:     "var(--font-plex-sans)",
 };
 
 // Schema angle labels — schema.sql: angle_health, angle_economics, angle_jobs,
@@ -70,7 +66,7 @@ function ChipFilter<T extends string>({
   return (
     <div className="flex items-center flex-wrap" style={{ gap: "4px 5px" }}>
       <span style={{
-        fontFamily: F.podkova, fontSize: 11, color: "var(--t2)",
+        fontFamily: F.plex, fontSize: 11, color: "var(--t2)",
         textTransform: "uppercase", letterSpacing: "0.06em", marginRight: 4, whiteSpace: "nowrap",
       }}>
         {label}
@@ -80,7 +76,7 @@ function ChipFilter<T extends string>({
         return (
           <button key={opt || "__all"} onClick={() => onChange(opt)}
             style={{
-              fontFamily: F.podkova, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em",
+              fontFamily: F.plex, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em",
               background: active ? "var(--t1)" : "transparent",
               color: active ? "var(--bg)" : "var(--t2)",
               border: `1px solid ${active ? "var(--t1)" : "var(--border)"}`,
@@ -104,14 +100,14 @@ function DropFilter({ label, value, onChange, opts }: {
 }) {
   return (
     <div className="flex items-center" style={{ gap: 6 }}>
-      <span style={{ fontFamily: F.podkova, fontSize: 11, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
+      <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
         {label}
       </span>
       <div style={{ position: "relative" }}>
         <select
           value={value} onChange={(e) => onChange(e.target.value)}
           style={{
-            fontFamily: F.podkova, fontSize: 11, color: "var(--t1)",
+            fontFamily: F.plex, fontSize: 11, color: "var(--t1)",
             background: "transparent", border: "none", outline: "none",
             cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.04em",
             paddingRight: 16, appearance: "none",
@@ -148,12 +144,12 @@ function NewsItem({ article, index }: { article: Article; index: number }) {
         {/* Byline row */}
         <div className="flex items-baseline justify-between" style={{ marginBottom: 6 }}>
           <span style={{
-            fontFamily: F.elite, fontSize: 11, color: "var(--green)",
+            fontFamily: F.plex, fontSize: 11, color: "var(--green)",
           }}>
             {article.outlet}
           </span>
           <span style={{
-            fontFamily: F.elite, fontSize: 10, color: "var(--t2)",
+            fontFamily: F.plex, fontSize: 10, color: "var(--t2)",
           }}>
             {lang} · {article.publishedAt.slice(0, 10)} · #{artNo}
           </span>
@@ -173,7 +169,7 @@ function NewsItem({ article, index }: { article: Article; index: number }) {
         {/* Word count pill */}
         <div style={{ marginBottom: 8 }}>
           <span style={{
-            fontFamily: F.elite, fontSize: 10, color: "var(--t2)",
+            fontFamily: F.plex, fontSize: 10, color: "var(--t2)",
             border: "1px solid var(--border)", padding: "1px 6px",
           }}>
             {article.wordCount.toLocaleString()} words
@@ -191,10 +187,10 @@ function NewsItem({ article, index }: { article: Article; index: number }) {
         {/* Frame probability bar */}
         <div style={{ marginTop: 14, marginBottom: 8 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-            <span style={{ fontFamily: F.quantico, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--t2)" }}>
+            <span style={{ fontFamily: F.plex, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--t2)" }}>
               Frame · {article.primaryFrame != null ? article.primaryFrame.split(" ").slice(0, 2).join(" ") : "—"}
             </span>
-            <span style={{ fontFamily: F.quantico, fontSize: 9, color: "var(--t2)" }}>
+            <span style={{ fontFamily: F.plex, fontSize: 9, color: "var(--t2)" }}>
               {framePct}%
             </span>
           </div>
@@ -204,7 +200,7 @@ function NewsItem({ article, index }: { article: Article; index: number }) {
         </div>
 
         {/* Tag line: sector · angle · stage · domain */}
-        <p style={{ fontFamily: F.elite, fontSize: 10, color: "var(--t2)" }}>
+        <p style={{ fontFamily: F.plex, fontSize: 10, color: "var(--t2)" }}>
           {article.sector ?? "—"} · {angle ?? "—"} · {article.stage ?? "—"} · {article.crisisDomain ?? "—"}
         </p>
 
@@ -271,10 +267,10 @@ export default function SearchPage() {
 
       {/* Sub-strip — no rule beneath */}
       <div className="flex justify-between items-center py-[7px]">
-        <span style={{ fontFamily: F.elite, fontSize: 13, color: "var(--t2)" }}>
+        <span style={{ fontFamily: F.plex, fontSize: 13, color: "var(--t2)" }}>
           Edition II · The Reader · Search Desk
         </span>
-        <span style={{ fontFamily: F.elite, fontSize: 13, color: "var(--t2)" }}>
+        <span style={{ fontFamily: F.plex, fontSize: 13, color: "var(--t2)" }}>
           Updated {h}:{m} CET
         </span>
       </div>
@@ -287,7 +283,7 @@ export default function SearchPage() {
           onKeyDown={(e) => e.key === "Enter" && bump()}
           placeholder="Search the archive…"
           style={{
-            width: "100%", fontFamily: F.oldNewspaper,
+            width: "100%", fontFamily: F.playfair,
             fontWeight: 400, fontSize: 52, lineHeight: "60px",
             color: "var(--t1)", background: "transparent", border: "none",
             borderBottom: `2px solid var(--t1)`, outline: "none",
@@ -300,7 +296,7 @@ export default function SearchPage() {
           </p>
           <label style={{
             position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)",
-            fontFamily: F.elite, fontSize: 12,
+            fontFamily: F.plex, fontSize: 12,
             background: "var(--t1)", color: "var(--bg)",
             padding: "6px 18px", cursor: "pointer", display: "inline-block", whiteSpace: "nowrap",
           }}>
@@ -327,11 +323,11 @@ export default function SearchPage() {
           className="flex items-center gap-2 w-full py-3"
           style={{ background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
         >
-          <span style={{ fontFamily: F.elite, fontSize: 13, color: "var(--t2)" }}>
+          <span style={{ fontFamily: F.plex, fontSize: 13, color: "var(--t2)" }}>
             {hasFilters ? `Filters — ${activeFilterCount} applied` : "Filters"}
           </span>
           <span style={{
-            fontFamily: F.elite, fontSize: 11, color: "var(--t2)",
+            fontFamily: F.plex, fontSize: 11, color: "var(--t2)",
             display: "inline-block",
             transform: filtersOpen ? "rotate(180deg)" : "rotate(0deg)",
             transition: "transform 0.2s ease",
@@ -345,7 +341,7 @@ export default function SearchPage() {
               onClick={(e) => { e.stopPropagation(); resetFilters(); }}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); resetFilters(); } }}
               style={{
-                marginLeft: "auto", fontFamily: F.elite, fontSize: 11, color: "var(--t2)",
+                marginLeft: "auto", fontFamily: F.plex, fontSize: 11, color: "var(--t2)",
                 textDecoration: "underline", cursor: "pointer",
               }}
             >
@@ -427,7 +423,7 @@ export default function SearchPage() {
 
           {/* Misinfo slider */}
           <div className="flex items-center" style={{ gap: 8 }}>
-            <span style={{ fontFamily: F.podkova, fontSize: 11, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
+            <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
               Misinfo ≤ {maxMisinfo}%
             </span>
             <input type="range" min={0} max={100} value={maxMisinfo}
@@ -443,20 +439,20 @@ export default function SearchPage() {
 
       {/* Results meta + pagination */}
       <div className="flex justify-between items-center pb-2">
-        <span style={{ fontFamily: F.elite, fontSize: 12, color: "var(--t2)" }}>
+        <span style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t2)" }}>
           Showing {paginated.length} of {results.length} matching articles
         </span>
         {totalPages > 1 && (
           <div className="flex items-center gap-5">
             <button onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0}
-              style={{ fontFamily: F.elite, fontSize: 12, color: page === 0 ? "var(--border)" : "var(--t1)", background: "none", border: "none", cursor: page === 0 ? "default" : "pointer" }}>
+              style={{ fontFamily: F.plex, fontSize: 12, color: page === 0 ? "var(--border)" : "var(--t1)", background: "none", border: "none", cursor: page === 0 ? "default" : "pointer" }}>
               ← Prev
             </button>
-            <span style={{ fontFamily: F.elite, fontSize: 12, color: "var(--t2)" }}>
+            <span style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t2)" }}>
               {page + 1} / {totalPages}
             </span>
             <button onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
-              style={{ fontFamily: F.elite, fontSize: 12, color: page >= totalPages - 1 ? "var(--border)" : "var(--t1)", background: "none", border: "none", cursor: page >= totalPages - 1 ? "default" : "pointer" }}>
+              style={{ fontFamily: F.plex, fontSize: 12, color: page >= totalPages - 1 ? "var(--border)" : "var(--t1)", background: "none", border: "none", cursor: page >= totalPages - 1 ? "default" : "pointer" }}>
               Next →
             </button>
           </div>
@@ -498,10 +494,10 @@ export default function SearchPage() {
       {/* Footer */}
       <div style={{ marginTop: 40 }}><Rule /></div>
       <div className="flex justify-between items-center py-4">
-        <span style={{ fontFamily: F.elite, fontSize: 14, color: "var(--t2)" }}>
+        <span style={{ fontFamily: F.plex, fontSize: 14, color: "var(--t2)" }}>
           The Climate Narrative Lab · The Reader
         </span>
-        <span style={{ fontFamily: F.elite, fontSize: 14, color: "var(--t2)" }}>
+        <span style={{ fontFamily: F.plex, fontSize: 14, color: "var(--t2)" }}>
           Edition II
         </span>
       </div>

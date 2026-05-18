@@ -46,7 +46,7 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
   if (!article) {
     return (
       <div className="max-w-4xl mx-auto px-8 pt-8">
-        <p style={{ color: "var(--t2)", fontFamily: "var(--font-podkova)" }}>Loading…</p>
+        <p style={{ color: "var(--t2)", fontFamily: "var(--font-plex-sans)" }}>Loading…</p>
       </div>
     );
   }

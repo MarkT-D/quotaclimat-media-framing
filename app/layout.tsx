@@ -1,26 +1,13 @@
 import type { Metadata } from "next";
 import {
-  Podkova,
-  Quattrocento,
+  IBM_Plex_Sans,
   Playfair_Display,
   Playfair_Display_SC,
   Source_Serif_4,
-  Quantico,
-  Special_Elite,
 } from "next/font/google";
 import "./globals.css";
 import NewspaperHeader from "@/components/NewspaperHeader";
 
-const podkova = Podkova({
-  variable: "--font-podkova",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-const quattrocento = Quattrocento({
-  variable: "--font-quattrocento",
-  subsets: ["latin"],
-  weight: ["400", "700"],
-});
 const playfairDisplay = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
@@ -36,16 +23,12 @@ const sourceSerif4 = Source_Serif_4({
   variable: "--font-source-serif",
   subsets: ["latin"],
   weight: ["300", "400", "600"],
+  style: ["normal", "italic"],
 });
-const quantico = Quantico({
-  variable: "--font-quantico",
+const ibmPlexSans = IBM_Plex_Sans({
+  variable: "--font-plex-sans",
   subsets: ["latin"],
-  weight: ["400", "700"],
-});
-const specialElite = Special_Elite({
-  variable: "--font-special-elite",
-  subsets: ["latin"],
-  weight: ["400"],
+  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
@@ -54,19 +37,16 @@ export const metadata: Metadata = {
 };
 
 const fontVars = [
-  podkova.variable,
-  quattrocento.variable,
   playfairDisplay.variable,
   playfairDisplaySC.variable,
   sourceSerif4.variable,
-  quantico.variable,
-  specialElite.variable,
+  ibmPlexSans.variable,
 ].join(" ");
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={fontVars}>
-      <body className="min-h-full text-neutral-900">
+      <body className="min-h-full">
         <NewspaperHeader />
         <main className="min-h-screen">{children}</main>
       </body>
