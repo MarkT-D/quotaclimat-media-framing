@@ -41,13 +41,17 @@ function getLanguageCode(language: string | null): Language {
   return "FR";
 }
 
-// Frame → moss color mapping for the indicator bar
+// Frame → moss color mapping for the indicator bar.
+// TODO: 4 of 5 frames still conflict with DESIGN.md canonical mapping
+// (Attribution, Human Interest, Conflict, Economic Consequences).
+// Morality is already on canonical #7C3AED. Align the remaining four
+// in the search-page broadsheet rebuild (see DESIGN.md follow-up work).
 const FRAME_COLORS: Record<Frame, string> = {
-  "Attribution of Responsibility": "#4A6741",
-  "Human Interest":                "#7A9A6A",
-  "Conflict":                      "#B8402E",
-  "Morality":                      "#8B7355",
-  "Economic Consequences":         "#A8BE8A",
+  "Attribution of Responsibility": "var(--green)",
+  "Human Interest":                "var(--green-d)",
+  "Conflict":                      "var(--red)",
+  "Morality":                      "#7C3AED",
+  "Economic Consequences":         "var(--green-m)",
 };
 
 function Rule({ color = "var(--border)", thick = false }: { color?: string; thick?: boolean }) {

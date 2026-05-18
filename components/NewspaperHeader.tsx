@@ -67,7 +67,7 @@ export default function NewspaperHeader() {
           transition: "max-height 0.4s ease, opacity 0.25s ease",
         }}>
           <div className="relative flex items-start justify-between pt-12 pb-6">
-            <div style={{ fontFamily: "var(--font-plex-sans)", fontSize: 13, lineHeight: "17px", color: "#616161" }}>
+            <div style={{ fontFamily: "var(--font-plex-sans)", fontSize: 13, lineHeight: "17px", color: "var(--t2)" }}>
               Tuesday, May 5, 2026 Vol. I — No. 17
             </div>
 
@@ -81,7 +81,7 @@ export default function NewspaperHeader() {
                 fontSize: 29,
                 lineHeight: "39px",
                 letterSpacing: "0.05em",
-                color: "#000",
+                color: "var(--t1)",
               }}>
                 THE CLIMATE NARRATIVE LAB
               </div>
@@ -90,19 +90,19 @@ export default function NewspaperHeader() {
                 fontStyle: "italic",
                 fontSize: 14,
                 lineHeight: "17px",
-                color: "#616161",
+                color: "var(--t2)",
                 marginTop: 8,
               }}>
                 "Frame analysis for those who shape coverage."
               </div>
             </div>
 
-            <div className="text-right" style={{ fontFamily: "var(--font-plex-sans)", fontSize: 13, lineHeight: "20px", color: "#616161" }}>
+            <div className="text-right" style={{ fontFamily: "var(--font-plex-sans)", fontSize: 13, lineHeight: "20px", color: "var(--t2)" }}>
               <div>Climate Desk</div>
             </div>
           </div>
 
-          <div className="border-t border-[#616161]" />
+          <div className="border-t border-[var(--t2)]" />
         </div>
 
         {/* Nav strip — always visible */}
@@ -111,14 +111,14 @@ export default function NewspaperHeader() {
             const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
             return (
               <div key={link.href} className="flex items-center">
-                {i > 0 && <div className="w-px h-[14px] bg-[#616161] mx-5" />}
+                {i > 0 && <div className="w-px h-[14px] bg-[var(--t2)] mx-5" />}
                 <Link
                   href={link.href}
                   style={{
                     fontFamily: "var(--font-plex-sans)",
                     fontSize: 13,
                     lineHeight: "14px",
-                    color: active ? "#000" : "#616161",
+                    color: active ? "var(--t1)" : "var(--t2)",
                   }}
                 >
                   {link.label}
@@ -128,7 +128,7 @@ export default function NewspaperHeader() {
           })}
         </div>
 
-        <div className="border-t border-[#616161]" />
+        <div className="border-t border-[var(--t2)]" />
       </div>
     </header>
   );

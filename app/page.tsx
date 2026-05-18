@@ -25,7 +25,7 @@ type Edition = {
 };
 
 function Rule() {
-  return <div className="border-t border-[#616161]" />;
+  return <div className="border-t border-[var(--t2)]" />;
 }
 
 function EditionCard({ ed, height, padLeft, padRight }: {
@@ -47,7 +47,7 @@ function EditionCard({ ed, height, padLeft, padRight }: {
           style={{
             fontFamily: F.plex,
             fontSize: 13,
-            color: "#616161",
+            color: "var(--t2)",
             letterSpacing: "0.04em",
             textTransform: "uppercase",
             paddingLeft:  labelLeft ? padLeft  : 0,
@@ -67,7 +67,7 @@ function EditionCard({ ed, height, padLeft, padRight }: {
               fontFamily: F.playfair, fontWeight: 400,
               fontSize: ed.numberSize, lineHeight: "1",
               color: ed.numberColor,
-              border: "1px solid #000", display: "inline-block", padding: "2px 10px",
+              border: "1px solid var(--t1)", display: "inline-block", padding: "2px 10px",
             }}>
               {ed.number}
             </span>
@@ -88,7 +88,7 @@ function EditionCard({ ed, height, padLeft, padRight }: {
           fontFamily: F.playfair, fontWeight: 400,
           fontSize: ed.titleSize, lineHeight: "1.1",
           fontStyle: ed.italic ? "italic" : "normal",
-          color: "#000", marginTop: 10,
+          color: "var(--t1)", marginTop: 10,
         }}>
           {ed.title}
         </div>
@@ -96,25 +96,25 @@ function EditionCard({ ed, height, padLeft, padRight }: {
         {/* Description */}
         <div
           className="flex-1 mt-4"
-          style={{ fontFamily: F.plex, fontSize: 15, color: "#616161", lineHeight: "21px" }}
+          style={{ fontFamily: F.plex, fontSize: 15, color: "var(--t2)", lineHeight: "21px" }}
         >
           {ed.desc}
         </div>
 
         {/* Divider */}
-        <div className="border-t border-black mb-3" style={{ boxShadow: "0 4px 4px rgba(0,0,0,0.25)" }} />
+        <div className="border-t border-[var(--t1)] mb-3" style={{ boxShadow: "0 4px 4px rgba(0,0,0,0.25)" }} />
 
         {/* CTA */}
         <div className="flex items-center gap-1">
           <span
             className="transition-colors group-hover:text-black"
-            style={{ fontFamily: F.plex, fontSize: 14, color: "#616161" }}
+            style={{ fontFamily: F.plex, fontSize: 14, color: "var(--t2)" }}
           >
             {ed.cta}
           </span>
           <span
             className="opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200"
-            style={{ fontFamily: F.plex, fontSize: 14, color: "#000" }}
+            style={{ fontFamily: F.plex, fontSize: 14, color: "var(--t1)" }}
           >
             &rarr;
           </span>
@@ -133,7 +133,7 @@ const LEFT: Slot[] = [
   {
     height: 310,
     ed: {
-      number: "01", numberColor: "#000", underline: true, border: false,
+      number: "01", numberColor: "var(--t1)", underline: true, border: false,
       numberSize: 96, titleSize: 38, numberMarginTop: 60, labelSide: "right",
       label: "Edition I", title: "Dashboard", italic: true,
       desc: "Sector coverage vs. GHG proportionality across 74 outlets.",
@@ -143,7 +143,7 @@ const LEFT: Slot[] = [
   {
     height: 190,
     ed: {
-      number: "02", numberColor: "#8EE339", underline: false, border: false,
+      number: "02", numberColor: "var(--t1)", underline: false, border: false,
       numberSize: 72, titleSize: 26, numberMarginTop: 24, labelSide: "right",
       label: "Edition II", title: "The Reader", italic: true,
       desc: "Where reported emissions diverge from measurable impact.",
@@ -156,7 +156,7 @@ const RIGHT: Slot[] = [
   {
     height: 240,
     ed: {
-      number: "03", numberColor: "#000", underline: false, border: false,
+      number: "03", numberColor: "var(--t1)", underline: false, border: false,
       numberSize: 76, titleSize: 28, numberMarginTop: 40, labelSide: "left",
       label: "Edition III", title: "Discrepancy desk", italic: false,
       desc: "Per-outlet framing patterns and publication statistics.",
@@ -166,7 +166,7 @@ const RIGHT: Slot[] = [
   {
     height: 260,
     ed: {
-      number: "Special", numberColor: "#000", underline: false, border: true,
+      number: "Special", numberColor: "var(--t1)", underline: false, border: true,
       numberSize: 28, titleSize: 22, numberMarginTop: 28, labelSide: "left",
       label: "Special Edition", title: "About us", italic: false,
       desc: "Mission, methodology, and the research team behind the Lab.",
@@ -193,10 +193,10 @@ export default function HomePage() {
 
         {/* Sub-strip */}
         <div className="flex justify-between items-center py-[7px]">
-          <span style={{ fontFamily: F.plex, fontSize: 14, color: "#616161", textTransform: "uppercase", lineHeight: "25px" }}>
+          <span style={{ fontFamily: F.plex, fontSize: 14, color: "var(--t2)", textTransform: "uppercase", lineHeight: "25px" }}>
             Limited Edition &middot; The reading room
           </span>
-          <span style={{ fontFamily: F.plex, fontSize: 14, color: "#616161", textTransform: "uppercase", lineHeight: "25px" }}>
+          <span style={{ fontFamily: F.plex, fontSize: 14, color: "var(--t2)", textTransform: "uppercase", lineHeight: "25px" }}>
             Updated {h}:{m} CET
           </span>
         </div>
@@ -204,13 +204,13 @@ export default function HomePage() {
         {/* Hero */}
         <div className="relative flex gap-12 pt-8 pb-16" style={{ minHeight: 470 }}>
           <div className="flex-1 self-end">
-            <TypingGreeting style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 140, lineHeight: "130px", color: "#000" }} />
+            <TypingGreeting style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 140, lineHeight: "130px", color: "var(--t1)" }} />
           </div>
           <div className="shrink-0 self-start" style={{ width: 491 }}>
-            <p style={{ fontFamily: F.serif, fontWeight: 400, fontSize: 24, lineHeight: "33px", color: "#000", marginBottom: 28 }}>
+            <p style={{ fontFamily: F.serif, fontWeight: 400, fontSize: 24, lineHeight: "33px", color: "var(--t1)", marginBottom: 28 }}>
               Climate journalism shapes how the public understands the crisis. But who shapes climate journalism?
             </p>
-            <p style={{ fontFamily: F.serif, fontWeight: 300, fontSize: 17, lineHeight: "23px", color: "#000" }}>
+            <p style={{ fontFamily: F.serif, fontWeight: 300, fontSize: 17, lineHeight: "23px", color: "var(--t1)" }}>
               The Climate Narrative Lab tracks how 74 French and Belgian outlets frame the crisis &mdash; which sectors they cover, which they overlook, and whether reporting reflects actual emissions.
             </p>
           </div>
@@ -225,7 +225,7 @@ export default function HomePage() {
 
         {/* Ticker */}
         <div className="py-[8px] overflow-hidden">
-          <div style={{ display: "flex", width: "max-content", whiteSpace: "nowrap", animation: "ticker 40s linear infinite", fontFamily: F.plex, fontSize: 16, color: "#616161" }}>
+          <div style={{ display: "flex", width: "max-content", whiteSpace: "nowrap", animation: "ticker 40s linear infinite", fontFamily: F.plex, fontSize: 16, color: "var(--t2)" }}>
             <span>{TICKER_TEXT}</span>
             <span aria-hidden="true">{TICKER_TEXT}</span>
           </div>
@@ -235,7 +235,7 @@ export default function HomePage() {
 
         {/* Section heading */}
         <div id="editions" style={{ paddingTop: 44, paddingBottom: 66 }}>
-          <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 43, lineHeight: "45px", color: "#000" }}>
+          <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 43, lineHeight: "45px", color: "var(--t1)" }}>
             The index &mdash; four editions of<br />the Climate Narrative Lab
           </div>
         </div>
@@ -251,17 +251,17 @@ export default function HomePage() {
           <div style={{ flex: "3 3 0%", minWidth: 0 }}>
             {LEFT.map((slot, j) => (
               <div key={slot.ed.href}>
-                {j > 0 && <div style={{ borderTop: "1px solid #000" }} />}
+                {j > 0 && <div style={{ borderTop: "1px solid var(--t1)" }} />}
                 <EditionCard ed={slot.ed} height={slot.height} padLeft={0} padRight={24} />
               </div>
             ))}
           </div>
 
           {/* Right column — 40% */}
-          <div style={{ flex: "2 2 0%", minWidth: 0, borderLeft: "1px solid #000" }}>
+          <div style={{ flex: "2 2 0%", minWidth: 0, borderLeft: "1px solid var(--t1)" }}>
             {RIGHT.map((slot, j) => (
               <div key={slot.ed.href}>
-                {j > 0 && <div style={{ borderTop: "1px solid #000" }} />}
+                {j > 0 && <div style={{ borderTop: "1px solid var(--t1)" }} />}
                 <EditionCard ed={slot.ed} height={slot.height} padLeft={24} padRight={0} />
               </div>
             ))}
@@ -275,10 +275,10 @@ export default function HomePage() {
 
         {/* Footer breadcrumb */}
         <div className="flex justify-between items-center py-4">
-          <span style={{ fontFamily: F.plex, fontSize: 16, color: "#616161" }}>
+          <span style={{ fontFamily: F.plex, fontSize: 16, color: "var(--t2)" }}>
             The Climate Narrative Lab &middot; Home
           </span>
-          <span style={{ fontFamily: F.plex, fontSize: 16, color: "#616161" }}>
+          <span style={{ fontFamily: F.plex, fontSize: 16, color: "var(--t2)" }}>
             Limited Edition
           </span>
         </div>

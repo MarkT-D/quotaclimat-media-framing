@@ -427,7 +427,26 @@ These pages still ship generic SaaS-style chrome (`rounded-xl`, `shadow`, Tailwi
 - `app/upload/page.tsx` — dashed-border dropzone, mode toggle, results cards → broadsheet sections. Off-palette green tints (`rgba(45,106,79,*)`) → palette tokens.
 - `app/newspapers/page.tsx` — entire chart grid is off-system. Rebuild to broadsheet sections, swap 15-color `OUTLET_PALETTE` for the 5-color outlet sequence documented here, retire the `getOutletStats` Tailwind text classes.
 - `app/about/page.tsx` — mission/team cards → broadsheet sections. (The inline Logo SVG is already migrated to `components/Logo.tsx` in this pass.)
+- `app/search/page.tsx` — rebuild `NewsItem` card to broadsheet pattern. Align `FRAME_COLORS` to the canonical Frame chart mapping documented above. After the palette-enforcement pass, `FRAME_COLORS` is in an intermediate state — palette-pure but mostly non-canonical:
+
+  | Frame | Current (intermediate) | Canonical (target) | Status |
+  |---|---|---|---|
+  | Attribution of Responsibility | `var(--green)` | `var(--red)` | needs correction |
+  | Human Interest | `var(--green-d)` | `var(--green)` | needs correction (`--green-d` was picked to avoid a collision with Economic Consequences after the palette-pure swap of the original off-palette `#7A9A6A`) |
+  | Conflict | `var(--red)` | `var(--red-m)` | needs correction |
+  | Morality | `#7C3AED` | `#7C3AED` | **already on canonical** (picked over a non-canonical token to avoid semantic overload with `var(--t2)` and to avoid creating a new collision; the canonical hex is also the only palette-legal option with no semantic conflict elsewhere) |
+  | Economic Consequences | `var(--green-m)` | `#EF9F27` | needs correction |
+
+  Four frames remain to be corrected; the inline `TODO` in `app/search/page.tsx` reflects this state.
 
 ### `components/MisinfoBar.tsx`
 
 The component is orphaned (no importer found) and ships full Tailwind palette (`bg-emerald-400`, etc.). Confirm it is dead, then delete; or rebuild against this system if a future surface needs it.
+
+### Tone-of-rules pass
+
+After the palette-enforcement pass, mid-tone borders (`#616161`, now `var(--t2)`) are still used as hairline dividers in `components/NewspaperHeader.tsx` (masthead and nav-strip rules) and in `app/page.tsx` edition cards. The borders & rules table in this document prescribes `var(--border)` (hairline) or `var(--t1)` (section rule / heavy rule) but not `var(--t2)`. A future pass should decide, per surface, whether each currently-`var(--t2)` divider should become a true hairline (`var(--border)`, lighter and softer) or a section rule (`var(--t1)`, darker and more emphatic). This is a visual-design decision, not a token swap, and was deferred from the palette-enforcement pass.
+
+### Home page polish
+
+A drop shadow on the edition-CTA divider in `app/page.tsx` (`boxShadow: "0 4px 4px rgba(0,0,0,0.25)"`) violates the *Forbidden border treatments* rule. Removing it is a visual change beyond palette enforcement and was deferred. The home page does not have a deferred broadsheet rebuild on the list above, so this item lives here standalone until addressed. While in the same pass, consider whether the home page hero deserves any in-palette accents (currently zero red, zero green after palette enforcement) or whether the monochrome-on-paper hero is the intended end state.
