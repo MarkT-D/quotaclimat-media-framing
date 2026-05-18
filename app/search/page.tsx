@@ -499,7 +499,7 @@ export default function SearchPage() {
       <div style={{ marginTop: 40 }}><Rule /></div>
       <div className="flex justify-between items-center py-4">
         <span style={{ fontFamily: F.plex, fontSize: 14, color: "var(--t2)" }}>
-          The Climate Narrative Lab · The Reader
+          The Climate Narrative Review · The Reader
         </span>
         <span style={{ fontFamily: F.plex, fontSize: 14, color: "var(--t2)" }}>
           Edition II

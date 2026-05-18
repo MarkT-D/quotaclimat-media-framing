@@ -211,7 +211,7 @@ export default function HomePage() {
               Climate journalism shapes how the public understands the crisis. But who shapes climate journalism?
             </p>
             <p style={{ fontFamily: F.serif, fontWeight: 300, fontSize: 17, lineHeight: "23px", color: "var(--t1)" }}>
-              The Climate Narrative Lab tracks how 74 French and Belgian outlets frame the crisis &mdash; which sectors they cover, which they overlook, and whether reporting reflects actual emissions.
+              The Climate Narrative Review tracks how 74 French and Belgian outlets frame the crisis &mdash; which sectors they cover, which they overlook, and whether reporting reflects actual emissions.
             </p>
           </div>
           <div style={{ position: "absolute", bottom: 20, left: "50%", transform: "translateX(-50%)" }}>
@@ -236,7 +236,7 @@ export default function HomePage() {
         {/* Section heading */}
         <div id="editions" style={{ paddingTop: 44, paddingBottom: 66 }}>
           <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 43, lineHeight: "45px", color: "var(--t1)" }}>
-            The index &mdash; four editions of<br />the Climate Narrative Lab
+            The index &mdash; four editions of<br />the Climate Narrative Review
           </div>
         </div>
 
@@ -276,7 +276,7 @@ export default function HomePage() {
         {/* Footer breadcrumb */}
         <div className="flex justify-between items-center py-4">
           <span style={{ fontFamily: F.plex, fontSize: 16, color: "var(--t2)" }}>
-            The Climate Narrative Lab &middot; Home
+            The Climate Narrative Review &middot; Home
           </span>
           <span style={{ fontFamily: F.plex, fontSize: 16, color: "var(--t2)" }}>
             Limited Edition
