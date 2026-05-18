@@ -41,13 +41,15 @@ function getLanguageCode(language: string | null): Language {
   return "FR";
 }
 
-// Frame → moss color mapping for the indicator bar
+// Frame → moss color mapping for the indicator bar.
+// TODO: Frame mapping conflicts with DESIGN.md canonical mapping.
+// Retire in search-page broadsheet rebuild (see DESIGN.md follow-up work).
 const FRAME_COLORS: Record<Frame, string> = {
-  "Attribution of Responsibility": "#4A6741",
-  "Human Interest":                "#7A9A6A",
-  "Conflict":                      "#B8402E",
-  "Morality":                      "#8B7355",
-  "Economic Consequences":         "#A8BE8A",
+  "Attribution of Responsibility": "var(--green)",
+  "Human Interest":                "var(--green-m)",
+  "Conflict":                      "var(--red)",
+  "Morality":                      "var(--t2)",
+  "Economic Consequences":         "var(--green-m)",
 };
 
 function Rule({ color = "var(--border)", thick = false }: { color?: string; thick?: boolean }) {

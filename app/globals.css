@@ -19,7 +19,7 @@
 
 html {
   min-height: 100%;
-  background-color: #F2EDE3;
+  background-color: var(--bg);
   scroll-behavior: smooth;
 }
 
@@ -42,7 +42,7 @@ body::before {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background-color: #F2EDE3;
+  background-color: var(--bg);
   background-image:
     linear-gradient(rgba(242, 237, 227, 0.82) 0%, rgba(242, 237, 227, 0.82) 100%),
     url('/crumpled.png');
@@ -58,7 +58,7 @@ body::before {
   by -scrollY so the header always shows the same texture slice as the page top.
 */
 .paper {
-  background-color: #F2EDE3;
+  background-color: var(--bg);
   background-image:
     linear-gradient(rgba(242, 237, 227, 0.82) 0%, rgba(242, 237, 227, 0.82) 100%),
     url('/crumpled.png');
@@ -98,12 +98,12 @@ body::before {
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #7A7265;
+  color: var(--t2);
   text-decoration: none;
   animation: scroll-bob 2s ease-in-out infinite;
   transition: color 0.2s;
 }
 
-.scroll-hint:hover { color: #000; }
+.scroll-hint:hover { color: var(--t1); }
 
 .recharts-tooltip-wrapper { outline: none; }

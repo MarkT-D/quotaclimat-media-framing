@@ -143,7 +143,7 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
               style={misiPct < 20
                 ? { background: "var(--green-l)", color: "var(--green-d)" }
                 : misiPct < 50
-                ? { background: "#FEF9EE", color: "#7A4F00" }
+                ? { background: "var(--bg2)", color: "#D4A017" }
                 : { background: "var(--red-l)", color: "var(--red-d)" }}
             >
               {misiPct < 20 ? "Low risk" : misiPct < 50 ? "Moderate" : "High risk"}
@@ -187,7 +187,7 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
           <p className="text-xs mb-2" style={{ color: "var(--t2)" }}>Radar view</p>
           <ResponsiveContainer width="100%" height={210}>
             <RadarChart data={radarData}>
-              <PolarGrid stroke="#e5e7eb" />
+              <PolarGrid stroke="var(--bg2)" />
               <PolarAngleAxis dataKey="frame" tick={{ fontSize: 10 }} />
               <PolarRadiusAxis domain={[0, 100]} tick={false} />
               <Radar dataKey="value" stroke="var(--red)" fill="var(--red)" fillOpacity={0.15} />
