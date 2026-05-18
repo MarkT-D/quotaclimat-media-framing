@@ -88,12 +88,16 @@ export default function NewspaperHeader() {
                 </div>
               </div>
 
-              {/* Masthead — dedicated row, the largest type on the page */}
+              {/* Masthead — dedicated row, the largest type on the page.
+                  clamp() keeps the wordmark at 80px on the 1440px primary target
+                  while scaling down on narrower viewports so individual words
+                  (NARRATIVE, REVIEW) don't overflow on mobile. Min 24px keeps
+                  every word inside a 320px content area. */}
               <div className="text-center" style={{ marginTop: 12 }}>
                 <div style={{
                   fontFamily: "var(--font-playfair-sc)",
                   fontWeight: 700,
-                  fontSize: 80,
+                  fontSize: "clamp(24px, 5.5vw, 80px)",
                   lineHeight: 1,
                   letterSpacing: "0.05em",
                   color: "var(--t1)",
