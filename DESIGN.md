@@ -427,6 +427,17 @@ These pages still ship generic SaaS-style chrome (`rounded-xl`, `shadow`, Tailwi
 - `app/upload/page.tsx` — dashed-border dropzone, mode toggle, results cards → broadsheet sections. Off-palette green tints (`rgba(45,106,79,*)`) → palette tokens.
 - `app/newspapers/page.tsx` — entire chart grid is off-system. Rebuild to broadsheet sections, swap 15-color `OUTLET_PALETTE` for the 5-color outlet sequence documented here, retire the `getOutletStats` Tailwind text classes.
 - `app/about/page.tsx` — mission/team cards → broadsheet sections. (The inline Logo SVG is already migrated to `components/Logo.tsx` in this pass.)
+- `app/search/page.tsx` — rebuild `NewsItem` card to broadsheet pattern. Align `FRAME_COLORS` to the canonical Frame chart mapping documented above. After the palette-enforcement pass, `FRAME_COLORS` is in an intermediate state — palette-pure but mostly non-canonical:
+
+  | Frame | Current (intermediate) | Canonical (target) | Status |
+  |---|---|---|---|
+  | Attribution of Responsibility | `var(--green)` | `var(--red)` | needs correction |
+  | Human Interest | `var(--green-d)` | `var(--green)` | needs correction (`--green-d` was picked to avoid a collision with Economic Consequences after the palette-pure swap of the original off-palette `#7A9A6A`) |
+  | Conflict | `var(--red)` | `var(--red-m)` | needs correction |
+  | Morality | `#7C3AED` | `#7C3AED` | **already on canonical** (picked over a non-canonical token to avoid semantic overload with `var(--t2)` and to avoid creating a new collision; the canonical hex is also the only palette-legal option with no semantic conflict elsewhere) |
+  | Economic Consequences | `var(--green-m)` | `#EF9F27` | needs correction |
+
+  Four frames remain to be corrected; the inline `TODO` in `app/search/page.tsx` reflects this state.
 
 ### `components/MisinfoBar.tsx`
 
