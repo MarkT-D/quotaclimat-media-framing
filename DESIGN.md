@@ -190,12 +190,13 @@ Non-scale values (10, 18, 22, 26, 44, 66) should be rounded to the nearest scale
 
 ### Page frame
 
-| Surface | Max width | Horizontal padding |
-|---|---|---|
-| Home, dashboard, search, newspapers, upload, about | 1440px | 48px |
-| Article detail | 768px | 32px |
+| Surface | Max width | Horizontal padding | Viewport target |
+|---|---|---|---|
+| Home (`/`) | 1440px | 48px | **Single viewport @ 1440×900 — content fits without scroll** |
+| Dashboard, search, newspapers, upload, about | 1440px | 48px | Scrolls as needed |
+| Article detail | 768px | 32px | Scrolls as needed |
 
-All editorial pages share the same max-width and padding. Article detail is the only narrower surface — reading column rather than dashboard.
+All editorial pages share the same max-width and padding. Article detail is the only narrower surface — reading column rather than dashboard. The home page additionally targets in-viewport fit (no vertical scroll) at 1440×900 on standard laptop chrome; see *Home page layout* below for the section-by-section budget. At smaller viewports the home page reflows and scrolls naturally.
 
 ### Vertical rhythm
 
@@ -383,9 +384,79 @@ Reproduce at any square size; do not stretch. The 11px corner radius (`rx="11"`)
 
 The SVG mark will be retired in a future pass once a purpose-built small-format monogram replaces it. Until then, keep both marks documented and consistent.
 
-### Sticky header behavior
+### Sticky header behavior and size variants
 
-`components/NewspaperHeader.tsx` is the global header on every page. Collapsible masthead on scroll, fixed-attachment texture sync via inline scroll handler. Behavior is preserved from the existing implementation; only the colors and fonts inside it move to palette tokens and the three-font system.
+`components/NewspaperHeader.tsx` is the global header on every page. Collapsible masthead on scroll, fixed-attachment texture sync via inline scroll handler.
+
+The component renders one of two expanded-state variants based on `usePathname()`:
+
+| Variant | Pathname | Layout | Wordmark size |
+|---|---|---|---|
+| Hero | `/` (home only) | Stacked: utility metadata row (date / desk) above a centered, dedicated wordmark row | Playfair Display SC 80px, lh 1.0 |
+| Compact | every other page | Side-by-side: date on the left, centered wordmark, desk label on the right | Playfair Display SC 29px, lh 39px |
+
+Both variants share the same nav strip, the same hairline rules, and the same collapse-on-scroll behavior. Both collapse to the same stuck state (nav strip only) once scrolled past `COLLAPSE_AT` (160px); both expand back when scrolled to the top or hovered. The collapsible block's `MAX_HEIGHT` is unified at 280px to accommodate either variant's expanded height.
+
+The hero variant exists so the home page wordmark is the largest type on the page — the dominant brand expression on the front page of the Review. On every other page, the masthead is sticky chrome supporting the page's content, not the headline event itself; hence the compact size.
+
+---
+
+## Home page layout
+
+The home page (`app/page.tsx`) is the front page of the Review. It is structured to fit within a single 1440×900 viewport without scroll, with vertical structure mirroring a printed broadsheet front page.
+
+### Vertical structure
+
+| Block | Height | Content |
+|---|---|---|
+| `NewspaperHeader` (hero variant) | ~195px | Date / desk metadata row, 80px Playfair Display SC wordmark, italic tagline, nav strip, hairline rules |
+| Hero pair | 240px | Two columns: `TypingGreeting` "Welcome, [role]" at 56px Playfair Display on the left; lead paragraph (20px Source Serif 4 weight 400) and body paragraph (16px Source Serif 4 weight 300) on the right |
+| Stats ticker | ~36px | Section-rule-bounded horizontal marquee of editorial keywords. Acts as the section divider between hero pair and editions. |
+| Four-up teaser grid | 320px | Four equal-width edition columns, separated by 1px `var(--t1)` section rules. Each column previews one edition of the Review. |
+
+Total content height: ~791px. Designed to fit a 780–820px usable area (1440×900 minus browser chrome).
+
+### Edition teaser column pattern
+
+Each column in the four-up grid is an `EditionTeaser`, structured top-to-bottom as:
+
+1. **Edition label** — IBM Plex Sans 11px uppercase letter-spacing 0.04em, `var(--t2)`. E.g. "Edition I", "Special Edition".
+2. **Edition number** — Playfair Display, large (56px for `01`/`02`/`03` regular; 28px boxed for `Special`). Hover lifts via `-translate-y-1`.
+3. **Title** — Playfair Display 24px (italic for Editions I and II per their existing typographic identity).
+4. **Description** — Source Serif 4 13px / lh 18, 1–2 lines, `var(--t2)`.
+5. **Hairline divider** — 1px `var(--border)`.
+6. **Teaser content** — flexible-height area for a per-edition preview (~120px).
+7. **CTA** — IBM Plex Sans 11px uppercase letter-spacing 0.04em with a hover-revealed arrow.
+
+The entire column is wrapped in a `<Link>` so the whole column is clickable.
+
+### Placeholder teaser content
+
+Each edition currently ships **explicit placeholder** teaser content. The structure is real; the text is obviously fake so that any pre-launch screenshots aren't mistaken for production copy. Real teaser content replaces the placeholders in a follow-up PR.
+
+| Edition | Placeholder shape |
+|---|---|
+| Dashboard (01) | 4-bar SVG mini chart in palette colors + Playfair "+12pp" stat overlay + "Sector coverage placeholder" Plex label |
+| The Reader (02) | "Headline placeholder" Playfair line + "Byline placeholder · 2026" Plex caption + Source Serif italic "Excerpt placeholder…" |
+| Discrepancy desk (03) | Three "Outlet A / B / C" entries, each with an 8×8px palette-color frame swatch (squares, not dots — no `border-radius`) |
+| About us (Special) | Source Serif italic "Quote placeholder…" with a 2px `var(--t1)` left rule, "— Attribution placeholder" credit in Plex uppercase |
+
+### Responsive
+
+- **Desktop @ ≥ 1280px (xl)**: layout as documented above. Single viewport at 1440×900.
+- **Tablet @ 768–1279px (md to xl)**: four-up grid reflows to 2×2. Hero pair reflows to single column under `lg` (1024px). Page scrolls vertically.
+- **Mobile @ < 768px**: grid stacks 1-column; hero pair stacks 1-column. Page scrolls naturally. Not optimized for this viewport range; the goal is graceful stacking.
+
+### Retired from the home page
+
+The restructure removed the following elements (each can return if the design moves to a multi-page-scroll model):
+
+- The previous home-page **sub-strip** ("LIMITED EDITION · THE READING ROOM" / "UPDATED HH:MM CET") — folded conceptually into the masthead's utility row.
+- The previous **"The index — four editions of the Climate Narrative Review"** section heading — the four-up grid is self-explanatory; broadsheets do not label their front-page index.
+- The previous **footer breadcrumb** ("The Climate Narrative Review · Home" / "Limited Edition") — redundant in a single-viewport layout.
+- The previous **asymmetric edition layout** (deliberate 310/240 height offset between the two columns of the old 2×2 grid) — replaced by uniform equal-width columns. The "asymmetry-is-the-feature" intent is retired.
+
+The hero is **monochrome on paper** (zero red, zero green above the ticker) by design. The color signal lives in the four-up teaser previews, not the hero pair.
 
 ---
 
@@ -445,8 +516,8 @@ The component is orphaned (no importer found) and ships full Tailwind palette (`
 
 ### Tone-of-rules pass
 
-After the palette-enforcement pass, mid-tone borders (`#616161`, now `var(--t2)`) are still used as hairline dividers in `components/NewspaperHeader.tsx` (masthead and nav-strip rules) and in `app/page.tsx` edition cards. The borders & rules table in this document prescribes `var(--border)` (hairline) or `var(--t1)` (section rule / heavy rule) but not `var(--t2)`. A future pass should decide, per surface, whether each currently-`var(--t2)` divider should become a true hairline (`var(--border)`, lighter and softer) or a section rule (`var(--t1)`, darker and more emphatic). This is a visual-design decision, not a token swap, and was deferred from the palette-enforcement pass.
+After the palette-enforcement pass, mid-tone borders (`#616161`, now `var(--t2)`) are still used as hairline dividers in `components/NewspaperHeader.tsx` (masthead and nav-strip rules, both in the hero and compact variants). The borders & rules table in this document prescribes `var(--border)` (hairline) or `var(--t1)` (section rule / heavy rule) but not `var(--t2)`. A future pass should decide, per surface, whether each currently-`var(--t2)` divider should become a true hairline (`var(--border)`, lighter and softer) or a section rule (`var(--t1)`, darker and more emphatic). This is a visual-design decision, not a token swap, and was deferred from the palette-enforcement pass. The home page itself no longer carries any `var(--t2)` rules — the restructure replaced its dividers with proper section rules (`var(--t1)`).
 
-### Home page polish
+### Page padding normalization
 
-A drop shadow on the edition-CTA divider in `app/page.tsx` (`boxShadow: "0 4px 4px rgba(0,0,0,0.25)"`) violates the *Forbidden border treatments* rule. Removing it is a visual change beyond palette enforcement and was deferred. The home page does not have a deferred broadsheet rebuild on the list above, so this item lives here standalone until addressed. While in the same pass, consider whether the home page hero deserves any in-palette accents (currently zero red, zero green after palette enforcement) or whether the monochrome-on-paper hero is the intended end state.
+Both `app/page.tsx` and `components/NewspaperHeader.tsx` use `px-11` (44px) instead of the `px-12` (48px) prescribed by the *Page frame* table. Changing either in isolation would misalign the masthead with page content; site-wide normalization (every page-level container plus the masthead) belongs in a single pass to keep the change atomic.
