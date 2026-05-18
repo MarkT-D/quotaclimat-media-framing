@@ -19,6 +19,16 @@ import psycopg2
 import psycopg2.extras
 from dotenv import load_dotenv
 
+_MAP_PATH = Path(__file__).parent / "outlet_country_map.json"
+
+def _load_outlet_map() -> dict[str, str]:
+    if _MAP_PATH.exists():
+        with _MAP_PATH.open(encoding="utf-8") as fh:
+            return json.load(fh)
+    return {}
+
+OUTLET_COUNTRY_MAP: dict[str, str] = _load_outlet_map()
+
 OUTPUT_DIR = Path(__file__).parent.parent / "scraper" / "output"
 
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
@@ -33,12 +43,14 @@ def get_conn():
 
 def parse_article(raw: dict, query_source: str) -> dict:
     clf = raw.get("classification") or {}
+    outlet = raw.get("outlet", "").strip()
     return {
         "title":        raw.get("title", "").strip(),
         "body":         raw.get("body", "").strip(),
-        "outlet":       raw.get("outlet", "").strip(),
+        "outlet":       outlet,
         "published_at": raw.get("published_at") or None,
         "language":     clf.get("Language", "").strip() or None,
+        "country":      OUTLET_COUNTRY_MAP.get(outlet),
         "word_count":   raw.get("word_count") or None,
         "url":          raw.get("url", "").strip(),
         "query_source": query_source,
@@ -51,12 +63,12 @@ def parse_article(raw: dict, query_source: str) -> dict:
 
 INSERT_SQL = """
 INSERT INTO articles (
-    title, body, outlet, published_at, language,
+    title, body, outlet, published_at, language, country,
     word_count, url, query_source,
     ln_subject, ln_geographic, ln_industry,
     scraped_at
 ) VALUES (
-    %(title)s, %(body)s, %(outlet)s, %(published_at)s, %(language)s,
+    %(title)s, %(body)s, %(outlet)s, %(published_at)s, %(language)s, %(country)s,
     %(word_count)s, %(url)s, %(query_source)s,
     %(ln_subject)s, %(ln_geographic)s, %(ln_industry)s,
     %(scraped_at)s

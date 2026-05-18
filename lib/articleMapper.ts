@@ -8,6 +8,7 @@ export interface DbRow {
   outlet: string;
   published_at: Date | string;
   language: string | null;
+  country: string | null;
   word_count: number | null;
   url: string | null;
   sector_transport: boolean | null;
@@ -121,6 +122,7 @@ export function mapDbRowToArticle(row: DbRow): Article {
     outlet: row.outlet,
     publishedAt: pubAt,
     language: row.language,
+    country: row.country,
     sector,
     crisisDomain,
     stage,

@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const rows = await sql<DbRow[]>`
     SELECT
-      id, source_id, title, outlet, published_at, language, word_count, url,
+      id, source_id, title, outlet, published_at, language, country, word_count, url,
       sector_transport, sector_buildings, sector_energy, sector_industry,
       sector_agriculture, sector_water, sector_ecosystem, sector_resource_economy,
       stage_general_concepts, stage_causes, stage_consequences, stage_solutions,

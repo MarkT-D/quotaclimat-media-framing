@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -121,6 +121,27 @@ function outletStatsFrom(arts: Article[]) {
       .sort((a, b) => b.pct - a.pct);
     return { id: name, name, count: oa.length, topFrame, topAngle, framePcts, anglePcts };
   });
+}
+
+function countryLabel(code: string): string {
+  try {
+    return new Intl.DisplayNames(["en"], { type: "region" }).of(code) ?? code;
+  } catch {
+    return code;
+  }
+}
+
+function detectCountry(locale: string, options: string[]): string | null {
+  for (const part of locale.split("-").slice(1)) {
+    const code = part.toUpperCase();
+    if (options.includes(code)) return code;
+  }
+  return null;
+}
+
+function filterByCountry(arts: Article[], country: string | null): Article[] {
+  if (!country) return arts;
+  return arts.filter((a) => a.country === country);
 }
 
 function angleCountsFrom(arts: Article[]) {
@@ -348,14 +369,34 @@ export default function OverviewPage() {
 
   const { articles: allArticles } = useArticles();
   const [hoveredAngleBar, setHoveredAngleBar] = useState<string | null>(null);
+  const [country, setCountry] = useState<string | null>(null);
 
-  const sectorData = useMemo(() => sectorCountsFrom(allArticles), [allArticles]);
-  const frameData  = useMemo(() => frameCountsFrom(allArticles), [allArticles]);
-  const stageData  = useMemo(() => stageCountsFrom(allArticles), [allArticles]);
-  const domainData = useMemo(() => domainCountsFrom(allArticles), [allArticles]);
-  const outletData = useMemo(() => outletStatsFrom(allArticles).sort((a, b) => b.count - a.count).slice(0, 10), [allArticles]);
-  const angleData  = useMemo(() => angleCountsFrom(allArticles), [allArticles]);
-  const timeData   = useMemo(() => timeSeriesFrom(allArticles), [allArticles]);
+  // Countries with >= 100 articles, derived from data
+  const countryOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    allArticles.forEach((a) => { if (a.country) counts.set(a.country, (counts.get(a.country) ?? 0) + 1); });
+    return [...counts.entries()]
+      .filter(([, n]) => n >= 100)
+      .sort((a, b) => b[1] - a[1])
+      .map(([code]) => code);
+  }, [allArticles]);
+
+  // Default to browser locale on first load
+  useEffect(() => {
+    const locale = navigator.language || (navigator.languages?.[0] ?? "");
+    const detected = detectCountry(locale, countryOptions);
+    if (detected) setCountry(detected);
+  }, [countryOptions]);
+
+  const arts = useMemo(() => filterByCountry(allArticles, country), [allArticles, country]);
+
+  const sectorData = useMemo(() => sectorCountsFrom(arts), [arts]);
+  const frameData  = useMemo(() => frameCountsFrom(arts), [arts]);
+  const stageData  = useMemo(() => stageCountsFrom(arts), [arts]);
+  const domainData = useMemo(() => domainCountsFrom(arts), [arts]);
+  const outletData = useMemo(() => outletStatsFrom(arts).sort((a, b) => b.count - a.count).slice(0, 10), [arts]);
+  const angleData  = useMemo(() => angleCountsFrom(arts), [arts]);
+  const timeData   = useMemo(() => timeSeriesFrom(arts), [arts]);
   const angleBars  = useMemo(() => {
     const total = angleData.reduce((s, d) => s + d.count, 0) || 1;
     return [...angleData]
@@ -364,7 +405,7 @@ export default function OverviewPage() {
   }, [angleData]);
 
   const gapData = useMemo(() => {
-    const total = allArticles.length || 1;
+    const total = arts.length || 1;
     return sectorData
       .map((s) => ({
         sector:   s.sector,
@@ -373,29 +414,29 @@ export default function OverviewPage() {
         gap:      Math.round((s.count / total) * 100) - s.ghgShare,
       }))
       .sort((a, b) => b.gap - a.gap);
-  }, [sectorData, allArticles.length]);
+  }, [sectorData, arts.length]);
 
-  const frameStats  = useMemo(() => frameStatsFrom(allArticles), [allArticles]);
-  const sectorStats = useMemo(() => sectorStatsFrom(allArticles), [allArticles]);
+  const frameStats  = useMemo(() => frameStatsFrom(arts), [arts]);
+  const sectorStats = useMemo(() => sectorStatsFrom(arts), [arts]);
 
   const radarData = useMemo(() => FRAME_DEFS.map((fd) => {
     const stats = frameStats.find((s) => s.frame === fd.key);
     return {
       frame:       fd.short,
       fullFrame:   fd.key,
-      value:       Math.round(((frameData.find((f) => f.frame === fd.key)?.count ?? 0) / (allArticles.length || 1)) * 100),
+      value:       Math.round(((frameData.find((f) => f.frame === fd.key)?.count ?? 0) / (arts.length || 1)) * 100),
       count:       stats?.count ?? 0,
       outletCount: stats?.outletCount ?? 0,
       topOutlet:   stats?.topOutlet ?? "—",
       topSector:   stats?.topSector ?? "—",
     };
-  }), [frameData, allArticles.length, frameStats]);
+  }), [frameData, arts.length, frameStats]);
 
-  const totalArts   = allArticles.length;
-  const outletCount = new Set(allArticles.map((a) => a.outlet)).size;
+  const totalArts   = arts.length;
+  const outletCount = new Set(arts.map((a) => a.outlet)).size;
   const topSector   = [...sectorData].sort((a, b) => b.count - a.count)[0];
   const solutionPct = totalArts
-    ? Math.round(allArticles.filter((a) => a.stage === "Solutions").length / totalArts * 100) : 0;
+    ? Math.round(arts.filter((a) => a.stage === "Solutions").length / totalArts * 100) : 0;
 
   const totalDomain = domainData.reduce((s, d) => s + d.count, 0);
   const totalStage  = stageData.reduce((s, d) => s + d.count, 0);
@@ -406,9 +447,11 @@ export default function OverviewPage() {
     pct: Math.round(((stageData.find((d) => d.stage === s)?.count ?? 0) / (totalStage || 1)) * 100),
   }));
 
+  const countryDisplayLabel = country ? countryLabel(country) : "All";
+
   const STATS = [
-    { label: "Articles analysed",  value: totalArts.toLocaleString(), sub: "2024 · All outlets" },
-    { label: "Outlets in scope",   value: String(outletCount), sub: "From database" },
+    { label: "Articles analysed",  value: totalArts.toLocaleString(), sub: `2024 · ${countryDisplayLabel}` },
+    { label: "Outlets in scope",   value: String(outletCount), sub: countryDisplayLabel },
     { label: "Top covered sector", value: topSector?.sector.split(" ")[0] ?? "—", sub: `${Math.round((topSector?.count ?? 0) / (totalArts || 1) * 100)}% of coverage` },
     { label: "Top angle",          value: topAngle?.angle.split(" ")[0] ?? "—", sub: `${Math.round((topAngle?.count ?? 0) / (totalArts || 1) * 100)}% of coverage` },
   ];
@@ -446,6 +489,28 @@ export default function OverviewPage() {
         </div>
 
         <Rule thick color="var(--t1)" />
+
+        {/* Country filter */}
+        {countryOptions.length > 0 && (
+          <div className="flex items-center justify-end py-3 gap-2">
+            {([null, ...countryOptions] as (string | null)[]).map((c) => {
+              const active = country === c;
+              const label  = c ? countryLabel(c) : "All";
+              return (
+                <button key={c ?? "all"} onClick={() => setCountry(c)} style={{
+                  fontFamily: F.podkova, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em",
+                  background: active ? "var(--t1)" : "transparent",
+                  color: active ? "var(--bg)" : "var(--t2)",
+                  border: `1px solid ${active ? "var(--t1)" : "var(--border)"}`,
+                  padding: "3px 14px", cursor: "pointer", transition: "all 0.12s",
+                }}>
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         <Rule color="var(--border)" />
 
         {/* Stat cards */}

@@ -42,6 +42,7 @@ export interface Article {
   outlet: string;                           // raw outlet name from DB
   publishedAt: string;                      // ISO date
   language: string | null;
+  country: string | null;                    // ISO-2 from DB (FR, BE, …)
   sector: Sector | null;                    // null when no sector flag set
   crisisDomain: CrisisDomain | null;
   stage: Stage | null;

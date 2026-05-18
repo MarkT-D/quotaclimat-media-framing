@@ -11,6 +11,7 @@ CREATE TABLE articles (
     outlet          TEXT NOT NULL,
     published_at    DATE NOT NULL,
     language        TEXT,
+    country         TEXT,               -- ISO 3166-1 alpha-2 (FR, GB, NG, …); populated by enrich_country.py
 
     -- Metadata
     word_count      INTEGER,
@@ -68,4 +69,5 @@ CREATE TABLE articles (
 CREATE INDEX ON articles (published_at);
 CREATE INDEX ON articles (outlet);
 CREATE INDEX ON articles (language);
+CREATE INDEX ON articles (country);
 CREATE INDEX ON articles (query_source);

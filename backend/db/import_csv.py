@@ -29,6 +29,16 @@ from pathlib import Path
 import psycopg2
 import psycopg2.extras
 
+_MAP_PATH = Path(__file__).parent / "outlet_country_map.json"
+
+def _load_outlet_map() -> dict[str, str]:
+    if _MAP_PATH.exists():
+        with _MAP_PATH.open(encoding="utf-8") as fh:
+            return json.load(fh)
+    return {}
+
+OUTLET_COUNTRY_MAP: dict[str, str] = _load_outlet_map()
+
 # ---------------------------------------------------------------------------
 # JSONL enrichment index (keyed by url)
 # ---------------------------------------------------------------------------
@@ -149,7 +159,7 @@ COLUMN_MAP: dict[str, tuple[str, object]] = {
 
 INSERT_SQL = """
 INSERT INTO articles (
-    source_id, title, body, outlet, published_at, language,
+    source_id, title, body, outlet, published_at, language, country,
     word_count, url, query_source,
     scraped_at, classified_at, ingested_at,
     angle_health, angle_economics, angle_jobs, angle_politics,
@@ -161,7 +171,7 @@ INSERT INTO articles (
     frame_morality, frame_attribution,
     ln_subject, ln_industry, ln_geographic
 ) VALUES (
-    %(source_id)s, %(title)s, %(body)s, %(outlet)s, %(published_at)s, %(language)s,
+    %(source_id)s, %(title)s, %(body)s, %(outlet)s, %(published_at)s, %(language)s, %(country)s,
     %(word_count)s, %(url)s, %(query_source)s,
     %(scraped_at)s, %(classified_at)s, COALESCE(%(ingested_at)s::timestamptz, NOW()),
     %(angle_health)s, %(angle_economics)s, %(angle_jobs)s, %(angle_politics)s,
@@ -180,6 +190,7 @@ ON CONFLICT (source_id) DO UPDATE SET
     outlet                  = EXCLUDED.outlet,
     published_at            = EXCLUDED.published_at,
     language                = EXCLUDED.language,
+    country                 = EXCLUDED.country,
     word_count              = EXCLUDED.word_count,
     query_source            = EXCLUDED.query_source,
     scraped_at              = EXCLUDED.scraped_at,
@@ -234,6 +245,8 @@ def build_row(raw: dict[str, str], jsonl_index: dict[str, dict]) -> dict | None:
             row["ingested_at"] = val
         else:
             row[db_col] = val
+
+    row["country"] = OUTLET_COUNTRY_MAP.get(row.get("outlet") or "")
 
     # Validate NOT NULL fields
     if not row.get("outlet") or not row.get("published_at"):
