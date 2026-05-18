@@ -3,7 +3,7 @@
 
 CREATE TABLE articles (
     id              SERIAL PRIMARY KEY,
-    source_id       TEXT,               -- original ID from the source (LexisNexis URN, French DB id, …)
+    source_id       TEXT UNIQUE,        -- original ID from the source (LexisNexis URN, French DB id, …)
 
     -- Core content
     title           TEXT NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE articles (
 
     -- Metadata
     word_count      INTEGER,
-    url             TEXT NOT NULL UNIQUE,
+    url             TEXT UNIQUE,
     query_source    TEXT,               -- scraper query that produced this row
 
     -- Sector classification (one row can belong to multiple sectors)
