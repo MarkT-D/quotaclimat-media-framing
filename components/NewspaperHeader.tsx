@@ -14,8 +14,18 @@ const NAV = [
 const COLLAPSE_AT = 160;
 const EXPAND_AT = 20;
 
+// One masthead component, two expanded-state variants:
+// - hero    (home only):  stacked layout, 80px Playfair SC wordmark dominates the page
+// - compact (every other page): date / wordmark / desk in a single side-by-side row
+// Both variants collapse to the same stuck state (nav strip only) on scroll past COLLAPSE_AT.
+type Variant = "hero" | "compact";
+
+const MAX_HEIGHT = 280; // generous enough to fit either variant's expanded height
+
 export default function NewspaperHeader() {
   const pathname = usePathname();
+  const variant: Variant = pathname === "/" ? "hero" : "compact";
+
   const [collapsed, setCollapsed] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
 
@@ -61,51 +71,94 @@ export default function NewspaperHeader() {
 
         {/* Collapsible masthead */}
         <div style={{
-          maxHeight: collapsed ? 0 : 260,
+          maxHeight: collapsed ? 0 : MAX_HEIGHT,
           opacity: collapsed ? 0 : 1,
           overflow: "hidden",
           transition: "max-height 0.4s ease, opacity 0.25s ease",
         }}>
-          <div className="relative flex items-start justify-between pt-12 pb-6">
-            <div style={{ fontFamily: "var(--font-plex-sans)", fontSize: 13, lineHeight: "17px", color: "var(--t2)" }}>
-              Tuesday, May 5, 2026 Vol. I — No. 17
-            </div>
-
-            <div
-              className="absolute left-1/2 -translate-x-1/2 text-center pointer-events-none"
-              style={{ top: 20 }}
-            >
-              <div style={{
-                fontFamily: "var(--font-playfair-sc)",
-                fontWeight: 700,
-                fontSize: 29,
-                lineHeight: "39px",
-                letterSpacing: "0.05em",
-                color: "var(--t1)",
-              }}>
-                THE CLIMATE NARRATIVE REVIEW
+          {variant === "hero" ? (
+            <>
+              {/* Utility metadata row — date and desk above the wordmark, broadsheet convention */}
+              <div className="flex justify-between items-baseline" style={{ paddingTop: 12 }}>
+                <div style={{ fontFamily: "var(--font-plex-sans)", fontSize: 13, lineHeight: "17px", color: "var(--t2)" }}>
+                  Tuesday, May 5, 2026 Vol. I &mdash; No. 17
+                </div>
+                <div style={{ fontFamily: "var(--font-plex-sans)", fontSize: 13, lineHeight: "17px", color: "var(--t2)" }}>
+                  Climate Desk
+                </div>
               </div>
-              <div style={{
-                fontFamily: "var(--font-playfair)",
-                fontStyle: "italic",
-                fontSize: 14,
-                lineHeight: "17px",
-                color: "var(--t2)",
-                marginTop: 8,
-              }}>
-                "Frame analysis for those who shape coverage."
+
+              {/* Masthead — dedicated row, the largest type on the page */}
+              <div className="text-center" style={{ marginTop: 12 }}>
+                <div style={{
+                  fontFamily: "var(--font-playfair-sc)",
+                  fontWeight: 700,
+                  fontSize: 80,
+                  lineHeight: 1,
+                  letterSpacing: "0.05em",
+                  color: "var(--t1)",
+                }}>
+                  THE CLIMATE NARRATIVE REVIEW
+                </div>
+                <div style={{
+                  fontFamily: "var(--font-playfair)",
+                  fontStyle: "italic",
+                  fontSize: 16,
+                  lineHeight: "20px",
+                  color: "var(--t2)",
+                  marginTop: 8,
+                }}>
+                  &ldquo;Frame analysis for those who shape coverage.&rdquo;
+                </div>
               </div>
-            </div>
 
-            <div className="text-right" style={{ fontFamily: "var(--font-plex-sans)", fontSize: 13, lineHeight: "20px", color: "var(--t2)" }}>
-              <div>Climate Desk</div>
-            </div>
-          </div>
+              <div style={{ marginTop: 16 }} className="border-t border-[var(--t2)]" />
+            </>
+          ) : (
+            <>
+              {/* Compact variant — current side-by-side layout for non-home pages */}
+              <div className="relative flex items-start justify-between pt-12 pb-6">
+                <div style={{ fontFamily: "var(--font-plex-sans)", fontSize: 13, lineHeight: "17px", color: "var(--t2)" }}>
+                  Tuesday, May 5, 2026 Vol. I &mdash; No. 17
+                </div>
 
-          <div className="border-t border-[var(--t2)]" />
+                <div
+                  className="absolute left-1/2 -translate-x-1/2 text-center pointer-events-none"
+                  style={{ top: 20 }}
+                >
+                  <div style={{
+                    fontFamily: "var(--font-playfair-sc)",
+                    fontWeight: 700,
+                    fontSize: 29,
+                    lineHeight: "39px",
+                    letterSpacing: "0.05em",
+                    color: "var(--t1)",
+                  }}>
+                    THE CLIMATE NARRATIVE REVIEW
+                  </div>
+                  <div style={{
+                    fontFamily: "var(--font-playfair)",
+                    fontStyle: "italic",
+                    fontSize: 14,
+                    lineHeight: "17px",
+                    color: "var(--t2)",
+                    marginTop: 8,
+                  }}>
+                    &ldquo;Frame analysis for those who shape coverage.&rdquo;
+                  </div>
+                </div>
+
+                <div className="text-right" style={{ fontFamily: "var(--font-plex-sans)", fontSize: 13, lineHeight: "20px", color: "var(--t2)" }}>
+                  <div>Climate Desk</div>
+                </div>
+              </div>
+
+              <div className="border-t border-[var(--t2)]" />
+            </>
+          )}
         </div>
 
-        {/* Nav strip — always visible */}
+        {/* Nav strip — always visible, identical across variants */}
         <div className="flex items-center justify-center py-[7px]">
           {NAV.map((link, i) => {
             const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
