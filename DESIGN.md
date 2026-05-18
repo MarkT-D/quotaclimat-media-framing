@@ -2,7 +2,7 @@
 
 ## Thesis
 
-The Climate Narrative Lab presents climate journalism with the visual language of a printed broadsheet. Hairline rules, editorial serif typography, warm paper tones, and column-driven layouts evoke the gravity of long-form reporting while keeping data readable. Every page — including utility surfaces like upload, comparison, and about — wears the same broadsheet skin. There is no "dashboard mode": charts sit inside hairline-bordered sections, captions sit beneath them as editorial notes, and the texture of paper runs unbroken across the document.
+The Climate Narrative Review presents climate journalism with the visual language of a printed broadsheet. Hairline rules, editorial serif typography, warm paper tones, and column-driven layouts evoke the gravity of long-form reporting while keeping data readable. Every page — including utility surfaces like upload, comparison, and about — wears the same broadsheet skin. There is no "dashboard mode": charts sit inside hairline-bordered sections, captions sit beneath them as editorial notes, and the texture of paper runs unbroken across the document.
 
 When designing a new surface, ask: *would this fit in a printed paper?* If the answer is no, the design is off-system.
 
@@ -351,7 +351,7 @@ The system has two marks. The masthead is the default; the SVG mark is reserved 
 
 ### Typographic masthead (primary)
 
-Rendered by `components/NewspaperHeader.tsx` as `THE CLIMATE NARRATIVE LAB` in Playfair Display, uppercase, letter-spacing 0.05em, with the italic Playfair tagline beneath. Used in the global sticky header and any large-format brand placement (cover images, print exports, hero banners). This is the dominant brand expression.
+Rendered by `components/NewspaperHeader.tsx` as `THE CLIMATE NARRATIVE REVIEW` in Playfair Display, uppercase, letter-spacing 0.05em, with the italic Playfair tagline beneath. Used in the global sticky header and any large-format brand placement (cover images, print exports, hero banners). This is the dominant brand expression.
 
 ### SVG square mark (secondary, technical only)
 
@@ -416,7 +416,7 @@ These items are explicitly deferred. They are listed here so they don't drift ou
 
 - **Favicon regeneration.** `app/favicon.ico` is currently a generic icon unrelated to the SVG mark. Regenerate from the recolored `components/Logo.tsx` so the favicon reflects palette colors.
 - **`app/icon.tsx`.** Optional dynamic icon route — would let the favicon track the SVG mark automatically. Adds a Next.js 16 feature.
-- **`app/opengraph-image.tsx`.** No social-share preview image exists. Add one rendering the masthead + tagline + Logo so links shared from the Lab carry brand.
+- **`app/opengraph-image.tsx`.** No social-share preview image exists. Add one rendering the masthead + tagline + Logo so links shared from the Review carry brand.
 - **Purpose-built small-format monogram.** Replace the current SVG mark with a dedicated mark designed for favicon and small-format use. When this lands, the SVG mark is retired and this section of DESIGN.md collapses.
 
 ### Page rebuilds (broadsheet conformance)

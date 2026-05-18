@@ -83,7 +83,7 @@ export default function NewspaperHeader() {
                 letterSpacing: "0.05em",
                 color: "var(--t1)",
               }}>
-                THE CLIMATE NARRATIVE LAB
+                THE CLIMATE NARRATIVE REVIEW
               </div>
               <div style={{
                 fontFamily: "var(--font-playfair)",

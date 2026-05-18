@@ -787,7 +787,7 @@ export default function OverviewPage() {
         <div className="mt-8"><Rule /></div>
         <div className="flex justify-between items-center py-4">
           <span style={{ fontFamily: F.plex, fontSize: 14, color: "var(--t2)" }}>
-            The Climate Narrative Lab · Edition I
+            The Climate Narrative Review · Edition I
           </span>
           <span style={{ fontFamily: F.plex, fontSize: 14, color: "var(--t2)" }}>
             Dashboard
