@@ -738,9 +738,12 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        {/* Coverage vs. Emissions — no enclosing border; soft-rule column divider between meta column and dot-plot column. */}
+        {/* Coverage vs. Emissions — no enclosing border, no column divider
+            between meta and dot-plot. The chart's tonal weight (red/green dots,
+            axis ticks, gap labels) provides enough visual separation from the
+            meta column; an additional vertical rule was reading as chrome. */}
         <div className="mt-6" style={{ display: "flex" }}>
-          <div style={{ width: "36%", padding: "22px 24px 24px", borderRight: "1px solid var(--border)", flexShrink: 0 }}>
+          <div style={{ width: "36%", padding: "22px 24px 24px", flexShrink: 0 }}>
             <SectionHead>Coverage vs. Emissions</SectionHead>
             <SectionMeta bg="var(--green-l)">Media share vs. sector GHG share · 2024</SectionMeta>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
