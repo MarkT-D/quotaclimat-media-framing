@@ -743,7 +743,7 @@ export default function OverviewPage() {
             axis ticks, gap labels) provides enough visual separation from the
             meta column; an additional vertical rule was reading as chrome. */}
         <div className="mt-6" style={{ display: "flex" }}>
-          <div style={{ width: "36%", padding: "22px 24px 24px", flexShrink: 0 }}>
+          <div style={{ width: "36%", padding: "22px 24px 24px 0", flexShrink: 0 }}>
             <SectionHead>Coverage vs. Emissions</SectionHead>
             <SectionMeta bg="var(--green-l)">Media share vs. sector GHG share · 2024</SectionMeta>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
