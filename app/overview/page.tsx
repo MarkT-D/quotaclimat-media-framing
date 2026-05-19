@@ -777,29 +777,40 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        {/* Causal stage distribution — no enclosing border, no header-band rule. */}
+        {/* Causal stage distribution — 4-up HTML grid. Replaces the prior SVG
+            which used preserveAspectRatio="none" to fill the container width;
+            that stretched the text inside the SVG ~3× horizontally without
+            vertical scaling, deforming the percentage glyphs. HTML grid lets
+            the 44px Playfair stat-card numbers render at canonical Track B
+            size and proportion, with the axis line and per-cell tick produced
+            by ordinary CSS borders. */}
         <div className="mt-6">
           <div style={{ paddingBottom: 14 }}>
             <SectionHead>Causal stage distribution</SectionHead>
             <SectionMeta bg="var(--bg2)">What aspects of the crisis do articles focus on?</SectionMeta>
           </div>
           <div>
-            <svg width="100%" height={90} viewBox="0 0 440 90" preserveAspectRatio="none">
-              <line x1={0} x2={440} y1={62} y2={62} stroke="var(--border)" strokeWidth={0.5} />
-              {stageTicks.map((s, i) => {
-                const x     = 45 + i * 118;
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)" }}>
+              {stageTicks.map((s) => {
                 const color = s.stage === "Solutions" ? "var(--green)" : "var(--t2)";
                 return (
-                  <g key={s.stage}>
-                    <text x={x} y={32} textAnchor="middle" fill={color} fontFamily={F.playfair} fontSize={28}>{s.pct}%</text>
-                    <line x1={x} x2={x} y1={40} y2={62} stroke={color} strokeWidth={1.5} />
-                    <text x={x} y={76} textAnchor="middle" fill="var(--t2)" fontFamily={F.plex} fontSize={9}>
-                      {s.stage.toUpperCase()}
-                    </text>
-                  </g>
+                  <div key={s.stage} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 44, lineHeight: 1, color }}>
+                      {s.pct}%
+                    </div>
+                    <div style={{ width: 1.5, height: 22, background: color, marginTop: 10 }} />
+                  </div>
                 );
               })}
-            </svg>
+            </div>
+            <div style={{ borderTop: "0.5px solid var(--border)" }} />
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", marginTop: 8 }}>
+              {stageTicks.map((s) => (
+                <div key={s.stage} style={{ textAlign: "center", fontFamily: F.plex, fontSize: 10, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                  {s.stage}
+                </div>
+              ))}
+            </div>
             <EditorialNote>
               Solutions-focused articles account for only {solutionPct}% of coverage. Research consistently shows solution framing increases reader action intent.
             </EditorialNote>
