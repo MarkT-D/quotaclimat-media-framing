@@ -560,28 +560,36 @@ export default function OverviewPage() {
           <div style={{ padding: "22px 26px 24px" }}>
             <SectionHead>Frame Distribution</SectionHead>
             <SectionMeta bg="var(--red-l)">Semetko &amp; Valkenburg 2000</SectionMeta>
-            <ResponsiveContainer width="100%" height={240}>
-              <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
-                <PolarGrid stroke="var(--border)" />
-                <PolarAngleAxis dataKey="frame" tick={{ fontFamily: F.plex, fontSize: 10, fill: "var(--t2)" }} />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
-                <Radar name="All outlets" dataKey="value"
-                  stroke="var(--red)" fill="var(--red)" fillOpacity={0.18} strokeWidth={1.5}
-                />
-                <Tooltip content={<RadarTooltip />} />
-              </RadarChart>
-            </ResponsiveContainer>
-            <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: "6px 16px" }}>
-              {FRAME_DEFS.map((fd) => {
-                const count = frameData.find((f) => f.frame === fd.key)?.count ?? 0;
-                const pct   = Math.round((count / (totalArts || 1)) * 100);
-                return (
-                  <div key={fd.key} className="flex items-center gap-2">
-                    <span style={{ width: 9, height: 9, display: "inline-block", background: fd.color, flexShrink: 0 }} />
-                    <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)" }}>{fd.short} {pct}%</span>
-                  </div>
-                );
-              })}
+            {/* Radar + vertical legend, 60/40 split. Radar needs near-square
+                space for polar axis labels; vertical legend column gives each
+                frame its own line for label + value pairing. */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ flex: "0 0 60%" }}>
+                <ResponsiveContainer width="100%" height={240}>
+                  <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
+                    <PolarGrid stroke="var(--border)" />
+                    <PolarAngleAxis dataKey="frame" tick={{ fontFamily: F.plex, fontSize: 10, fill: "var(--t2)" }} />
+                    <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
+                    <Radar name="All outlets" dataKey="value"
+                      stroke="var(--red)" fill="var(--red)" fillOpacity={0.18} strokeWidth={1.5}
+                    />
+                    <Tooltip content={<RadarTooltip />} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+              <div style={{ flex: "1 1 40%", display: "flex", flexDirection: "column", gap: 8 }}>
+                {FRAME_DEFS.map((fd) => {
+                  const count = frameData.find((f) => f.frame === fd.key)?.count ?? 0;
+                  const pct   = Math.round((count / (totalArts || 1)) * 100);
+                  return (
+                    <div key={fd.key} className="flex items-center gap-2">
+                      <span style={{ width: 9, height: 9, display: "inline-block", background: fd.color, flexShrink: 0 }} />
+                      <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)" }}>{fd.short}</span>
+                      <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t1)", marginLeft: "auto" }}>{pct}%</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
