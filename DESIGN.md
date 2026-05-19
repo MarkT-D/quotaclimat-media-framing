@@ -350,6 +350,21 @@ sublabel: IBM Plex Sans 12px var(--t2), 18px gap above
 
 The 2×2 quadrant form additionally carries a horizontal soft rule between the top and bottom rows (`border-bottom 1px solid var(--border)` on the top-row cells). No rule lives *inside* a cell between the number and the sublabel — the grid's column/row dividers do the structural work; the sublabel pairs directly with its number via whitespace.
 
+### Team / contributor card grid
+
+The card-grid pattern used for the team list on `/about` — a 2×3 arrangement (3 columns, 2 rows) of name + focus pairs. Shares the **same separation logic** as the *Stat row* above: cells share a single block with soft-rule dividers running between columns and between rows; no enclosing border on the grid; no border on the individual cards. The difference is purely typographic — the *Stat row* carries display-typography numbers; the contributor grid carries editorial name + focus pairs.
+
+```
+container: no enclosing border; surrounding whitespace marks its bounds
+grid: 3 columns × 2 rows at desktop; collapses to 1 column at < lg
+cell: padding 28px 24px, centered both horizontally (text-align: center) and vertically (flex column, justify-content: center)
+name: IBM Plex Sans 17px, weight 500, var(--t1)
+focus: Source Serif 4 italic, 14px / lh 20, var(--t2), 6px gap above
+dividers: 1px var(--border) vertical between columns (`border-right` on the non-last-in-row cells), horizontal between rows (`border-bottom` on the first-row cells); both retract on mobile where the grid stacks to a single column, replaced by a single `border-bottom` between every pair of stacked cells
+```
+
+Square corners, no `border-radius`. No enclosing chip, no enclosing card border, no shadow. The grid's column/row dividers do all the structural work; whitespace inside each cell handles the rest.
+
 ### Badge / tag
 
 ```
