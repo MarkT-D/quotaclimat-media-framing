@@ -2,7 +2,7 @@
 
 ## Thesis
 
-The Climate Narrative Review presents climate journalism with the visual language of a printed broadsheet. Hairline rules, editorial serif typography, warm paper tones, and column-driven layouts evoke the gravity of long-form reporting while keeping data readable. Every page — including utility surfaces like upload, comparison, and about — wears the same broadsheet skin. There is no "dashboard mode": charts sit inside hairline-bordered sections, captions sit beneath them as editorial notes, and the texture of paper runs unbroken across the document.
+The Climate Narrative Review presents climate journalism with the visual language of a printed broadsheet. Hairline rules, editorial serif typography, warm off-white paper tones, and column-driven layouts evoke the gravity of long-form reporting while keeping data readable. Every page — including utility surfaces like upload, comparison, and about — wears the same broadsheet skin. There is no "dashboard mode": charts sit on the page, captions sit beneath them as editorial notes, and the warm `--bg` background runs unbroken across the document.
 
 When designing a new surface, ask: *would this fit in a printed paper?* If the answer is no, the design is off-system.
 
@@ -28,8 +28,8 @@ No other colors are permitted in components or pages. Tailwind palette utilities
 | `--green-l` | `#D8E8C4` | Green tint | Section meta chip backgrounds when the section is about solutions/balance; low-risk badge background |
 | `--green-m` | `#A8BE8A` | Mid green | Domain "Natural Resources", chart fills, outlet sequence #4 |
 | `--green-d` | `#2D4228` | Deep green | Low-risk badge text, sector #4 |
-| `--bg` | `#F2EDE3` | Page background | Warm off-white paper. Solid surface for cards, modals, broadsheet sections, SVG mark bars |
-| `--bg2` | `#EAE4D8` | Inset background | Section meta chips (neutral), chart grid lines, classification chips, moderate-risk badge background |
+| `--bg` | `#EAE4D8` | Page background | Warm putty. Solid surface for cards, modals, broadsheet sections, SVG mark bars |
+| `--bg2` | `#DDD6C6` | Inset background | Section meta chips (neutral), chart grid lines, classification chips, moderate-risk badge background |
 | `--border` | `#B8B0A4` | Hairline | All thin component borders, dividers within a panel, default rule color |
 | `--t1` | `#1C1A14` | Primary text | Body copy, headlines, primary borders between editorial blocks, active states, button fills |
 | `--t2` | `#7A7265` | Secondary text | Bylines, datelines, metadata, axis labels, tooltips, captions, inactive links, outlet sequence #5 |
@@ -461,9 +461,9 @@ The wordmark renders at **48px Playfair Display SC, weight 400 (regular)**, with
 
 On the masthead row the wordmark is absolutely positioned at page-horizontal-center, with side labels anchored to the row edges via flex. The wordmark has `pointer-events: none` so side labels stay interactive even if the wordmark visually overlaps them on narrow viewports.
 
-The 16px top padding before the masthead row is applied as `paddingTop` on the inner `max-w-[1440px]` wrapper, **not as `marginTop` on the masthead row.** Inline `marginTop` on the inner div would collapse through to `<body>` and offset the body's top edge by 16px, exposing the html element's solid `var(--bg)` background as a visible cream gap at the top of the viewport. Padding doesn't collapse, so the paper texture extends to y=0.
+The 16px top padding before the masthead row is applied as `paddingTop` on the inner `max-w-[1440px]` wrapper, **not as `marginTop` on the masthead row.** Inline `marginTop` on the inner div would collapse through to `<body>` and offset the body's top edge by 16px, opening a visible seam at the top of the viewport where the html background shows through. Padding doesn't collapse, so the sticky header sits flush against `y=0`.
 
-The `syncBg` background-position handler is retained — even with the header always sticky, the paper texture under the header needs to scroll with the page to look continuous.
+The header itself is painted with an inline `backgroundColor: var(--bg)` so its surface matches the page background exactly. With the background flat (no texture), no JS-synced background-position handler is needed; the header and the page beneath it share one solid color.
 
 ---
 
@@ -526,16 +526,13 @@ The hero is **monochrome on paper** (zero red, zero green above the ticker) by d
 
 ---
 
-## Texture
+## Background
 
-Background uses `public/crumpled.png` blended at 18% opacity (`rgba(242,237,227, 0.82)` overlay) over `--bg`, creating a subtle paper grain.
+The page background is a **solid `var(--bg)` (`#EAE4D8`)** site-wide — a warm putty. No texture, no overlay.
 
-| Class | Behavior | Used by |
-|---|---|---|
-| `body::before` | Scrolls with content | Main pages |
-| `.paper` | Fixed-attachment, JS-synced background-position | `NewspaperHeader.tsx` |
+The previous crumpled-paper texture (`body::before` scrolling overlay + `.paper` fixed-attachment class + `public/crumpled.png` blended at 18% opacity) is **retired**. The `body::before` rule, the `.paper` class, and the JS-synced background-position handler in `NewspaperHeader.tsx` have all been removed. The `crumpled.png` asset is retained on disk for now in case of future reversal but is no longer referenced anywhere.
 
-**Texture applies to the page background only.** Cards, broadsheet sections, modals, and tooltips use **solid `--bg`** so text remains legible. The texture lives at the page level, not the component level.
+Every surface that previously sat on textured paper (page background, sticky header, etc.) now sits on solid `--bg`. Cards, broadsheet sections, modals, and tooltips continue to use solid `--bg` as documented elsewhere — that hasn't changed; only the page background itself moved from "texture over `--bg`" to "solid `--bg`."
 
 ---
 

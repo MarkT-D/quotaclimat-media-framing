@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 const NAV = [
   { href: "/", label: "Home" },
@@ -13,11 +13,9 @@ const NAV = [
 
 // Single masthead layout: one-line wordmark with date / desk labels on the
 // sides, italic tagline below, hairline, nav strip, hairline. Same size and
-// structure on every page. Header is always sticky — the previous hero/compact
-// variants and the collapse-on-scroll logic are retired.
+// structure on every page. Header is always sticky.
 export default function NewspaperHeader() {
   const pathname = usePathname();
-  const headerRef = useRef<HTMLElement>(null);
 
   // "Updated HH:MM CET" timestamp displayed under "Climate Desk" on the right
   // side of the masthead row. Computed in useEffect to avoid SSR/hydration
@@ -30,29 +28,16 @@ export default function NewspaperHeader() {
     setTime(`${h}:${m}`);
   }, []);
 
-  // Keep the sticky header's paper-texture slice aligned with the page beneath
-  // it. background-attachment: scroll means the header renders from its own
-  // origin; offsetting background-position-y by -scrollY makes the paper look
-  // continuous as the page scrolls behind.
-  useEffect(() => {
-    const el = headerRef.current;
-    const syncBg = (y: number) => {
-      if (el) el.style.backgroundPosition = `0 0, center ${-y}px`;
-    };
-    syncBg(window.scrollY);
-    const onScroll = () => syncBg(window.scrollY);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
   return (
-    <header ref={headerRef} className="sticky top-0 z-50 w-full paper">
+    <header
+      className="sticky top-0 z-50 w-full"
+      style={{ backgroundColor: "var(--bg)" }}
+    >
       {/* paddingTop on the wrapper (not marginTop on the inner masthead row) —
           margin would collapse through the header into <body>, offsetting body's
-          top by 16px and exposing the html element's solid `--bg` background as
-          a visible "cream gap" at the top of the viewport. Padding doesn't
-          collapse, so the paper texture (painted by body::before) extends to
-          y=0 and the sticky header sits flush against the viewport top. */}
+          top by 16px and exposing a visible band of the page background as a
+          seam at the top of the viewport. Padding doesn't collapse, so the
+          sticky header sits flush against the viewport top. */}
       <div className="max-w-[1440px] mx-auto px-11" style={{ paddingTop: 24 }}>
 
         {/* Masthead row: date / wordmark / desk, one line, wordmark page-centered.

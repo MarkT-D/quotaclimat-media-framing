@@ -10,8 +10,8 @@
   --green-l: #D8E8C4;
   --green-d: #2D4228;
   --green-m: #A8BE8A;
-  --bg:     #F2EDE3;
-  --bg2:    #EAE4D8;
+  --bg:     #EAE4D8;
+  --bg2:    #DDD6C6;
   --border: #B8B0A4;
   --t1:     #1C1A14;
   --t2:     #7A7265;
@@ -24,48 +24,9 @@ html {
 }
 
 body {
-  background: transparent;
+  background-color: var(--bg);
   color: var(--t1);
   font-family: var(--font-source-serif), Georgia, "Times New Roman", serif;
-  position: relative;
-  isolation: isolate; /* stacking context so body::before z-index:-1 sits above html */
-}
-
-/*
-  Full-document texture layer — lives in document space so it scrolls with content.
-  background-size: 100vw pins width to the viewport; height is auto-proportional.
-  Neither dimension depends on document height, so the background fit never
-  recalculates when the navbar collapses and the document height changes.
-*/
-body::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background-color: var(--bg);
-  background-image:
-    linear-gradient(rgba(242, 237, 227, 0.82) 0%, rgba(242, 237, 227, 0.82) 100%),
-    url('/crumpled.png');
-  background-attachment: scroll;
-  background-size: auto, 100vw;
-  background-position: 0 0, center top;
-  background-blend-mode: normal, luminosity;
-}
-
-/*
-  Sticky header: fixed-attachment so the header's own background is also immune
-  to document-height changes. JS in NewspaperHeader.tsx offsets background-position-y
-  by -scrollY so the header always shows the same texture slice as the page top.
-*/
-.paper {
-  background-color: var(--bg);
-  background-image:
-    linear-gradient(rgba(242, 237, 227, 0.82) 0%, rgba(242, 237, 227, 0.82) 100%),
-    url('/crumpled.png');
-  background-attachment: fixed, fixed;
-  background-size: auto, 100vw;
-  background-position: 0 0, center top;
-  background-blend-mode: normal, luminosity;
 }
 
 /* Typewriter cursor */
