@@ -518,12 +518,10 @@ export default function OverviewPage() {
                   <div style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
                     {stat.label}
                   </div>
-                  <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 44, lineHeight: 1, color: "var(--t1)", marginBottom: 10 }}>
+                  <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 44, lineHeight: 1, color: "var(--t1)", marginBottom: 18 }}>
                     {stat.value}
                   </div>
-                  <div style={{ borderTop: "1px solid var(--border)", paddingTop: 8 }}>
-                    <div style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t2)" }}>{stat.sub}</div>
-                  </div>
+                  <div style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t2)" }}>{stat.sub}</div>
                 </div>
               ))}
             </div>

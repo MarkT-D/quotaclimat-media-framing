@@ -345,8 +345,10 @@ container: no enclosing border; surrounding whitespace marks its bounds
 cell: padding ~16–18px, border-right 1px solid var(--border) (except last in row) — soft rule
 label: IBM Plex Sans 11px uppercase letter-spacing 0.05em, var(--t2)
 number: Playfair Display 44px, var(--t1)        /* per display-typography track */
-sublabel: above a 1px var(--border) top rule, padding-top 8px, IBM Plex Sans 12px var(--t2)
+sublabel: IBM Plex Sans 12px var(--t2), 18px gap above
 ```
+
+The 2×2 quadrant form additionally carries a horizontal soft rule between the top and bottom rows (`border-bottom 1px solid var(--border)` on the top-row cells). No rule lives *inside* a cell between the number and the sublabel — the grid's column/row dividers do the structural work; the sublabel pairs directly with its number via whitespace.
 
 ### Badge / tag
 
