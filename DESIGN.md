@@ -147,11 +147,13 @@ The trade-off: the site loses both its typewriter accent (Special Elite) and its
 
 | Role | Font | Size | Line height | Weight |
 |---|---|---|---|---|
-| Hero (home) | Playfair Display | 140px | 1.0 | 400 |
-| Editorial headline | Playfair Display | 38–56px | 1.05 | 400 |
-| Section head | Playfair Display | 24px | 1.15 | 400 |
-| Large stat number | Playfair Display | 32–52px | 1.0 | 400 |
-| Edition number (home) | Playfair Display | 72–96px | 1.0 | 400 |
+| Masthead wordmark (every page, sticky) | Playfair Display SC | 48px (clamped down on narrow viewports) | 1.0 | 400 |
+| Welcome greeting (home only) | Playfair Display | 44px | 1.1 | 400 |
+| Edition number (home teaser grid) | Playfair Display | 44px | 1.0 | 400 |
+| Stat-card number (overview top row) | Playfair Display | 44px | 1.0 | 400 |
+| Page H1 (sub-page editorial heading) | Playfair Display | 36px | 1.1 | 400 |
+| Section head (within a page) | Playfair Display | 24px | 1.15 | 400 |
+| Special-edition boxed label | Playfair Display | 28px | 1.0 | 400, inside 1px `var(--t1)` box |
 | Body copy | Source Serif 4 | 14–18px | 1.5 | 300–400 |
 | Long-form / article body | Source Serif 4 | 16–20px | 1.6 | 400 |
 | Editorial note (italic) | Source Serif 4 | 14px | 1.5 | 300 italic |
@@ -164,6 +166,42 @@ The trade-off: the site loses both its typewriter accent (Special Elite) and its
 | Form label | IBM Plex Sans | 11–12px | 1.2 | 500 |
 | Error / status message | IBM Plex Sans | 12px | 1.4 | 400 |
 | Axis / tooltip | IBM Plex Sans | 11–12px | 1.0 | 400 |
+
+### Two-track type hierarchy
+
+The Playfair Display sizes above sit on **two parallel tracks**, not one merged hierarchy. Future contributors should not try to "fix" the apparent rank order — it's intentional.
+
+**Track A — Editorial heading hierarchy (strictly descending):**
+
+| Rank | Role | Size |
+|---|---|---|
+| 1 | Masthead wordmark | 48px |
+| 2 | Page H1 | 36px |
+| 3 | Section head | 24px |
+
+A heading is a structural label that introduces a region of the page (the publication, the page topic, a sub-section). Headings descend strictly: every step down the hierarchy is visibly smaller than the one above it.
+
+**Track B — Display typography (own register):**
+
+| Role | Size |
+|---|---|
+| Welcome greeting (home) | 44px |
+| Edition number (home teaser grid) | 44px |
+| Stat-card number (overview) | 44px |
+
+Display typography is *graphic* type — large words or numerals that function as visual anchors in a layout, not as headings in a hierarchical sense. The Welcome line greets the reader, edition numbers anchor teaser columns, stat numbers anchor stat cards. They share Playfair Display at 44px and sit in their own register.
+
+**The key rule for both tracks:**
+
+- Display typography (Track B) may exceed page H1s (Track A rank 2), but **may never exceed the masthead (Track A rank 1)**. The masthead is the largest type on every page, full stop.
+- The fact that edition numbers (44) exceed page H1s (36) is **not** an inconsistency — it's the two registers doing different work. A teaser-grid number is graphic anchoring; a sub-page heading is structural labelling.
+
+**Welcome (home) vs page H1 (sub-pages) — distinct roles even at adjacent sizes:**
+
+- **Welcome** appears only on the home page. It is a hero *greeting*, animated and role-rotating ("Welcome, editor / activist / …"). It functions as a salutation, not a page title. Track B.
+- **Page H1** appears on sub-pages. It is the static editorial *title* of the page (e.g. "The Gap Between Ink and Environment" on `/overview`). It names what the page is about. Track A.
+
+They never appear on the same page; 44px vs 36px is the size difference between them when comparing across routes.
 
 ### Loading & fallbacks
 
@@ -384,20 +422,29 @@ Reproduce at any square size; do not stretch. The 11px corner radius (`rx="11"`)
 
 The SVG mark will be retired in a future pass once a purpose-built small-format monogram replaces it. Until then, keep both marks documented and consistent.
 
-### Sticky header behavior and size variants
+### Sticky header behavior
 
-`components/NewspaperHeader.tsx` is the global header on every page. Collapsible masthead on scroll, fixed-attachment texture sync via inline scroll handler.
+`components/NewspaperHeader.tsx` is the global header on every page. **The entire header is always sticky** — masthead row, tagline, hairlines, and nav strip stay pinned to the top of the viewport for the full scroll of the page. There is no collapse-on-scroll behavior and no pathname-based size variants; the masthead renders the same on every page.
 
-The component renders one of two expanded-state variants based on `usePathname()`:
+Layout (top to bottom inside the sticky block):
 
-| Variant | Pathname | Layout | Wordmark size |
-|---|---|---|---|
-| Hero | `/` (home only) | Stacked: utility metadata row (date / desk) above a centered, dedicated wordmark row | Playfair Display SC 80px, lh 1.0 |
-| Compact | every other page | Side-by-side: date on the left, centered wordmark, desk label on the right | Playfair Display SC 29px, lh 39px |
+| Row | Content | Height |
+|---|---|---|
+| Masthead row | Date label (left, two-line stack: weekday/date above, volume/issue below) · Wordmark (centered) · Desk label (right, single line) | 56px |
+| Tagline | Italic Playfair tagline, page-centered | ~28px (incl. margins) |
+| Hairline | 1px `var(--t2)` | 1px |
+| Nav strip | Home · Dashboard · The Reader · Discrepancy Desk · About us | ~28px |
+| Hairline | 1px `var(--t2)` | 1px |
 
-Both variants share the same nav strip, the same hairline rules, and the same collapse-on-scroll behavior. Both collapse to the same stuck state (nav strip only) once scrolled past `COLLAPSE_AT` (160px); both expand back when scrolled to the top or hovered. The collapsible block's `MAX_HEIGHT` is unified at 280px to accommodate either variant's expanded height.
+Total sticky height: ~154px (24px top padding + 56px masthead row + 8px gap + 20px tagline + 16px gap + 1px hairline + 28px nav strip + 1px hairline). The 24px top padding is a deliberate weighting toward more air above the wordmark than below; broadsheet wordmarks conventionally sit with breathing room above them. This block is the same on every route and consumes the same vertical real estate on every page.
 
-The hero variant exists so the home page wordmark is the largest type on the page — the dominant brand expression on the front page of the Review. On every other page, the masthead is sticky chrome supporting the page's content, not the headline event itself; hence the compact size.
+The wordmark renders at **48px Playfair Display SC, weight 400 (regular)**, with `font-size: clamp(20px, 3.4vw, 48px)` so it scales down on narrow viewports without wrapping or breaking the page layout. At 1440px (the primary target) it sits at 48px. **Regular weight is used deliberately, not bold:** Playfair SC at 48px + all-caps + letter-spacing 0.05em already does substantial weight-feeling work, and Playfair's high-contrast didone letterforms get shouty at bold. Major broadsheet wordmarks (NYT, Le Monde, FT, The Times) use medium/regular weight for the same reason.
+
+On the masthead row the wordmark is absolutely positioned at page-horizontal-center, with side labels anchored to the row edges via flex. The wordmark has `pointer-events: none` so side labels stay interactive even if the wordmark visually overlaps them on narrow viewports.
+
+The 16px top padding before the masthead row is applied as `paddingTop` on the inner `max-w-[1440px]` wrapper, **not as `marginTop` on the masthead row.** Inline `marginTop` on the inner div would collapse through to `<body>` and offset the body's top edge by 16px, exposing the html element's solid `var(--bg)` background as a visible cream gap at the top of the viewport. Padding doesn't collapse, so the paper texture extends to y=0.
+
+The `syncBg` background-position handler is retained — even with the header always sticky, the paper texture under the header needs to scroll with the page to look continuous.
 
 ---
 
@@ -409,26 +456,26 @@ The home page (`app/page.tsx`) is the front page of the Review. It is structured
 
 | Block | Height | Content |
 |---|---|---|
-| `NewspaperHeader` (hero variant) | ~195px | Date / desk metadata row, 80px Playfair Display SC wordmark, italic tagline, nav strip, hairline rules |
-| Hero pair | 240px | Two columns: `TypingGreeting` "Welcome, [role]" at 56px Playfair Display on the left; lead paragraph (20px Source Serif 4 weight 400) and body paragraph (16px Source Serif 4 weight 300) on the right |
+| `NewspaperHeader` (always sticky) | ~154px | One-line wordmark row (48px Playfair Display SC weight 400) with two-line date stack and Climate Desk side labels, italic tagline, hairline, nav strip, hairline; 24px top padding for breathing room above the wordmark |
+| Hero pair | ~220px | Two columns: `TypingGreeting` "Welcome, [role]" at 44px Playfair Display on the left; lead paragraph (20px Source Serif 4 weight 400) and body paragraph (16px Source Serif 4 weight 300) on the right. Welcome is display typography, not a heading — see *Two-track type hierarchy* below. |
 | Stats ticker | ~36px | Section-rule-bounded horizontal marquee of editorial keywords. Acts as the section divider between hero pair and editions. |
 | Four-up teaser grid | 320px | Four equal-width edition columns, separated by 1px `var(--t1)` section rules. Each column previews one edition of the Review. |
 
-Total content height: ~791px. Designed to fit a 780–820px usable area (1440×900 minus browser chrome).
+Total content height: ~730px. Fits 780–820px usable area (1440×900 minus browser chrome) with comfortable breathing room.
 
 ### Edition teaser column pattern
 
 Each column in the four-up grid is an `EditionTeaser`, structured top-to-bottom as:
 
 1. **Edition label** — IBM Plex Sans 11px uppercase letter-spacing 0.04em, `var(--t2)`. E.g. "Edition I", "Special Edition".
-2. **Edition number** — Playfair Display, large (56px for `01`/`02`/`03` regular; 28px boxed for `Special`). Hover lifts via `-translate-y-1`.
+2. **Edition number** — Playfair Display **44px** for the three numbered editions (`01`, `02`, `03`); 28px Playfair Display inside a 1px `var(--t1)` box for the `Special` edition (its label is a word, the box gives it comparable visual weight at a smaller size). All three numbered editions render visually identical — no asymmetric underline or other lead-edition decoration. Edition numbers are display typography, not headings — see *Two-track type hierarchy* below.
 3. **Title** — Playfair Display 24px (italic for Editions I and II per their existing typographic identity).
 4. **Description** — Source Serif 4 13px / lh 18, 1–2 lines, `var(--t2)`.
 5. **Hairline divider** — 1px `var(--border)`.
 6. **Teaser content** — flexible-height area for a per-edition preview (~120px).
 7. **CTA** — IBM Plex Sans 11px uppercase letter-spacing 0.04em with a hover-revealed arrow.
 
-The entire column is wrapped in a `<Link>` so the whole column is clickable.
+The entire column is wrapped in a `<Link>` so the whole column is clickable. The only hover effect on the column is the CTA arrow appearance — a functional clickability cue. There is no number-lift or other decorative hover.
 
 ### Placeholder teaser content
 

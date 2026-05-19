@@ -288,10 +288,10 @@ export default function SearchPage() {
           placeholder="Search the archive…"
           style={{
             width: "100%", fontFamily: F.playfair,
-            fontWeight: 400, fontSize: 52, lineHeight: "60px",
+            fontWeight: 400, fontSize: 36, lineHeight: "40px",
             color: "var(--t1)", background: "transparent", border: "none",
             borderBottom: `2px solid var(--t1)`, outline: "none",
-            paddingBottom: 14, textAlign: "center", caretColor: "var(--t1)",
+            paddingBottom: 12, textAlign: "center", caretColor: "var(--t1)",
           }}
         />
         <div className="relative mt-3">

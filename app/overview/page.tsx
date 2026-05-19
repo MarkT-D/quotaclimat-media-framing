@@ -477,7 +477,7 @@ export default function OverviewPage() {
 
         {/* Editorial headline */}
         <div style={{ paddingTop: 40, paddingBottom: 28 }}>
-          <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 56, lineHeight: "60px", color: "var(--t1)", maxWidth: 780 }}>
+          <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 36, lineHeight: "40px", color: "var(--t1)", maxWidth: 780 }}>
             The Gap Between<br />Ink and Environment
           </div>
           <p style={{ fontFamily: F.serif, fontWeight: 300, fontSize: 18, lineHeight: "26px", color: "var(--t2)", marginTop: 16, maxWidth: 560 }}>
@@ -520,7 +520,7 @@ export default function OverviewPage() {
               <div style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
                 {stat.label}
               </div>
-              <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 52, lineHeight: 1, color: "var(--t1)", marginBottom: 10 }}>
+              <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 44, lineHeight: 1, color: "var(--t1)", marginBottom: 10 }}>
                 {stat.value}
               </div>
               <div style={{ borderTop: "1px solid var(--border)", paddingTop: 8 }}>

@@ -9,12 +9,10 @@ const F = {
 
 // ─── Edition data ─────────────────────────────────────────────────────────────
 
-type NumberStyle = "underline" | "bare" | "border";
-
 type Edition = {
   label: string;
   number: string;
-  numberStyle: NumberStyle;
+  bordered: boolean; // Special edition only — boxed number treatment
   title: string;
   italic: boolean;
   desc: string;
@@ -126,7 +124,7 @@ const EDITIONS: Edition[] = [
   {
     label: "Edition I",
     number: "01",
-    numberStyle: "underline",
+    bordered: false,
     title: "Dashboard",
     italic: true,
     desc: "Sector coverage vs. GHG proportionality across 74 outlets.",
@@ -137,7 +135,7 @@ const EDITIONS: Edition[] = [
   {
     label: "Edition II",
     number: "02",
-    numberStyle: "bare",
+    bordered: false,
     title: "The Reader",
     italic: true,
     desc: "Where reported emissions diverge from measurable impact.",
@@ -148,7 +146,7 @@ const EDITIONS: Edition[] = [
   {
     label: "Edition III",
     number: "03",
-    numberStyle: "bare",
+    bordered: false,
     title: "Discrepancy desk",
     italic: false,
     desc: "Per-outlet framing patterns and publication statistics.",
@@ -159,7 +157,7 @@ const EDITIONS: Edition[] = [
   {
     label: "Special Edition",
     number: "Special",
-    numberStyle: "border",
+    bordered: true,
     title: "About us",
     italic: false,
     desc: "Mission, methodology, and the research team behind the Lab.",
@@ -185,9 +183,11 @@ function EditionTeaser({ ed }: { ed: Edition }) {
           {ed.label}
         </div>
 
-        {/* Edition number */}
-        <div className="transition-transform duration-300 group-hover:-translate-y-1">
-          {ed.numberStyle === "border" ? (
+        {/* Edition number — all three numbered editions render identically;
+            Special gets a boxed treatment because the label is a word, not a
+            numeral, and the box keeps its visual weight comparable. */}
+        <div>
+          {ed.bordered ? (
             <span style={{
               fontFamily: F.playfair, fontWeight: 400,
               fontSize: 28, lineHeight: 1, color: "var(--t1)",
@@ -199,8 +199,7 @@ function EditionTeaser({ ed }: { ed: Edition }) {
           ) : (
             <span style={{
               fontFamily: F.playfair, fontWeight: 400,
-              fontSize: 56, lineHeight: 1, color: "var(--t1)",
-              textDecoration: ed.numberStyle === "underline" ? "underline" : "none",
+              fontSize: 44, lineHeight: 1, color: "var(--t1)",
             }}>
               {ed.number}
             </span>
@@ -239,7 +238,8 @@ function EditionTeaser({ ed }: { ed: Edition }) {
           <ed.Teaser />
         </div>
 
-        {/* CTA */}
+        {/* CTA — arrow appearance on hover is the functional clickability cue;
+            no other hover effects on the column. */}
         <div className="flex items-center gap-1" style={{ marginTop: 16 }}>
           <span style={{
             fontFamily: F.plex, fontSize: 11, color: "var(--t2)",
@@ -279,7 +279,7 @@ export default function HomePage() {
         <div className="flex-1">
           <TypingGreeting style={{
             fontFamily: F.playfair, fontWeight: 400,
-            fontSize: 56, lineHeight: "60px",
+            fontSize: 44, lineHeight: "48px",
             color: "var(--t1)",
           }} />
         </div>
