@@ -249,17 +249,19 @@ All editorial pages share the same max-width and padding. Article detail is the 
 
 ## Borders & rules
 
-Four weights. Use them deliberately.
+Three weights. Use them deliberately.
 
 | Name | Definition | When |
 |---|---|---|
 | Hairline | `0.5px solid var(--border)` | Card outlines, chip outlines, faint sub-section breaks |
-| Soft rule | `1px solid var(--border)` | Dividers within a section, between rows in a list, footer breaks |
-| Section rule | `1px solid var(--t1)` | Major broadsheet section borders, the outer border of chart panels, between editorial blocks, between grid cells inside a broadsheet section |
-| Heavy rule | `2px solid var(--t1)` | Masthead break, beneath the hero block, "this is a serious threshold" |
+| Soft rule | `1px solid var(--border)` | Dividers within a section, between rows in a list, between cells in a flat horizontal stat-row, caption separators above editorial notes |
+| Heavy rule | `2px solid var(--t1)` | Major page-level break beneath the lede/H1, masthead break, "this is a serious threshold" |
+
+The previous **Section rule** (`1px solid var(--t1)`) is **retired** from the system. Sections are no longer demarcated by enclosing borders; they separate via section heads, meta chips, and whitespace. See *Forbidden border treatments* below and the *Broadsheet section* pattern.
 
 ### Forbidden border treatments
 
+- **Enclosing borders on sections.** Broadsheet sections do not wrap in 1px (or any-weight) rules. Sections separate via section heads + meta chips + surrounding whitespace. For genuine major page-level breaks (lede/body), use the heavy rule. The fix for "sections feel under-organized" is always more whitespace, never more rules.
 - **`border-radius` on any broadsheet surface, chart panel, button, badge, chip, or filter.** All surfaces are square-cornered. Newspapers do not have rounded corners. (The SVG mark is the single exception — its containing rectangle has `rx="11"` because the mark is a logo, not a UI surface.)
 - Card chrome from generic libraries (`rounded-xl`, `shadow`, `shadow-sm`, `border-neutral-200`, `bg-white`) anywhere on the site.
 - Drop shadows except on floating overlays (modals, tooltips). Single shadow recipe: `0 10px 32px rgba(28,26,20,0.18)`.
@@ -270,15 +272,20 @@ Four weights. Use them deliberately.
 
 ### Broadsheet section
 
-The default container for a block of editorial or charted content.
+The default container for a block of editorial or charted content. **Sections do not have enclosing borders.** Each section is demarcated by its **section head** (Playfair Display 24px) + an optional **section meta chip** beneath it + body content + surrounding whitespace.
 
 ```
-border: 1px solid var(--t1);
 background: var(--bg);
-padding: 22px 26px 24px;
+padding: 0;             /* no inner padding from the section itself —
+                           content blocks bring their own typographic
+                           spacing */
+margin-top: 48px;       /* whitespace from the previous section */
+border: none;
 ```
 
-When two sections sit in a grid (e.g. chart pair on `/overview`), the dividing border between them is `1px solid var(--t1)` (the right border of the left cell). The outer container has `border: 1px solid var(--t1)`. Sections never nest — they sit side-by-side or stacked.
+Sections never nest. They stack vertically, separated by ~48px (the 4pt scale's `mt-12`) of paper. For sections that need internal columns (e.g. a Mission section with text-left + Logo-right), use a flex/grid row inside the section with no dividing borders between the columns — the column gap and the section's outer whitespace do the visual work.
+
+If a content block needs a visible container (e.g. a callout panel, a modal body, an inset glossary), use **Hairline card** instead — that's the only documented container with a visible border.
 
 ### Hairline card
 
@@ -310,12 +317,14 @@ background: <see rule below>;
 | `--green-l` | Solutions, balance, positive signals, alignment |
 | `--bg2` | Descriptive, neutral, or comparative content |
 
+**Use sparingly.** Meta chips work when they carry a semantic signal not present in the section head — a quantifier ("Total articles per month"), a methodological note ("Semetko & Valkenburg 2000"), or a categorical tag that the section head can't carry alone. Skip them when the section head and body together make the section's identity obvious. On editorial or explanatory pages (like `/about`), chips often over-label — prefer the section head alone. On data-dense pages (like `/overview`), they earn their place by labeling the unit-of-measure or method behind a chart. Default to no chip; add one only when it adds information.
+
 ### Editorial note
 
-The italic caption beneath a chart.
+The italic caption beneath a chart, a callout below body text, or a credit line at the end of a section.
 
 ```
-border-top: 1px solid var(--t1);
+border-top: 1px solid var(--border);   /* soft rule */
 margin-top: 16px;
 padding-top: 12px;
 font: 13px Source Serif 4 italic, weight 300;
@@ -323,17 +332,21 @@ color: var(--t2);
 line-height: 1.5;
 ```
 
+The top rule uses the soft rule weight (`1px var(--border)`) — visible but quiet. The previous spec used `1px var(--t1)` (the retired section rule); existing `/overview` editorial notes still carry the heavier weight and will be brought into compliance when `/overview` is rebuilt.
+
 ### Stat row
 
-The flat horizontal summary at the top of `/overview`. **Not** four separate cards.
+The flat horizontal summary at the top of `/overview`. **Not** four separate cards. After the section-rule retirement, the row itself is borderless; cells separate via soft-rule column dividers and the row is bracketed (above and below) by soft rules from the surrounding paper.
 
 ```
-container: border 1px solid var(--t1), no radius
-cell: padding 18px 22px 20px, border-right 1px solid var(--t1) (except last)
+container: no enclosing border; surrounding whitespace marks its bounds
+cell: padding 18px 22px 20px, border-right 1px solid var(--border) (except last) — soft rule
 label: IBM Plex Sans 11px uppercase letter-spacing 0.05em, var(--t2)
-number: Playfair Display 52px, var(--t1)
+number: Playfair Display 44px, var(--t1)        /* per display-typography track */
 sublabel: above a 1px var(--border) top rule, padding-top 8px, IBM Plex Sans 12px var(--t2)
 ```
+
+`/overview`'s current implementation still uses the retired `1px var(--t1)` for the container border and cell dividers; it will be brought into compliance when `/overview` is rebuilt.
 
 ### Badge / tag
 
@@ -430,13 +443,17 @@ Layout (top to bottom inside the sticky block):
 
 | Row | Content | Height |
 |---|---|---|
-| Masthead row | Date label (left, two-line stack: weekday/date above, volume/issue below) · Wordmark (centered) · Desk label (right, single line) | 56px |
+| Masthead row | Date stack (left, two lines: weekday/date above, volume/issue below) · Wordmark (centered) · Right-side stack (two lines: "Climate Desk" above, "Updated HH:MM CET" below) | 56px |
 | Tagline | Italic Playfair tagline, page-centered | ~28px (incl. margins) |
 | Hairline | 1px `var(--t2)` | 1px |
 | Nav strip | Home · Dashboard · The Reader · Discrepancy Desk · About us | ~28px |
 | Hairline | 1px `var(--t2)` | 1px |
 
 Total sticky height: ~154px (24px top padding + 56px masthead row + 8px gap + 20px tagline + 16px gap + 1px hairline + 28px nav strip + 1px hairline). The 24px top padding is a deliberate weighting toward more air above the wordmark than below; broadsheet wordmarks conventionally sit with breathing room above them. This block is the same on every route and consumes the same vertical real estate on every page.
+
+**Right-side stack (Climate Desk + Updated):** "Climate Desk" renders in IBM Plex Sans 13px, `var(--t2)`. "Updated HH:MM CET" renders directly beneath it in IBM Plex Sans 12px, `var(--t2)` (same family/color/case, slightly smaller to signal it's a secondary line of metadata). Both right-aligned. The timestamp is computed in `useEffect` after hydration to avoid SSR/client mismatch on minute boundaries.
+
+**Retired sub-strip:** the per-page "Edition · Page · Desk" / "Updated HH:MM CET" strip that previously sat below the nav strip on `/overview`, `/search`, and (briefly) `/about` is retired site-wide. The timestamp moved into the masthead row as described above; the page-specific breadcrumb metadata was dropped — the page H1 and section heads carry enough context on their own. This pattern is not documented separately because it no longer exists.
 
 The wordmark renders at **48px Playfair Display SC, weight 400 (regular)**, with `font-size: clamp(20px, 3.4vw, 48px)` so it scales down on narrow viewports without wrapping or breaking the page layout. At 1440px (the primary target) it sits at 48px. **Regular weight is used deliberately, not bold:** Playfair SC at 48px + all-caps + letter-spacing 0.05em already does substantial weight-feeling work, and Playfair's high-contrast didone letterforms get shouty at bold. Major broadsheet wordmarks (NYT, Le Monde, FT, The Times) use medium/regular weight for the same reason.
 
@@ -458,8 +475,8 @@ The home page (`app/page.tsx`) is the front page of the Review. It is structured
 |---|---|---|
 | `NewspaperHeader` (always sticky) | ~154px | One-line wordmark row (48px Playfair Display SC weight 400) with two-line date stack and Climate Desk side labels, italic tagline, hairline, nav strip, hairline; 24px top padding for breathing room above the wordmark |
 | Hero pair | ~220px | Two columns: `TypingGreeting` "Welcome, [role]" at 44px Playfair Display on the left; lead paragraph (20px Source Serif 4 weight 400) and body paragraph (16px Source Serif 4 weight 300) on the right. Welcome is display typography, not a heading — see *Two-track type hierarchy* below. |
-| Stats ticker | ~36px | Section-rule-bounded horizontal marquee of editorial keywords. Acts as the section divider between hero pair and editions. |
-| Four-up teaser grid | 320px | Four equal-width edition columns, separated by 1px `var(--t1)` section rules. Each column previews one edition of the Review. |
+| Stats ticker | ~36px | Horizontal marquee of editorial keywords, currently bracketed by `1px var(--t1)` rules (retired weight — see *Follow-up* below). Acts as the section divider between hero pair and editions. |
+| Four-up teaser grid | 320px | Four equal-width edition columns, currently separated by `1px var(--t1)` column rules (retired weight). Each column previews one edition of the Review. |
 
 Total content height: ~730px. Fits 780–820px usable area (1440×900 minus browser chrome) with comfortable breathing room.
 
@@ -544,7 +561,9 @@ These pages still ship generic SaaS-style chrome (`rounded-xl`, `shadow`, Tailwi
 - `app/article/[id]/page.tsx` — card-style analysis panels → broadsheet sections and hairline cards. Risk badge tier styles to match new spec.
 - `app/upload/page.tsx` — dashed-border dropzone, mode toggle, results cards → broadsheet sections. Off-palette green tints (`rgba(45,106,79,*)`) → palette tokens.
 - `app/newspapers/page.tsx` — entire chart grid is off-system. Rebuild to broadsheet sections, swap 15-color `OUTLET_PALETTE` for the 5-color outlet sequence documented here, retire the `getOutletStats` Tailwind text classes.
-- `app/about/page.tsx` — mission/team cards → broadsheet sections. (The inline Logo SVG is already migrated to `components/Logo.tsx` in this pass.)
+- `app/overview/page.tsx` — currently uses the **retired section rule** (`1px var(--t1)` enclosing borders) on the stat row, all chart panels, the editorial-note top rules, and grid-cell column dividers (~12 instances). Rebuild must remove all enclosing borders per the new *Broadsheet section* pattern, convert editorial-note top rules to soft rule (`1px var(--border)`), convert stat-row column dividers to soft rule, and rely on whitespace + section heads for visual demarcation.
+- `app/about/page.tsx` — **rebuilt in this pass.** No longer on this list.
+- `app/page.tsx` — the home page is broadsheet-conformant **except** for two carry-overs of the retired section rule: the ticker strip is bracketed by `1px var(--t1)` top/bottom rules, and the four-up teaser grid uses `1px var(--t1)` vertical column rules between cells. A future home-page polish pass should either convert these to soft rule (`1px var(--border)`) or remove them in favor of whitespace + section heads. Not a rebuild — a targeted weight correction.
 - `app/search/page.tsx` — rebuild `NewsItem` card to broadsheet pattern. Align `FRAME_COLORS` to the canonical Frame chart mapping documented above. After the palette-enforcement pass, `FRAME_COLORS` is in an intermediate state — palette-pure but mostly non-canonical:
 
   | Frame | Current (intermediate) | Canonical (target) | Status |
@@ -563,7 +582,7 @@ The component is orphaned (no importer found) and ships full Tailwind palette (`
 
 ### Tone-of-rules pass
 
-After the palette-enforcement pass, mid-tone borders (`#616161`, now `var(--t2)`) are still used as hairline dividers in `components/NewspaperHeader.tsx` (masthead and nav-strip rules, both in the hero and compact variants). The borders & rules table in this document prescribes `var(--border)` (hairline) or `var(--t1)` (section rule / heavy rule) but not `var(--t2)`. A future pass should decide, per surface, whether each currently-`var(--t2)` divider should become a true hairline (`var(--border)`, lighter and softer) or a section rule (`var(--t1)`, darker and more emphatic). This is a visual-design decision, not a token swap, and was deferred from the palette-enforcement pass. The home page itself no longer carries any `var(--t2)` rules — the restructure replaced its dividers with proper section rules (`var(--t1)`).
+After the palette-enforcement pass, mid-tone borders (`#616161`, now `var(--t2)`) are still used as hairline dividers in `components/NewspaperHeader.tsx` (masthead and nav-strip rules). The current borders & rules table prescribes `var(--border)` (hairline / soft rule) or `var(--t1)` (heavy rule) but not `var(--t2)`. A future pass should decide, per surface, whether each currently-`var(--t2)` divider should become a true hairline (`var(--border)`, lighter and softer) or a heavy rule (`2px var(--t1)`, darker and more emphatic — though heavy rule is reserved for major page-level breaks, so hairline is the likely answer). This is a visual-design decision, not a token swap, and was deferred from the palette-enforcement pass.
 
 ### Page padding normalization
 

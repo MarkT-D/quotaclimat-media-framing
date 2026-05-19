@@ -216,10 +216,6 @@ function NewsItem({ article, index }: { article: Article; index: number }) {
 // ── Page ────────────────────────────────────────────────────────────────────
 
 export default function SearchPage() {
-  const now = new Date();
-  const h = now.getHours().toString().padStart(2, "0");
-  const m = now.getMinutes().toString().padStart(2, "0");
-
   const { articles: allArticles } = useArticles();
 
   // Filter state — mirrors schema columns
@@ -268,16 +264,6 @@ export default function SearchPage() {
 
   return (
     <div className="max-w-[1440px] mx-auto px-11">
-
-      {/* Sub-strip — no rule beneath */}
-      <div className="flex justify-between items-center py-[7px]">
-        <span style={{ fontFamily: F.plex, fontSize: 13, color: "var(--t2)" }}>
-          Edition II · The Reader · Search Desk
-        </span>
-        <span style={{ fontFamily: F.plex, fontSize: 13, color: "var(--t2)" }}>
-          Updated {h}:{m} CET
-        </span>
-      </div>
 
       {/* Search as headline — centered, Playfair Display SC */}
       <div className="pt-10 pb-2">

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const NAV = [
   { href: "/", label: "Home" },
@@ -18,6 +18,17 @@ const NAV = [
 export default function NewspaperHeader() {
   const pathname = usePathname();
   const headerRef = useRef<HTMLElement>(null);
+
+  // "Updated HH:MM CET" timestamp displayed under "Climate Desk" on the right
+  // side of the masthead row. Computed in useEffect to avoid SSR/hydration
+  // mismatch when the minute changes between server render and client hydration.
+  const [time, setTime] = useState<string | null>(null);
+  useEffect(() => {
+    const now = new Date();
+    const h = now.getHours().toString().padStart(2, "0");
+    const m = now.getMinutes().toString().padStart(2, "0");
+    setTime(`${h}:${m}`);
+  }, []);
 
   // Keep the sticky header's paper-texture slice aligned with the page beneath
   // it. background-attachment: scroll means the header renders from its own
@@ -91,13 +102,19 @@ export default function NewspaperHeader() {
             THE CLIMATE NARRATIVE REVIEW
           </div>
 
-          <div style={{
+          {/* Right side: "Climate Desk" stacked above "Updated HH:MM CET".
+              Replaces the previous per-page sub-strip's timestamp; the
+              sub-strip itself is retired site-wide. */}
+          <div className="flex flex-col items-end" style={{
             fontFamily: "var(--font-plex-sans)",
-            fontSize: 13,
-            lineHeight: "17px",
             color: "var(--t2)",
           }}>
-            Climate Desk
+            <div style={{ fontSize: 13, lineHeight: "17px" }}>
+              Climate Desk
+            </div>
+            <div style={{ fontSize: 12, lineHeight: "16px" }}>
+              Updated {time ?? "  :  "} CET
+            </div>
           </div>
         </div>
 

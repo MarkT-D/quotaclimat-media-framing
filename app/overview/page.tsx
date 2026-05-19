@@ -360,10 +360,6 @@ function OutletCard({ outlet }: { outlet: OutletStat }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function OverviewPage() {
-  const now = new Date();
-  const h   = now.getHours().toString().padStart(2, "0");
-  const mn  = now.getMinutes().toString().padStart(2, "0");
-
   const { articles: allArticles } = useArticles();
   const [hoveredAngleBar, setHoveredAngleBar] = useState<string | null>(null);
   const [country, setCountry] = useState<string | null>(null);
@@ -464,16 +460,6 @@ export default function OverviewPage() {
   return (
     <div>
       <div className="max-w-[1440px] mx-auto px-11">
-
-        {/* Sub-strip */}
-        <div className="flex justify-between items-center py-[7px]">
-          <span style={{ fontFamily: F.plex, fontSize: 13, color: "var(--t2)" }}>
-            Edition I · Dashboard · Data Desk
-          </span>
-          <span style={{ fontFamily: F.plex, fontSize: 13, color: "var(--t2)" }}>
-            Updated {h}:{mn} CET
-          </span>
-        </div>
 
         {/* Editorial headline */}
         <div style={{ paddingTop: 40, paddingBottom: 28 }}>
