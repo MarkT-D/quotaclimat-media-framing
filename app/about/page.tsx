@@ -9,12 +9,12 @@ const F = {
 };
 
 const TEAM = [
-  { name: "Gabriella Beckley", role: "Literature & Framing Theory",    track: "RE"   },
-  { name: "Emma-Rose Blacher", role: "Project Scoping & Stakeholders", track: "RE"   },
-  { name: "Elnara Ibrahimli",  role: "Dashboard UX & Design",          track: "DE"   },
-  { name: "Maximilian Koch",   role: "NLP & Translation Pipeline",     track: "CME"  },
-  { name: "David Liebmann",    role: "Ethics & Academic Writing",      track: "SSHE" },
-  { name: "Mark Temchenko",    role: "Data Pipeline & Engineering",    track: "CME"  },
+  { name: "Gabriella Beckley", role: "Stakeholder engagement and data analysis"          },
+  { name: "Emma-Rose Blacher", role: "Project manager, literature review lead, and UX design" },
+  { name: "Elnara Ibrahimli",  role: "Internal comms and design lead"                    },
+  { name: "Maximilian Koch",   role: "NLP and ML pipeline"                               },
+  { name: "David Liebmann",    role: "Ethics and academic writing"                       },
+  { name: "Mark Temchenko",    role: "Data pipeline and engineering"                     },
 ];
 
 // ─── Sub-components (Mossy Broadsheet patterns) ───────────────────────────────
@@ -156,48 +156,50 @@ export default function AboutPage() {
         </p>
       </div>
 
-      {/* ─── Section 4: The team — colophon list ─── */}
+      {/* ─── Section 4: The team — editorial card grid (2×3 at desktop, stacks
+              at mobile). Same separation logic as the Dashboard's KPI quadrant:
+              no enclosing border on the grid, no border on individual cards;
+              cells separated by soft rules running between columns and rows.
+              Per card: name (Plex 17/500) above focus (Source Serif italic 14),
+              centered both horizontally and vertically within the cell. ─── */}
       <div className="mt-12">
-        <SectionHead>The team</SectionHead>
+        <SectionHead>The Team</SectionHead>
 
-        <div style={{ borderTop: "1px solid var(--border)" }}>
-          {TEAM.map((member) => (
-            <div
-              key={member.name}
-              className="flex flex-col lg:flex-row lg:items-baseline gap-2 lg:gap-6"
-              style={{
-                padding: "14px 0",
-                borderBottom: "1px solid var(--border)",
-              }}
-            >
-              <div style={{
-                fontFamily: F.plex, fontSize: 14, fontWeight: 500,
-                color: "var(--t1)",
-                minWidth: 240,
-              }}>
-                {member.name}
-              </div>
-              <div style={{
-                fontFamily: F.serif, fontStyle: "italic",
-                fontSize: 14, lineHeight: "20px",
-                color: "var(--t2)",
-                flex: 1,
-              }}>
-                {member.role}
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3">
+          {TEAM.map((member, i) => {
+            const isLastInRow = i % 3 === 2;
+            const isFirstRow  = i < 3;
+            const isLastCard  = i === TEAM.length - 1;
+            return (
               <div
-                className="lg:text-right"
+                key={member.name}
+                className={[
+                  "flex flex-col justify-center text-center",
+                  !isLastCard ? "border-b" : "",
+                  isFirstRow ? "lg:border-b" : "lg:border-b-0",
+                  !isLastInRow ? "lg:border-r" : "lg:border-r-0",
+                ].filter(Boolean).join(" ")}
                 style={{
-                  fontFamily: F.plex, fontSize: 11, fontWeight: 500,
-                  textTransform: "uppercase", letterSpacing: "0.04em",
-                  color: "var(--t2)",
-                  minWidth: 80,
+                  borderColor: "var(--border)",
+                  padding: "28px 24px",
                 }}
               >
-                {member.track}
+                <div style={{
+                  fontFamily: F.plex, fontSize: 17, fontWeight: 500, color: "var(--t1)",
+                }}>
+                  {member.name}
+                </div>
+                <div style={{
+                  fontFamily: F.serif, fontStyle: "italic",
+                  fontSize: 14, lineHeight: "20px",
+                  color: "var(--t2)",
+                  marginTop: 6,
+                }}>
+                  {member.role}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <EditorialNote>
