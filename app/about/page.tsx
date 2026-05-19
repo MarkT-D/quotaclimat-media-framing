@@ -2,116 +2,210 @@
 
 import Logo from "@/components/Logo";
 
-const team = [
-  { name: "Gabriella Beckley", role: "Literature & Framing Theory", icon: "📚", track: "RE" },
-  { name: "Emma-Rose Blacher", role: "Project Scoping & Stakeholders", icon: "🧭", track: "RE" },
-  { name: "Elnara Ibrahimli", role: "Dashboard UX & Design", icon: "🎨", track: "DE" },
-  { name: "Maximilian Koch", role: "NLP & Translation Pipeline", icon: "🤖", track: "CME" },
-  { name: "David Liebmann", role: "Ethics & Academic Writing", icon: "⚖️", track: "SSHE" },
-  { name: "Mark Temchenko", role: "Data Pipeline & Engineering", icon: "⚙️", track: "CME" },
+const F = {
+  playfair: "var(--font-playfair)",
+  serif:    "var(--font-source-serif)",
+  plex:     "var(--font-plex-sans)",
+};
+
+const TEAM = [
+  { name: "Gabriella Beckley", role: "Literature & Framing Theory",    track: "RE"   },
+  { name: "Emma-Rose Blacher", role: "Project Scoping & Stakeholders", track: "RE"   },
+  { name: "Elnara Ibrahimli",  role: "Dashboard UX & Design",          track: "DE"   },
+  { name: "Maximilian Koch",   role: "NLP & Translation Pipeline",     track: "CME"  },
+  { name: "David Liebmann",    role: "Ethics & Academic Writing",      track: "SSHE" },
+  { name: "Mark Temchenko",    role: "Data Pipeline & Engineering",    track: "CME"  },
 ];
 
+// ─── Sub-components (Mossy Broadsheet patterns) ───────────────────────────────
+
+function Rule({ color = "var(--border)", thick = false }: { color?: string; thick?: boolean }) {
+  return <div style={{ borderTop: `${thick ? "2px" : "1px"} solid ${color}` }} />;
+}
+
+function SectionHead({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      fontFamily: F.playfair, fontWeight: 400,
+      fontSize: 24, lineHeight: "1.15",
+      color: "var(--t1)", marginBottom: 16,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+function EditorialNote({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ borderTop: "1px solid var(--border)", marginTop: 16, paddingTop: 12 }}>
+      <p style={{
+        fontFamily: F.serif, fontStyle: "italic",
+        fontSize: 13, lineHeight: "19px", color: "var(--t2)",
+      }}>
+        {children}
+      </p>
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AboutPage() {
   return (
-    <div className="max-w-3xl mx-auto space-y-6 px-8 pt-8">
+    <div className="max-w-[1440px] mx-auto px-12">
 
-      {/* Mission hero */}
-      <div
-        className="rounded-xl p-6 flex gap-5 items-start"
-        style={{ background: "var(--green-l)", border: "0.5px solid rgba(45,106,79,0.2)" }}
-      >
-        <div
-          className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: "#fff", border: "0.5px solid rgba(45,106,79,0.25)" }}
-        >
-          <Logo size={44} />
-        </div>
-        <div>
-          <h1 className="text-lg font-medium leading-snug mb-2" style={{ color: "var(--green-d)" }}>
-            The Climate Narrative Lab
+      {/* ─── Page H1 + lede — two-column with Logo on the right.
+              Logo is vertically centered within its column so its midpoint
+              aligns with the lede block's midpoint. Heavy rule spans the full
+              page width directly beneath this block. ─── */}
+      <div className="flex flex-col lg:flex-row lg:items-center" style={{ paddingTop: 40, paddingBottom: 28 }}>
+        <div className="w-full lg:w-[70%]" style={{ paddingRight: 26 }}>
+          <h1 style={{
+            fontFamily: F.playfair, fontWeight: 400,
+            fontSize: 36, lineHeight: "40px",
+            color: "var(--t1)",
+            maxWidth: 780,
+          }}>
+            About the Lab.
           </h1>
-          <p className="text-sm leading-relaxed" style={{ color: "var(--green)", lineHeight: 1.75 }}>
-            We are a team of six students in Computational Social Science at the University of Amsterdam,
-            working with QuotaClimat to build a media analysis pipeline for environmental journalism.
-            The core question driving our work: How do patterns of environmental media reporting in France conflict with accurate and balanced coverage of environmental crises?
+          <p style={{
+            fontFamily: F.serif, fontWeight: 400,
+            fontSize: 18, lineHeight: "27px",
+            color: "var(--t1)",
+            marginTop: 16,
+            maxWidth: 780,
+          }}>
+            The Climate Narrative Review is the digital intervention designed by The Climate Narrative Lab. The Lab is a team of six students in Computational Social Science at the University of Amsterdam working with QuotaClimat, applying BERT-based framing analysis to French and Belgian climate journalism.
           </p>
         </div>
-      </div>
-
-      {/* What we are building */}
-      <div className="rounded-xl p-5" style={{ background: "var(--bg)", border: "0.5px solid var(--border)" }}>
-        <p className="text-sm font-medium mb-3" style={{ color: "var(--t1)" }}>What we are building</p>
-        <p className="text-sm leading-relaxed" style={{ color: "var(--t2)", lineHeight: 1.75 }}>
-          The pipeline collects articles from monitored outlets, filters them through QuotaClimat's keyword
-          dictionary, then applies BERT-based classifiers to detect framing patterns — which problem is defined,
-          who gets blamed, and whether solutions are even mentioned. These outputs feed a dashboard designed
-          around what NGOs told us they actually need: not raw data, but structured answers to questions like
-          "is agriculture being covered in proportion to its methane output?" or "which outlets lead on solution-focused framing?"
-        </p>
-        <p className="text-sm leading-relaxed mt-3" style={{ color: "var(--t2)", lineHeight: 1.75 }}>
-          This prototype uses mock data to simulate what the final system will produce. The full version will
-          analyse 74 French outlets in real time, with Dutch-language support being tested in parallel.
-        </p>
-      </div>
-
-      {/* Partner */}
-      <div className="rounded-xl p-5 flex gap-4 items-start" style={{ background: "var(--bg)", border: "0.5px solid var(--border)" }}>
-        <div
-          className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: "var(--red)" }}
-        >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-          </svg>
-        </div>
-        <div>
-          <p className="text-sm font-medium mb-0.5" style={{ color: "var(--t1)" }}>QuotaClimat</p>
-          <p className="text-[11px] font-medium mb-2" style={{ color: "var(--red)" }}>Partner organisation · France</p>
-          <p className="text-xs leading-relaxed" style={{ color: "var(--t2)", lineHeight: 1.7 }}>
-            QuotaClimat monitors climate and environmental coverage across French and Belgian media in
-            collaboration with ARCOM, the French media regulator. They produce reports used by NGOs and
-            policymakers to assess coverage quality. Our pipeline extends their keyword-based method by
-            adding framing classification, sector benchmarking against GHG data, and a dashboard interface
-            built around NGO needs.
-          </p>
+        <div className="w-full lg:w-[30%] flex justify-center lg:justify-start" style={{ paddingTop: 16 }}>
+          <Logo size={96} />
         </div>
       </div>
 
-      {/* Team */}
-      <div>
-        <p className="text-sm font-medium mb-3" style={{ color: "var(--t1)" }}>The team</p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {team.map((member) => (
+      <Rule color="var(--t1)" thick />
+
+      {/* ─── Section 1: Mission — single column (Logo moved to lede zone above).
+              No enclosing border: section head + whitespace demarcates. ─── */}
+      <div className="mt-12">
+        <SectionHead>Mission</SectionHead>
+        <p style={{
+          fontFamily: F.serif, fontWeight: 400,
+          fontSize: 18, lineHeight: "27px", color: "var(--t1)",
+          maxWidth: 880,
+        }}>
+          How do patterns of environmental media reporting in France conflict with accurate and balanced coverage of environmental crises?
+        </p>
+        <p style={{
+          fontFamily: F.serif, fontWeight: 300,
+          fontSize: 16, lineHeight: "24px", color: "var(--t2)",
+          marginTop: 16,
+          maxWidth: 880,
+        }}>
+          We focus on framing &mdash; which problems get defined, who gets blamed, whether solutions are mentioned at all.
+        </p>
+      </div>
+
+      {/* ─── Section 2: What we are building — single column ─── */}
+      <div className="mt-12">
+        <SectionHead>What we are building</SectionHead>
+        <p style={{
+          fontFamily: F.serif, fontWeight: 400,
+          fontSize: 16, lineHeight: "24px", color: "var(--t1)",
+          maxWidth: 880,
+        }}>
+          The pipeline collects articles from monitored outlets, filters them through QuotaClimat&rsquo;s keyword dictionary, then applies BERT-based classifiers to detect framing patterns &mdash; which problem is defined, who gets blamed, and whether solutions are even mentioned. These outputs feed a dashboard designed around what NGOs told us they actually need: not raw data, but structured answers to questions like &ldquo;is agriculture being covered in proportion to its methane output?&rdquo; or &ldquo;which outlets lead on solution-focused framing?&rdquo;
+        </p>
+        <EditorialNote>
+          This prototype uses mock data. The full version will analyse 74 French outlets in real time, with Dutch-language support being tested in parallel.
+        </EditorialNote>
+      </div>
+
+      {/* ─── Partner attribution: an editorial credit line, not a section.
+              Italic Source Serif at 20/28, broadsheet "with reporting from…"
+              register. The QuotaClimat link uses in-system styling: --t1
+              text color with a single subtle underline (no SaaS-blue). ─── */}
+      <div className="mt-12">
+        <p style={{
+          fontFamily: F.serif, fontStyle: "italic", fontWeight: 400,
+          fontSize: 20, lineHeight: "28px",
+          color: "var(--t1)",
+        }}>
+          In collaboration with{" "}
+          <a
+            href="https://quotaclimat.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: "var(--t1)",
+              textDecoration: "underline",
+              textUnderlineOffset: "3px",
+            }}
+          >
+            QuotaClimat
+          </a>
+          .
+        </p>
+        <p style={{
+          fontFamily: F.serif, fontWeight: 400,
+          fontSize: 16, lineHeight: "24px", color: "var(--t1)",
+          marginTop: 16,
+          maxWidth: 880,
+        }}>
+          QuotaClimat monitors climate and environmental coverage across French and Belgian media in collaboration with ARCOM, the French media regulator. Our pipeline extends their keyword-based method by adding framing classification, sector benchmarking against GHG data, and a dashboard interface built around NGO needs.
+        </p>
+      </div>
+
+      {/* ─── Section 4: The team — colophon list ─── */}
+      <div className="mt-12">
+        <SectionHead>The team</SectionHead>
+
+        <div style={{ borderTop: "1px solid var(--border)" }}>
+          {TEAM.map((member) => (
             <div
               key={member.name}
-              className="rounded-xl py-5 px-4 text-center transition-all"
-              style={{ background: "var(--bg)", border: "0.5px solid var(--border)" }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--green)")}
-              onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
+              className="flex flex-col lg:flex-row lg:items-baseline gap-2 lg:gap-6"
+              style={{
+                padding: "14px 0",
+                borderBottom: "1px solid var(--border)",
+              }}
             >
-              <div
-                className="w-14 h-14 rounded-full mx-auto mb-3 flex items-center justify-center text-2xl"
-                style={{ background: "var(--green-l)" }}
-              >
-                {member.icon}
+              <div style={{
+                fontFamily: F.plex, fontSize: 14, fontWeight: 500,
+                color: "var(--t1)",
+                minWidth: 240,
+              }}>
+                {member.name}
               </div>
-              <p className="text-xs font-medium" style={{ color: "var(--t1)" }}>{member.name}</p>
-              <p className="text-[10px] mt-0.5 mb-2 leading-snug" style={{ color: "var(--t2)" }}>{member.role}</p>
-              <span
-                className="text-[10px] px-2 py-0.5 rounded-full"
-                style={{ background: "var(--bg2)", color: "var(--t2)" }}
+              <div style={{
+                fontFamily: F.serif, fontStyle: "italic",
+                fontSize: 14, lineHeight: "20px",
+                color: "var(--t2)",
+                flex: 1,
+              }}>
+                {member.role}
+              </div>
+              <div
+                className="lg:text-right"
+                style={{
+                  fontFamily: F.plex, fontSize: 11, fontWeight: 500,
+                  textTransform: "uppercase", letterSpacing: "0.04em",
+                  color: "var(--t2)",
+                  minWidth: 80,
+                }}
               >
                 {member.track}
-              </span>
+              </div>
             </div>
           ))}
         </div>
-        <p className="text-xs mt-3" style={{ color: "var(--t2)" }}>
-          Supervised by Reshmi Pillai · Faculty of Social and Behavioural Science, University of Amsterdam · 2026
-        </p>
+
+        <EditorialNote>
+          Supervised by Reshmi Pillai &middot; Faculty of Social and Behavioural Science, University of Amsterdam &middot; 2026
+        </EditorialNote>
       </div>
+
+      <div className="pb-12" />
     </div>
   );
 }
