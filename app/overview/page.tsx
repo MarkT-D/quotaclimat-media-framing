@@ -529,7 +529,12 @@ export default function OverviewPage() {
         <div className="grid grid-cols-2 mt-6">
 
           <div style={{ padding: "22px 26px 24px", borderRight: "1px solid var(--border)" }}>
-            <SectionHead>Coverage over time</SectionHead>
+            {/* Deliberate breathing room between section head and chart — matches
+                the optical density of cells that carry a SectionMeta chip below
+                the head (Frame Distribution, Coverage vs. Emissions, etc.). */}
+            <div style={{ marginBottom: 20 }}>
+              <SectionHead>Coverage over time</SectionHead>
+            </div>
             <ResponsiveContainer width="100%" height={240}>
               <AreaChart data={timeData} margin={{ left: -10, right: 10 }}>
                 <defs>
