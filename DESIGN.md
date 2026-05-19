@@ -334,21 +334,21 @@ color: var(--t2);
 line-height: 1.5;
 ```
 
-The top rule uses the soft rule weight (`1px var(--border)`) — visible but quiet. The previous spec used `1px var(--t1)` (the retired section rule); existing `/overview` editorial notes still carry the heavier weight and will be brought into compliance when `/overview` is rebuilt.
+The top rule uses the soft rule weight (`1px var(--border)`) — visible but quiet.
 
 ### Stat row
 
-The flat horizontal summary at the top of `/overview`. **Not** four separate cards. After the section-rule retirement, the row itself is borderless; cells separate via soft-rule column dividers and the row is bracketed (above and below) by soft rules from the surrounding paper.
+The stat-cell pattern used across `/overview` — most prominently in the 2×2 KPI quadrant inside the lede block, again in the Crisis domains 3-up row, and a third time in the Causal stage distribution 4-up grid. **Not** separate cards. Cells share a single block with soft-rule column dividers (and row dividers in the 2×2 quadrant form); no enclosing border — surrounding whitespace marks its bounds.
 
 ```
 container: no enclosing border; surrounding whitespace marks its bounds
-cell: padding 18px 22px 20px, border-right 1px solid var(--border) (except last) — soft rule
+cell: padding ~16–18px, border-right 1px solid var(--border) (except last in row) — soft rule
 label: IBM Plex Sans 11px uppercase letter-spacing 0.05em, var(--t2)
 number: Playfair Display 44px, var(--t1)        /* per display-typography track */
-sublabel: above a 1px var(--border) top rule, padding-top 8px, IBM Plex Sans 12px var(--t2)
+sublabel: IBM Plex Sans 12px var(--t2), 18px gap above
 ```
 
-`/overview`'s current implementation still uses the retired `1px var(--t1)` for the container border and cell dividers; it will be brought into compliance when `/overview` is rebuilt.
+The 2×2 quadrant form additionally carries a horizontal soft rule between the top and bottom rows (`border-bottom 1px solid var(--border)` on the top-row cells). No rule lives *inside* a cell between the number and the sublabel — the grid's column/row dividers do the structural work; the sublabel pairs directly with its number via whitespace.
 
 ### Badge / tag
 

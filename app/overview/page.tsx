@@ -284,7 +284,14 @@ function DotPlotRow({ sector, mediaPct, ghgShare, gap, y, plotLeft, plotWidth }:
 }) {
   const xMedia = plotLeft + (mediaPct / 100) * plotWidth;
   const xGhg   = plotLeft + (ghgShare  / 100) * plotWidth;
-  const over    = gap > 0;
+  const over   = gap > 0;
+  // Gap label always sits 8px right of the rightmost dot, anchored start.
+  // Previously it floated next to the media (red) dot on the inside of the
+  // pair; when media was small AND gap was negative, the leftward-anchored
+  // label collided with the sector label at the plot's left edge. Pinning it
+  // to the right of max(xGhg, xMedia) guarantees zero collision regardless
+  // of value, and the labels form a tidy right-aligned column.
+  const xLabel = Math.max(xMedia, xGhg) + 8;
   return (
     <g>
       <text x={plotLeft - 8} y={y + 5} textAnchor="end" fontFamily={F.plex} fontSize={11} fill="var(--t2)">{sector}</text>
@@ -296,8 +303,8 @@ function DotPlotRow({ sector, mediaPct, ghgShare, gap, y, plotLeft, plotWidth }:
       <circle cx={xGhg}   cy={y} r={5} fill="var(--green)" />
       <circle cx={xMedia} cy={y} r={5} fill="var(--red)" />
       <text
-        x={xMedia + (over ? 9 : -9)} y={y + 4}
-        textAnchor={over ? "start" : "end"}
+        x={xLabel} y={y + 4}
+        textAnchor="start"
         fontFamily={F.plex} fontSize={10}
         fill={over ? "var(--red)" : "var(--green)"}
       >
@@ -461,66 +468,78 @@ export default function OverviewPage() {
     <div>
       <div className="max-w-[1440px] mx-auto px-11">
 
-        {/* Editorial headline */}
-        <div style={{ paddingTop: 40, paddingBottom: 28 }}>
-          <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 36, lineHeight: "40px", color: "var(--t1)", maxWidth: 780 }}>
-            The Gap Between<br />Ink and Environment
+        {/* Lede + 2×2 KPI quadrant — page-anchor block.
+            55/45 split: H1 + subhead carry editorial weight on the left; the
+            KPI quadrant pairs the data summary with the headline on the right.
+            Country filter sits at the top of the KPI column (right-aligned) so
+            it co-locates with the data it affects, retiring the standalone
+            filter strip that previously lived between the heavy rule and the
+            stat row. Cells in the 2×2 use soft-rule dividers (vertical between
+            the two columns, horizontal between the two rows) — same pattern as
+            the prior four-up strip, extended into a grid. */}
+        <div className="flex flex-col lg:flex-row" style={{ paddingTop: 40, paddingBottom: 28 }}>
+          <div className="w-full lg:w-[55%] lg:pr-8">
+            <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 36, lineHeight: "40px", color: "var(--t1)", maxWidth: 780 }}>
+              The Gap Between<br />Ink and Environment
+            </div>
+            <p style={{ fontFamily: F.serif, fontWeight: 300, fontSize: 18, lineHeight: "26px", color: "var(--t2)", marginTop: 16, maxWidth: 560 }}>
+              Tracking how news coverage reflects environmental crises — across climate, biodiversity, and natural resources — and how that attention aligns with scientific urgency.
+            </p>
           </div>
-          <p style={{ fontFamily: F.serif, fontWeight: 300, fontSize: 18, lineHeight: "26px", color: "var(--t2)", marginTop: 16, maxWidth: 560 }}>
-            Tracking how news coverage reflects environmental crises — across climate, biodiversity, and natural resources — and how that attention aligns with scientific urgency.
-          </p>
+
+          <div className="w-full lg:w-[45%] mt-6 lg:mt-0">
+            {countryOptions.length > 0 && (
+              <div className="flex items-center justify-end gap-2" style={{ marginBottom: 14 }}>
+                {([null, ...countryOptions] as (string | null)[]).map((c) => {
+                  const active = country === c;
+                  const label  = c ? countryLabel(c) : "All";
+                  return (
+                    <button key={c ?? "all"} onClick={() => setCountry(c)} style={{
+                      fontFamily: F.plex, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em",
+                      background: active ? "var(--t1)" : "transparent",
+                      color: active ? "var(--bg)" : "var(--t2)",
+                      border: `1px solid ${active ? "var(--t1)" : "var(--border)"}`,
+                      padding: "3px 14px", cursor: "pointer", transition: "all 0.12s",
+                    }}>
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+              {STATS.map((stat, i) => (
+                <div key={stat.label} style={{
+                  borderRight: i % 2 === 0 ? "1px solid var(--border)" : "none",
+                  borderBottom: i < 2 ? "1px solid var(--border)" : "none",
+                  padding: "16px 18px",
+                }}>
+                  <div style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
+                    {stat.label}
+                  </div>
+                  <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 44, lineHeight: 1, color: "var(--t1)", marginBottom: 18 }}>
+                    {stat.value}
+                  </div>
+                  <div style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t2)" }}>{stat.sub}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         <Rule thick color="var(--t1)" />
-
-        {/* Country filter */}
-        {countryOptions.length > 0 && (
-          <div className="flex items-center justify-end py-3 gap-2">
-            {([null, ...countryOptions] as (string | null)[]).map((c) => {
-              const active = country === c;
-              const label  = c ? countryLabel(c) : "All";
-              return (
-                <button key={c ?? "all"} onClick={() => setCountry(c)} style={{
-                  fontFamily: F.plex, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em",
-                  background: active ? "var(--t1)" : "transparent",
-                  color: active ? "var(--bg)" : "var(--t2)",
-                  border: `1px solid ${active ? "var(--t1)" : "var(--border)"}`,
-                  padding: "3px 14px", cursor: "pointer", transition: "all 0.12s",
-                }}>
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        <Rule color="var(--border)" />
-
-        {/* Stat cards — no enclosing border; cells separated by soft-rule column dividers (per the retired-section-rule cleanup). */}
-        <div className="flex mt-6">
-          {STATS.map((stat, i) => (
-            <div key={stat.label} style={{
-              flex: 1, borderRight: i < STATS.length - 1 ? "1px solid var(--border)" : "none",
-              padding: "18px 22px 20px",
-            }}>
-              <div style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
-                {stat.label}
-              </div>
-              <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 44, lineHeight: 1, color: "var(--t1)", marginBottom: 10 }}>
-                {stat.value}
-              </div>
-              <div style={{ borderTop: "1px solid var(--border)", paddingTop: 8 }}>
-                <div style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t2)" }}>{stat.sub}</div>
-              </div>
-            </div>
-          ))}
-        </div>
 
         {/* Coverage over time + Frame distribution — no enclosing border; soft-rule column divider between cells. */}
         <div className="grid grid-cols-2 mt-6">
 
           <div style={{ padding: "22px 26px 24px", borderRight: "1px solid var(--border)" }}>
-            <SectionHead>Coverage over time</SectionHead>
+            {/* Deliberate breathing room between section head and chart — matches
+                the optical density of cells that carry a SectionMeta chip below
+                the head (Frame Distribution, Coverage vs. Emissions, etc.). */}
+            <div style={{ marginBottom: 20 }}>
+              <SectionHead>Coverage over time</SectionHead>
+            </div>
             <ResponsiveContainer width="100%" height={240}>
               <AreaChart data={timeData} margin={{ left: -10, right: 10 }}>
                 <defs>
@@ -546,28 +565,36 @@ export default function OverviewPage() {
           <div style={{ padding: "22px 26px 24px" }}>
             <SectionHead>Frame Distribution</SectionHead>
             <SectionMeta bg="var(--red-l)">Semetko &amp; Valkenburg 2000</SectionMeta>
-            <ResponsiveContainer width="100%" height={240}>
-              <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
-                <PolarGrid stroke="var(--border)" />
-                <PolarAngleAxis dataKey="frame" tick={{ fontFamily: F.plex, fontSize: 10, fill: "var(--t2)" }} />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
-                <Radar name="All outlets" dataKey="value"
-                  stroke="var(--red)" fill="var(--red)" fillOpacity={0.18} strokeWidth={1.5}
-                />
-                <Tooltip content={<RadarTooltip />} />
-              </RadarChart>
-            </ResponsiveContainer>
-            <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: "6px 16px" }}>
-              {FRAME_DEFS.map((fd) => {
-                const count = frameData.find((f) => f.frame === fd.key)?.count ?? 0;
-                const pct   = Math.round((count / (totalArts || 1)) * 100);
-                return (
-                  <div key={fd.key} className="flex items-center gap-2">
-                    <span style={{ width: 9, height: 9, display: "inline-block", background: fd.color, flexShrink: 0 }} />
-                    <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)" }}>{fd.short} {pct}%</span>
-                  </div>
-                );
-              })}
+            {/* Radar + vertical legend, 60/40 split. Radar needs near-square
+                space for polar axis labels; vertical legend column gives each
+                frame its own line for label + value pairing. */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ flex: "0 0 60%" }}>
+                <ResponsiveContainer width="100%" height={240}>
+                  <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
+                    <PolarGrid stroke="var(--border)" />
+                    <PolarAngleAxis dataKey="frame" tick={{ fontFamily: F.plex, fontSize: 10, fill: "var(--t2)" }} />
+                    <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
+                    <Radar name="All outlets" dataKey="value"
+                      stroke="var(--red)" fill="var(--red)" fillOpacity={0.18} strokeWidth={1.5}
+                    />
+                    <Tooltip content={<RadarTooltip />} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+              <div style={{ flex: "1 1 40%", display: "flex", flexDirection: "column", gap: 8 }}>
+                {FRAME_DEFS.map((fd) => {
+                  const count = frameData.find((f) => f.frame === fd.key)?.count ?? 0;
+                  const pct   = Math.round((count / (totalArts || 1)) * 100);
+                  return (
+                    <div key={fd.key} className="flex items-center gap-2">
+                      <span style={{ width: 9, height: 9, display: "inline-block", background: fd.color, flexShrink: 0 }} />
+                      <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)" }}>{fd.short}</span>
+                      <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t1)", marginLeft: "auto" }}>{pct}%</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
@@ -676,22 +703,34 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        {/* Crisis domains — no enclosing border, no header-band rule, redundant meta chip dropped. */}
+        {/* Crisis domains — 3-up KPI-style cells, mirroring the top-of-page
+            2×2 quadrant treatment. Soft-rule column dividers between cells,
+            Track B Playfair stat numbers (44px) for the percentage, color
+            swatch + uppercase Plex label for the domain. The thin 2px
+            progress bar from the prior implementation is dropped: three
+            percentages summing to 100% don't benefit from a redundant
+            proportional channel, and the bar registered too faintly against
+            the page background to do visual work. */}
         <div className="mt-6">
           <div style={{ paddingBottom: 14 }}>
             <SectionHead>Crisis domains</SectionHead>
           </div>
-          <div style={{ display: "flex", gap: 24 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)" }}>
             {domainData.map((d, i) => {
               const pct = Math.round((d.count / (totalDomain || 1)) * 100);
               return (
-                <div key={d.domain} style={{ flex: 1 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                    <span style={{ fontFamily: F.plex, fontSize: 13, color: "var(--t2)" }}>{d.domain}</span>
-                    <span style={{ fontFamily: F.playfair, fontSize: 22, lineHeight: 1, color: "var(--t1)" }}>{pct}%</span>
+                <div key={d.domain} style={{
+                  borderRight: i < domainData.length - 1 ? "1px solid var(--border)" : "none",
+                  padding: "16px 22px",
+                }}>
+                  <div className="flex items-center gap-2" style={{ marginBottom: 10 }}>
+                    <span style={{ width: 9, height: 9, display: "inline-block", background: DOMAIN_COLORS[i], flexShrink: 0 }} />
+                    <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                      {d.domain}
+                    </span>
                   </div>
-                  <div style={{ height: 2, background: "var(--bg2)" }}>
-                    <div style={{ width: `${pct}%`, height: "100%", background: DOMAIN_COLORS[i] }} />
+                  <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 44, lineHeight: 1, color: "var(--t1)" }}>
+                    {pct}%
                   </div>
                 </div>
               );
@@ -699,9 +738,12 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        {/* Coverage vs. Emissions — no enclosing border; soft-rule column divider between meta column and dot-plot column. */}
+        {/* Coverage vs. Emissions — no enclosing border, no column divider
+            between meta and dot-plot. The chart's tonal weight (red/green dots,
+            axis ticks, gap labels) provides enough visual separation from the
+            meta column; an additional vertical rule was reading as chrome. */}
         <div className="mt-6" style={{ display: "flex" }}>
-          <div style={{ width: "36%", padding: "22px 24px 24px", borderRight: "1px solid var(--border)", flexShrink: 0 }}>
+          <div style={{ width: "36%", padding: "22px 24px 24px 0", flexShrink: 0 }}>
             <SectionHead>Coverage vs. Emissions</SectionHead>
             <SectionMeta bg="var(--green-l)">Media share vs. sector GHG share · 2024</SectionMeta>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
@@ -736,29 +778,40 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        {/* Causal stage distribution — no enclosing border, no header-band rule. */}
+        {/* Causal stage distribution — 4-up HTML grid. Replaces the prior SVG
+            which used preserveAspectRatio="none" to fill the container width;
+            that stretched the text inside the SVG ~3× horizontally without
+            vertical scaling, deforming the percentage glyphs. HTML grid lets
+            the 44px Playfair stat-card numbers render at canonical Track B
+            size and proportion, with the axis line and per-cell tick produced
+            by ordinary CSS borders. */}
         <div className="mt-6">
           <div style={{ paddingBottom: 14 }}>
             <SectionHead>Causal stage distribution</SectionHead>
             <SectionMeta bg="var(--bg2)">What aspects of the crisis do articles focus on?</SectionMeta>
           </div>
           <div>
-            <svg width="100%" height={90} viewBox="0 0 440 90" preserveAspectRatio="none">
-              <line x1={0} x2={440} y1={62} y2={62} stroke="var(--border)" strokeWidth={0.5} />
-              {stageTicks.map((s, i) => {
-                const x     = 45 + i * 118;
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)" }}>
+              {stageTicks.map((s) => {
                 const color = s.stage === "Solutions" ? "var(--green)" : "var(--t2)";
                 return (
-                  <g key={s.stage}>
-                    <text x={x} y={32} textAnchor="middle" fill={color} fontFamily={F.playfair} fontSize={28}>{s.pct}%</text>
-                    <line x1={x} x2={x} y1={40} y2={62} stroke={color} strokeWidth={1.5} />
-                    <text x={x} y={76} textAnchor="middle" fill="var(--t2)" fontFamily={F.plex} fontSize={9}>
-                      {s.stage.toUpperCase()}
-                    </text>
-                  </g>
+                  <div key={s.stage} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 44, lineHeight: 1, color }}>
+                      {s.pct}%
+                    </div>
+                    <div style={{ width: 1.5, height: 22, background: color, marginTop: 10 }} />
+                  </div>
                 );
               })}
-            </svg>
+            </div>
+            <div style={{ borderTop: "0.5px solid var(--border)" }} />
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", marginTop: 8 }}>
+              {stageTicks.map((s) => (
+                <div key={s.stage} style={{ textAlign: "center", fontFamily: F.plex, fontSize: 10, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                  {s.stage}
+                </div>
+              ))}
+            </div>
             <EditorialNote>
               Solutions-focused articles account for only {solutionPct}% of coverage. Research consistently shows solution framing increases reader action intent.
             </EditorialNote>
