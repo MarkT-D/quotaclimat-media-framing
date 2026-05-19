@@ -193,7 +193,7 @@ function SectionMeta({ children, bg }: { children: React.ReactNode; bg?: string 
 
 function EditorialNote({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ borderTop: "1px solid var(--t1)", marginTop: 16, paddingTop: 12 }}>
+    <div style={{ borderTop: "1px solid var(--border)", marginTop: 16, paddingTop: 12 }}>
       <p style={{ fontFamily: F.serif, fontStyle: "italic", fontSize: 13, color: "var(--t2)", lineHeight: "19px" }}>
         {children}
       </p>
@@ -496,11 +496,11 @@ export default function OverviewPage() {
 
         <Rule color="var(--border)" />
 
-        {/* Stat cards */}
-        <div className="flex mt-6" style={{ border: "1px solid var(--t1)" }}>
+        {/* Stat cards — no enclosing border; cells separated by soft-rule column dividers (per the retired-section-rule cleanup). */}
+        <div className="flex mt-6">
           {STATS.map((stat, i) => (
             <div key={stat.label} style={{
-              flex: 1, borderRight: i < STATS.length - 1 ? "1px solid var(--t1)" : "none",
+              flex: 1, borderRight: i < STATS.length - 1 ? "1px solid var(--border)" : "none",
               padding: "18px 22px 20px",
             }}>
               <div style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
@@ -516,12 +516,11 @@ export default function OverviewPage() {
           ))}
         </div>
 
-        {/* Coverage over time + Frame distribution */}
-        <div className="grid grid-cols-2 mt-6" style={{ border: "1px solid var(--t1)" }}>
+        {/* Coverage over time + Frame distribution — no enclosing border; soft-rule column divider between cells. */}
+        <div className="grid grid-cols-2 mt-6">
 
-          <div style={{ padding: "22px 26px 24px", borderRight: "1px solid var(--t1)" }}>
+          <div style={{ padding: "22px 26px 24px", borderRight: "1px solid var(--border)" }}>
             <SectionHead>Coverage over time</SectionHead>
-            <SectionMeta bg="var(--red-l)">Total articles per month</SectionMeta>
             <ResponsiveContainer width="100%" height={240}>
               <AreaChart data={timeData} margin={{ left: -10, right: 10 }}>
                 <defs>
@@ -573,12 +572,11 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        {/* Editorial angles + Sectors */}
-        <div className="grid grid-cols-2 mt-6" style={{ border: "1px solid var(--t1)" }}>
+        {/* Editorial angles + Sectors — no enclosing border; soft-rule column divider between cells. */}
+        <div className="grid grid-cols-2 mt-6">
 
-          <div style={{ padding: "22px 26px 24px", borderRight: "1px solid var(--t1)" }}>
+          <div style={{ padding: "22px 26px 24px", borderRight: "1px solid var(--border)" }}>
             <SectionHead>Editorial angles</SectionHead>
-            <SectionMeta bg="var(--bg2)">Primary angle of coverage</SectionMeta>
             <div style={{ display: "flex", height: 32, marginBottom: 6 }}>
               {angleBars.map((b, i) => (
                 <div key={b.angle}
@@ -618,7 +616,6 @@ export default function OverviewPage() {
 
           <div style={{ padding: "22px 26px 24px" }}>
             <SectionHead>Sectors</SectionHead>
-            <SectionMeta bg="var(--green-l)">Share of articles by sector</SectionMeta>
             <ResponsiveContainer width="100%" height={210}>
               <PieChart>
                 <Pie
@@ -659,9 +656,9 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        {/* Outlet small multiples */}
-        <div className="mt-6" style={{ border: "1px solid var(--t1)" }}>
-          <div style={{ padding: "22px 26px 14px", borderBottom: "1px solid var(--border)" }}>
+        {/* Outlet small multiples — no enclosing border, no header-band rule. */}
+        <div className="mt-6">
+          <div style={{ paddingBottom: 14 }}>
             <SectionHead>Outlet breakdown</SectionHead>
             <SectionMeta bg="var(--bg2)">
               {outletData.length} outlet{outletData.length !== 1 ? "s" : ""} in scope
@@ -679,13 +676,12 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        {/* Crisis domains */}
-        <div className="mt-6" style={{ border: "1px solid var(--t1)" }}>
-          <div style={{ padding: "22px 26px 14px", borderBottom: "1px solid var(--border)" }}>
+        {/* Crisis domains — no enclosing border, no header-band rule, redundant meta chip dropped. */}
+        <div className="mt-6">
+          <div style={{ paddingBottom: 14 }}>
             <SectionHead>Crisis domains</SectionHead>
-            <SectionMeta bg="var(--red-l)">Articles by environmental domain</SectionMeta>
           </div>
-          <div style={{ padding: "18px 26px 20px", display: "flex", gap: 24 }}>
+          <div style={{ display: "flex", gap: 24 }}>
             {domainData.map((d, i) => {
               const pct = Math.round((d.count / (totalDomain || 1)) * 100);
               return (
@@ -703,9 +699,9 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        {/* Coverage vs. Emissions */}
-        <div className="mt-6" style={{ border: "1px solid var(--t1)", display: "flex" }}>
-          <div style={{ width: "36%", padding: "22px 24px 24px", borderRight: "1px solid var(--t1)", flexShrink: 0 }}>
+        {/* Coverage vs. Emissions — no enclosing border; soft-rule column divider between meta column and dot-plot column. */}
+        <div className="mt-6" style={{ display: "flex" }}>
+          <div style={{ width: "36%", padding: "22px 24px 24px", borderRight: "1px solid var(--border)", flexShrink: 0 }}>
             <SectionHead>Coverage vs. Emissions</SectionHead>
             <SectionMeta bg="var(--green-l)">Media share vs. sector GHG share · 2024</SectionMeta>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
@@ -740,13 +736,13 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        {/* Causal stage distribution */}
-        <div className="mt-6" style={{ border: "1px solid var(--t1)" }}>
-          <div style={{ padding: "22px 26px 14px", borderBottom: "1px solid var(--border)" }}>
+        {/* Causal stage distribution — no enclosing border, no header-band rule. */}
+        <div className="mt-6">
+          <div style={{ paddingBottom: 14 }}>
             <SectionHead>Causal stage distribution</SectionHead>
             <SectionMeta bg="var(--bg2)">What aspects of the crisis do articles focus on?</SectionMeta>
           </div>
-          <div style={{ padding: "24px 26px 28px" }}>
+          <div>
             <svg width="100%" height={90} viewBox="0 0 440 90" preserveAspectRatio="none">
               <line x1={0} x2={440} y1={62} y2={62} stroke="var(--border)" strokeWidth={0.5} />
               {stageTicks.map((s, i) => {
@@ -769,16 +765,7 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="mt-8"><Rule /></div>
-        <div className="flex justify-between items-center py-4">
-          <span style={{ fontFamily: F.plex, fontSize: 14, color: "var(--t2)" }}>
-            The Climate Narrative Review · Edition I
-          </span>
-          <span style={{ fontFamily: F.plex, fontSize: 14, color: "var(--t2)" }}>
-            Dashboard
-          </span>
-        </div>
+        <div className="pb-12" />
 
       </div>
     </div>
