@@ -461,60 +461,69 @@ export default function OverviewPage() {
     <div>
       <div className="max-w-[1440px] mx-auto px-11">
 
-        {/* Editorial headline */}
-        <div style={{ paddingTop: 40, paddingBottom: 28 }}>
-          <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 36, lineHeight: "40px", color: "var(--t1)", maxWidth: 780 }}>
-            The Gap Between<br />Ink and Environment
+        {/* Lede + 2×2 KPI quadrant — page-anchor block.
+            55/45 split: H1 + subhead carry editorial weight on the left; the
+            KPI quadrant pairs the data summary with the headline on the right.
+            Country filter sits at the top of the KPI column (right-aligned) so
+            it co-locates with the data it affects, retiring the standalone
+            filter strip that previously lived between the heavy rule and the
+            stat row. Cells in the 2×2 use soft-rule dividers (vertical between
+            the two columns, horizontal between the two rows) — same pattern as
+            the prior four-up strip, extended into a grid. */}
+        <div style={{ display: "flex", paddingTop: 40, paddingBottom: 28 }}>
+          <div style={{ width: "55%", paddingRight: 32 }}>
+            <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 36, lineHeight: "40px", color: "var(--t1)", maxWidth: 780 }}>
+              The Gap Between<br />Ink and Environment
+            </div>
+            <p style={{ fontFamily: F.serif, fontWeight: 300, fontSize: 18, lineHeight: "26px", color: "var(--t2)", marginTop: 16, maxWidth: 560 }}>
+              Tracking how news coverage reflects environmental crises — across climate, biodiversity, and natural resources — and how that attention aligns with scientific urgency.
+            </p>
           </div>
-          <p style={{ fontFamily: F.serif, fontWeight: 300, fontSize: 18, lineHeight: "26px", color: "var(--t2)", marginTop: 16, maxWidth: 560 }}>
-            Tracking how news coverage reflects environmental crises — across climate, biodiversity, and natural resources — and how that attention aligns with scientific urgency.
-          </p>
+
+          <div style={{ width: "45%" }}>
+            {countryOptions.length > 0 && (
+              <div className="flex items-center justify-end gap-2" style={{ marginBottom: 14 }}>
+                {([null, ...countryOptions] as (string | null)[]).map((c) => {
+                  const active = country === c;
+                  const label  = c ? countryLabel(c) : "All";
+                  return (
+                    <button key={c ?? "all"} onClick={() => setCountry(c)} style={{
+                      fontFamily: F.plex, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em",
+                      background: active ? "var(--t1)" : "transparent",
+                      color: active ? "var(--bg)" : "var(--t2)",
+                      border: `1px solid ${active ? "var(--t1)" : "var(--border)"}`,
+                      padding: "3px 14px", cursor: "pointer", transition: "all 0.12s",
+                    }}>
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+              {STATS.map((stat, i) => (
+                <div key={stat.label} style={{
+                  borderRight: i % 2 === 0 ? "1px solid var(--border)" : "none",
+                  borderBottom: i < 2 ? "1px solid var(--border)" : "none",
+                  padding: "16px 18px",
+                }}>
+                  <div style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
+                    {stat.label}
+                  </div>
+                  <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 44, lineHeight: 1, color: "var(--t1)", marginBottom: 10 }}>
+                    {stat.value}
+                  </div>
+                  <div style={{ borderTop: "1px solid var(--border)", paddingTop: 8 }}>
+                    <div style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t2)" }}>{stat.sub}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         <Rule thick color="var(--t1)" />
-
-        {/* Country filter */}
-        {countryOptions.length > 0 && (
-          <div className="flex items-center justify-end py-3 gap-2">
-            {([null, ...countryOptions] as (string | null)[]).map((c) => {
-              const active = country === c;
-              const label  = c ? countryLabel(c) : "All";
-              return (
-                <button key={c ?? "all"} onClick={() => setCountry(c)} style={{
-                  fontFamily: F.plex, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em",
-                  background: active ? "var(--t1)" : "transparent",
-                  color: active ? "var(--bg)" : "var(--t2)",
-                  border: `1px solid ${active ? "var(--t1)" : "var(--border)"}`,
-                  padding: "3px 14px", cursor: "pointer", transition: "all 0.12s",
-                }}>
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        <Rule color="var(--border)" />
-
-        {/* Stat cards — no enclosing border; cells separated by soft-rule column dividers (per the retired-section-rule cleanup). */}
-        <div className="flex mt-6">
-          {STATS.map((stat, i) => (
-            <div key={stat.label} style={{
-              flex: 1, borderRight: i < STATS.length - 1 ? "1px solid var(--border)" : "none",
-              padding: "18px 22px 20px",
-            }}>
-              <div style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
-                {stat.label}
-              </div>
-              <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 44, lineHeight: 1, color: "var(--t1)", marginBottom: 10 }}>
-                {stat.value}
-              </div>
-              <div style={{ borderTop: "1px solid var(--border)", paddingTop: 8 }}>
-                <div style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t2)" }}>{stat.sub}</div>
-              </div>
-            </div>
-          ))}
-        </div>
 
         {/* Coverage over time + Frame distribution — no enclosing border; soft-rule column divider between cells. */}
         <div className="grid grid-cols-2 mt-6">
