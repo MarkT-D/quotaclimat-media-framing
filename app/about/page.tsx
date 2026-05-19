@@ -86,13 +86,15 @@ export default function AboutPage() {
       <Rule color="var(--t1)" thick />
 
       {/* ─── Section 1: Mission — single column (Logo moved to lede zone above).
-              No enclosing border: section head + whitespace demarcates. ─── */}
+              No enclosing border: section head + whitespace demarcates.
+              Body paragraphs span the full page-frame width (no maxWidth) —
+              matches the section-head width and reads as broadsheet body
+              rather than narrow lede-style prose. ─── */}
       <div className="mt-12">
         <SectionHead>Mission</SectionHead>
         <p style={{
           fontFamily: F.serif, fontWeight: 400,
           fontSize: 18, lineHeight: "27px", color: "var(--t1)",
-          maxWidth: 880,
         }}>
           How do patterns of environmental media reporting in France conflict with accurate and balanced coverage of environmental crises?
         </p>
@@ -100,7 +102,6 @@ export default function AboutPage() {
           fontFamily: F.serif, fontWeight: 300,
           fontSize: 16, lineHeight: "24px", color: "var(--t2)",
           marginTop: 16,
-          maxWidth: 880,
         }}>
           We focus on framing &mdash; which problems get defined, who gets blamed, whether solutions are mentioned at all.
         </p>
@@ -112,7 +113,6 @@ export default function AboutPage() {
         <p style={{
           fontFamily: F.serif, fontWeight: 400,
           fontSize: 16, lineHeight: "24px", color: "var(--t1)",
-          maxWidth: 880,
         }}>
           The pipeline collects articles from monitored outlets, filters them through QuotaClimat&rsquo;s keyword dictionary, then applies BERT-based classifiers to detect framing patterns &mdash; which problem is defined, who gets blamed, and whether solutions are even mentioned. These outputs feed a dashboard designed around what NGOs told us they actually need: not raw data, but structured answers to questions like &ldquo;is agriculture being covered in proportion to its methane output?&rdquo; or &ldquo;which outlets lead on solution-focused framing?&rdquo;
         </p>
@@ -150,7 +150,6 @@ export default function AboutPage() {
           fontFamily: F.serif, fontWeight: 400,
           fontSize: 16, lineHeight: "24px", color: "var(--t1)",
           marginTop: 16,
-          maxWidth: 880,
         }}>
           QuotaClimat monitors climate and environmental coverage across French and Belgian media in collaboration with ARCOM, the French media regulator. Our pipeline extends their keyword-based method by adding framing classification, sector benchmarking against GHG data, and a dashboard interface built around NGO needs.
         </p>
