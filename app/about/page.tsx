@@ -66,7 +66,7 @@ export default function AboutPage() {
             color: "var(--t1)",
             maxWidth: 780,
           }}>
-            About the Lab.
+            About the Climate Narrative Lab
           </h1>
           <p style={{
             fontFamily: F.serif, fontWeight: 400,
