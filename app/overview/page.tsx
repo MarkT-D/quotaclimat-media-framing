@@ -477,8 +477,8 @@ export default function OverviewPage() {
             stat row. Cells in the 2×2 use soft-rule dividers (vertical between
             the two columns, horizontal between the two rows) — same pattern as
             the prior four-up strip, extended into a grid. */}
-        <div style={{ display: "flex", paddingTop: 40, paddingBottom: 28 }}>
-          <div style={{ width: "55%", paddingRight: 32 }}>
+        <div className="flex flex-col lg:flex-row" style={{ paddingTop: 40, paddingBottom: 28 }}>
+          <div className="w-full lg:w-[55%] lg:pr-8">
             <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 36, lineHeight: "40px", color: "var(--t1)", maxWidth: 780 }}>
               The Gap Between<br />Ink and Environment
             </div>
@@ -487,7 +487,7 @@ export default function OverviewPage() {
             </p>
           </div>
 
-          <div style={{ width: "45%" }}>
+          <div className="w-full lg:w-[45%] mt-6 lg:mt-0">
             {countryOptions.length > 0 && (
               <div className="flex items-center justify-end gap-2" style={{ marginBottom: 14 }}>
                 {([null, ...countryOptions] as (string | null)[]).map((c) => {
