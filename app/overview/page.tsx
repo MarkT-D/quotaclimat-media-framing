@@ -698,22 +698,34 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        {/* Crisis domains — no enclosing border, no header-band rule, redundant meta chip dropped. */}
+        {/* Crisis domains — 3-up KPI-style cells, mirroring the top-of-page
+            2×2 quadrant treatment. Soft-rule column dividers between cells,
+            Track B Playfair stat numbers (44px) for the percentage, color
+            swatch + uppercase Plex label for the domain. The thin 2px
+            progress bar from the prior implementation is dropped: three
+            percentages summing to 100% don't benefit from a redundant
+            proportional channel, and the bar registered too faintly against
+            the page background to do visual work. */}
         <div className="mt-6">
           <div style={{ paddingBottom: 14 }}>
             <SectionHead>Crisis domains</SectionHead>
           </div>
-          <div style={{ display: "flex", gap: 24 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)" }}>
             {domainData.map((d, i) => {
               const pct = Math.round((d.count / (totalDomain || 1)) * 100);
               return (
-                <div key={d.domain} style={{ flex: 1 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                    <span style={{ fontFamily: F.plex, fontSize: 13, color: "var(--t2)" }}>{d.domain}</span>
-                    <span style={{ fontFamily: F.playfair, fontSize: 22, lineHeight: 1, color: "var(--t1)" }}>{pct}%</span>
+                <div key={d.domain} style={{
+                  borderRight: i < domainData.length - 1 ? "1px solid var(--border)" : "none",
+                  padding: "16px 22px",
+                }}>
+                  <div className="flex items-center gap-2" style={{ marginBottom: 10 }}>
+                    <span style={{ width: 9, height: 9, display: "inline-block", background: DOMAIN_COLORS[i], flexShrink: 0 }} />
+                    <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                      {d.domain}
+                    </span>
                   </div>
-                  <div style={{ height: 2, background: "var(--bg2)" }}>
-                    <div style={{ width: `${pct}%`, height: "100%", background: DOMAIN_COLORS[i] }} />
+                  <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 44, lineHeight: 1, color: "var(--t1)" }}>
+                    {pct}%
                   </div>
                 </div>
               );
