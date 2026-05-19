@@ -302,7 +302,10 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Stats ticker — section divider between hero pair and editions */}
+      {/* Stats ticker — visual section break between the hero pair and the
+          teaser grid. Has a top rule (separating it from the hero pair) but
+          no bottom rule — the teaser grid sits as a free-standing block
+          beneath, separated only by 24px of paper. */}
       <div style={{ borderTop: "1px solid var(--t1)" }} />
       <div className="py-2 overflow-hidden">
         <div style={{
@@ -314,20 +317,24 @@ export default function HomePage() {
           <span aria-hidden="true">{TICKER_TEXT}</span>
         </div>
       </div>
-      <div style={{ borderTop: "1px solid var(--t1)" }} />
 
-      {/* Four-up teaser grid — equal-width columns at xl+.
-          Tablet (md): 2-col. Mobile (<md): 1-col stacked.
-          Desktop height fixed to fit the in-viewport budget; smaller breakpoints let it grow. */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 xl:h-[320px]">
-        {EDITIONS.map((ed, i) => (
-          <div key={ed.href} style={{
-            borderRight: i < EDITIONS.length - 1 ? "1px solid var(--t1)" : "none",
-            borderBottom: "1px solid var(--t1)",
-          }}>
-            <EditionTeaser ed={ed} />
-          </div>
-        ))}
+      {/* Four-up teaser grid — free-standing.
+          24px paddingTop separates it from the ticker (padding, not margin,
+          to keep the margin-collapse class of issue we already fixed for the
+          sticky header off the table). No rule above or below the grid; the
+          three vertical hairlines between columns stand alone, and bare paper
+          texture extends below the grid to the viewport bottom.
+          Tablet (md): 2-col. Mobile (<md): 1-col stacked. */}
+      <div style={{ paddingTop: 24 }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 xl:h-[320px]">
+          {EDITIONS.map((ed, i) => (
+            <div key={ed.href} style={{
+              borderRight: i < EDITIONS.length - 1 ? "1px solid var(--t1)" : "none",
+            }}>
+              <EditionTeaser ed={ed} />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
