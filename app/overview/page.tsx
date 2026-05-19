@@ -284,7 +284,14 @@ function DotPlotRow({ sector, mediaPct, ghgShare, gap, y, plotLeft, plotWidth }:
 }) {
   const xMedia = plotLeft + (mediaPct / 100) * plotWidth;
   const xGhg   = plotLeft + (ghgShare  / 100) * plotWidth;
-  const over    = gap > 0;
+  const over   = gap > 0;
+  // Gap label always sits 8px right of the rightmost dot, anchored start.
+  // Previously it floated next to the media (red) dot on the inside of the
+  // pair; when media was small AND gap was negative, the leftward-anchored
+  // label collided with the sector label at the plot's left edge. Pinning it
+  // to the right of max(xGhg, xMedia) guarantees zero collision regardless
+  // of value, and the labels form a tidy right-aligned column.
+  const xLabel = Math.max(xMedia, xGhg) + 8;
   return (
     <g>
       <text x={plotLeft - 8} y={y + 5} textAnchor="end" fontFamily={F.plex} fontSize={11} fill="var(--t2)">{sector}</text>
@@ -296,8 +303,8 @@ function DotPlotRow({ sector, mediaPct, ghgShare, gap, y, plotLeft, plotWidth }:
       <circle cx={xGhg}   cy={y} r={5} fill="var(--green)" />
       <circle cx={xMedia} cy={y} r={5} fill="var(--red)" />
       <text
-        x={xMedia + (over ? 9 : -9)} y={y + 4}
-        textAnchor={over ? "start" : "end"}
+        x={xLabel} y={y + 4}
+        textAnchor="start"
         fontFamily={F.plex} fontSize={10}
         fill={over ? "var(--red)" : "var(--green)"}
       >
