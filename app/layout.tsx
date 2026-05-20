@@ -3,6 +3,8 @@ import {
   IBM_Plex_Sans,
   Playfair_Display,
   Playfair_Display_SC,
+  Podkova,
+  Quantico,
   Source_Serif_4,
 } from "next/font/google";
 import "./globals.css";
@@ -30,6 +32,17 @@ const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
 });
+const podkova = Podkova({
+  variable: "--font-podkova",
+  subsets: ["latin"],
+  weight: ["400", "600"],
+});
+const quantico = Quantico({
+  variable: "--font-quantico",
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  style: ["normal", "italic"],
+});
 
 export const metadata: Metadata = {
   title: "The Climate Narrative Review",
@@ -41,6 +54,8 @@ const fontVars = [
   playfairDisplaySC.variable,
   sourceSerif4.variable,
   ibmPlexSans.variable,
+  podkova.variable,
+  quantico.variable,
 ].join(" ");
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
