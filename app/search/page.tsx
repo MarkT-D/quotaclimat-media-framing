@@ -1,10 +1,11 @@
 "use client";
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   SECTORS, CRISIS_DOMAINS, STAGES, FRAMES,
   type Sector, type CrisisDomain, type Stage, type Frame, type Article,
-} from "@/lib/mockData";
+} from "@/lib/articleTypes";
 import { useArticles } from "@/lib/useArticles";
 
 const F = {
@@ -53,6 +54,16 @@ const FRAME_COLORS: Record<Frame, string> = {
   "Morality":                      "#7C3AED",
   "Economic Consequences":         "var(--green-m)",
 };
+
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"] as const;
+
+function countryLabel(code: string): string {
+  try {
+    return new Intl.DisplayNames(["en"], { type: "region" }).of(code) ?? code;
+  } catch {
+    return code;
+  }
+}
 
 function Rule({ color = "var(--border)", thick = false }: { color?: string; thick?: boolean }) {
   return <div style={{ borderTop: `${thick ? "2px" : "1px"} solid ${color}` }} />;
@@ -213,22 +224,35 @@ function NewsItem({ article, index }: { article: Article; index: number }) {
   );
 }
 
-// ── Page ────────────────────────────────────────────────────────────────────
+// ── Inner page (needs useSearchParams, must be inside Suspense) ────────────
 
-export default function SearchPage() {
+function SearchPageInner() {
   const { articles: allArticles } = useArticles();
+  const searchParams = useSearchParams();
 
-  // Filter state — mirrors schema columns
-  const [query,      setQuery]      = useState("");
-  const [sector,     setSector]     = useState<Sector | "">("");
-  const [domain,     setDomain]     = useState<CrisisDomain | "">("");
-  const [stage,      setStage]      = useState<Stage | "">("");
-  const [angle,      setAngle]      = useState<Angle | "">("");
-  const [frame,      setFrame]      = useState<Frame | "">("");
-  const [lang,       setLang]       = useState<Language | "">("");
-  const [outlet,     setOutlet]     = useState<string>("");
-  const [maxMisinfo,   setMaxMisinfo]   = useState<number>(100);
-  const [page,         setPage]         = useState(0);
+  // Countries with >= 100 articles, derived from data
+  const countryOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    allArticles.forEach((a) => { if (a.country) counts.set(a.country, (counts.get(a.country) ?? 0) + 1); });
+    return [...counts.entries()]
+      .filter(([, n]) => n >= 100)
+      .sort((a, b) => b[1] - a[1])
+      .map(([code]) => code);
+  }, [allArticles]);
+
+  // Filter state — mirrors schema columns, initialised from URL search params
+  const [query,      setQuery]      = useState(searchParams.get("q")       ?? "");
+  const [sector,     setSector]     = useState<Sector | "">((searchParams.get("sector")  as Sector) ?? "");
+  const [domain,     setDomain]     = useState<CrisisDomain | "">((searchParams.get("domain") as CrisisDomain) ?? "");
+  const [stage,      setStage]      = useState<Stage | "">((searchParams.get("stage")   as Stage)   ?? "");
+  const [angle,      setAngle]      = useState<Angle | "">((searchParams.get("angle")   as Angle)   ?? "");
+  const [frame,      setFrame]      = useState<Frame | "">((searchParams.get("frame")   as Frame)   ?? "");
+  const [lang,       setLang]       = useState<Language | "">((searchParams.get("lang") as Language) ?? "");
+  const [outlet,     setOutlet]     = useState<string>(searchParams.get("outlet") ?? "");
+  const [maxMisinfo, setMaxMisinfo] = useState<number>(Number(searchParams.get("misinfo") ?? 100));
+  const [country,    setCountry]    = useState<string>(searchParams.get("country") ?? "");
+  const [month,      setMonth]      = useState<string>(searchParams.get("month") ?? "");
+  const [page,       setPage]       = useState(0);
   const [filtersOpen,  setFiltersOpen]  = useState(true);
   const [uploadFile,   setUploadFile]   = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -240,26 +264,28 @@ export default function SearchPage() {
     const q = query.toLowerCase();
     const articleAngle = a.primaryFrame != null ? FRAME_TO_ANGLE[a.primaryFrame] : null;
     return (
-      (!q      || a.title.toLowerCase().includes(q) || a.excerpt.toLowerCase().includes(q) || a.keywords.some((k) => k.includes(q))) &&
-      (!sector || a.sector === sector) &&
-      (!domain || a.crisisDomain === domain) &&
-      (!stage  || a.stage === stage) &&
-      (!angle  || articleAngle === angle) &&
-      (!frame  || a.primaryFrame === frame) &&
-      (!lang   || getLanguageCode(a.language) === lang) &&
-      (!outlet || a.outlet === outlet) &&
+      (!q       || a.title.toLowerCase().includes(q) || a.excerpt.toLowerCase().includes(q) || a.keywords.some((k) => k.includes(q))) &&
+      (!sector  || a.sector === sector) &&
+      (!domain  || a.crisisDomain === domain) &&
+      (!stage   || a.stage === stage) &&
+      (!angle   || articleAngle === angle) &&
+      (!frame   || a.primaryFrame === frame) &&
+      (!lang    || getLanguageCode(a.language) === lang) &&
+      (!outlet  || a.outlet === outlet) &&
+      (!country || a.country === country) &&
+      (!month   || MONTHS[new Date(a.publishedAt).getMonth()] === month) &&
       (a.misinformationScore == null || a.misinformationScore * 100 <= maxMisinfo)
     );
-  }), [allArticles, query, sector, domain, stage, angle, frame, lang, outlet, maxMisinfo]);
+  }), [allArticles, query, sector, domain, stage, angle, frame, lang, outlet, country, month, maxMisinfo]);
 
   const paginated  = results.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
   const totalPages = Math.ceil(results.length / PER_PAGE);
-  const hasFilters = !!(query || sector || domain || stage || angle || frame || lang || outlet || maxMisinfo < 100);
-  const activeFilterCount = [sector, domain, stage, angle, frame, lang, outlet, maxMisinfo < 100 ? "m" : ""].filter(Boolean).length;
+  const hasFilters = !!(query || sector || domain || stage || angle || frame || lang || outlet || country || month || maxMisinfo < 100);
+  const activeFilterCount = [sector, domain, stage, angle, frame, lang, outlet, country, month, maxMisinfo < 100 ? "m" : ""].filter(Boolean).length;
 
   const resetFilters = () => {
     setQuery(""); setSector(""); setDomain(""); setStage(""); setAngle("");
-    setFrame(""); setLang(""); setOutlet(""); setMaxMisinfo(100); setPage(0);
+    setFrame(""); setLang(""); setOutlet(""); setCountry(""); setMonth(""); setMaxMisinfo(100); setPage(0);
   };
 
   return (
@@ -342,7 +368,7 @@ export default function SearchPage() {
 
       <div style={{
         overflow: "hidden",
-        maxHeight: filtersOpen ? 300 : 0,
+        maxHeight: filtersOpen ? 340 : 0,
         transition: "max-height 0.3s ease",
       }}>
       <div className="pb-4 space-y-3">
@@ -422,6 +448,27 @@ export default function SearchPage() {
             />
           </div>
 
+          <div className="mx-5"><Sep /></div>
+
+          <DropFilter
+            label="Month"
+            value={month}
+            onChange={(v) => { setMonth(v); bump(); }}
+            opts={MONTHS as unknown as string[]}
+          />
+
+          {countryOptions.length > 0 && (
+            <>
+              <div className="mx-5"><Sep /></div>
+              <DropFilter
+                label="Country"
+                value={country}
+                onChange={(v) => { setCountry(v); bump(); }}
+                opts={countryOptions.map((c) => c)}
+              />
+            </>
+          )}
+
         </div>
       </div>
       </div>
@@ -429,9 +476,39 @@ export default function SearchPage() {
 
       {/* Results meta + pagination */}
       <div className="flex justify-between items-center pb-2">
-        <span style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t2)" }}>
-          Showing {paginated.length} of {results.length} matching articles
-        </span>
+        <div className="flex items-center gap-3">
+          <span style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t2)" }}>
+            Showing {paginated.length} of {results.length} matching articles
+          </span>
+          {month && (
+            <button
+              onClick={() => { setMonth(""); bump(); }}
+              style={{
+                fontFamily: F.plex, fontSize: 11, color: "var(--t2)",
+                border: "1px solid var(--border)", background: "transparent",
+                padding: "2px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: 5,
+              }}
+              title="Remove month filter"
+            >
+              {month}
+              <span style={{ fontSize: 10, lineHeight: 1 }}>×</span>
+            </button>
+          )}
+          {country && (
+            <button
+              onClick={() => { setCountry(""); bump(); }}
+              style={{
+                fontFamily: F.plex, fontSize: 11, color: "var(--t2)",
+                border: "1px solid var(--border)", background: "transparent",
+                padding: "2px 8px", cursor: "pointer", display: "flex", alignItems: "center", gap: 5,
+              }}
+              title="Remove country filter"
+            >
+              {countryLabel(country)}
+              <span style={{ fontSize: 10, lineHeight: 1 }}>×</span>
+            </button>
+          )}
+        </div>
         {totalPages > 1 && (
           <div className="flex items-center gap-5">
             <button onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0}
@@ -493,5 +570,15 @@ export default function SearchPage() {
       </div>
 
     </div>
+  );
+}
+
+// ── Page export — Suspense boundary required by useSearchParams ────────────
+
+export default function SearchPage() {
+  return (
+    <Suspense>
+      <SearchPageInner />
+    </Suspense>
   );
 }
