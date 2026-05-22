@@ -720,19 +720,34 @@ function AngleDistributionChart({ stats }: { stats: ExtStat[] }) {
   );
 }
 
+// ── timeline helpers ───────────────────────────────────────────────────────
+
+const TIMELINE_MAX = 12;
+
+function trimForTimeline(stats: ExtStat[]): { trimmed: ExtStat[]; wasTrimmed: boolean } {
+  if (stats.length <= TIMELINE_MAX) return { trimmed: stats, wasTrimmed: false };
+  const sorted = [...stats].sort((a, b) => a.lagDays - b.lagDays);
+  const half   = Math.floor(TIMELINE_MAX / 2);
+  const picked = [...sorted.slice(0, half), ...sorted.slice(-half)];
+  const seen   = new Set<string>();
+  const unique = picked.filter(o => seen.has(o.id) ? false : (seen.add(o.id), true));
+  return { trimmed: unique.sort((a, b) => a.lagDays - b.lagDays), wasTrimmed: true };
+}
+
 // ── EntryTimelineChart ─────────────────────────────────────────────────────
 
 function EntryTimelineChart({ stats }: { stats: ExtStat[] }) {
   const [hovOutlet, setHovOutlet] = useState<string | null>(null);
 
-  const minLag     = Math.min(...stats.map(o => o.lagDays));
-  const rebased    = stats.map(o => ({ ...o, lag: o.lagDays - minLag }));
+  const { trimmed, wasTrimmed } = trimForTimeline(stats);
+  const minLag     = Math.min(...trimmed.map(o => o.lagDays));
+  const rebased    = trimmed.map(o => ({ ...o, lag: o.lagDays - minLag }));
   const maxLagDays = Math.max(...rebased.map(o => o.lag), 1);
   const spreadMo   = maxLagDays / MONTHS;
   const LABEL_W    = 130;
   const PLOT_W     = 320;
   const ROW_H      = 28;
-  const H          = stats.length * ROW_H + 28;
+  const H          = trimmed.length * ROW_H + 28;
 
   if (spreadMo < 1) {
     return (
@@ -768,6 +783,11 @@ function EntryTimelineChart({ stats }: { stats: ExtStat[] }) {
     <div style={{ border: "1px solid var(--border)", padding: "20px 24px" }}>
       <p style={{ fontFamily: QTC, fontSize: 9, letterSpacing: "1.2", textTransform: "uppercase", color: "var(--t2)", marginBottom: 6 }}>
         Entry timing — months from first outlet
+        {wasTrimmed && (
+          <span style={{ marginLeft: 8, fontFamily: SANS, fontSize: 9, color: "var(--t2)", fontWeight: 400, letterSpacing: 0 }}>
+            · earliest & latest {TIMELINE_MAX / 2} of {stats.length} — use outlet filter to focus
+          </span>
+        )}
       </p>
       <div style={{ height: 20, marginBottom: 10 }}>
         {hovItem
@@ -1028,14 +1048,15 @@ function CountryStackedDistChart({ stats, mA, mB }: {
 function ColoredEntryTimeline({ stats, colorBy }: { stats: ExtStat[]; colorBy: "frame" | "angle" }) {
   const [hovOutlet, setHovOutlet] = useState<string | null>(null);
 
-  const minLag     = Math.min(...stats.map(o => o.lagDays));
-  const rebased    = stats.map(o => ({ ...o, lag: o.lagDays - minLag }));
+  const { trimmed, wasTrimmed } = trimForTimeline(stats);
+  const minLag     = Math.min(...trimmed.map(o => o.lagDays));
+  const rebased    = trimmed.map(o => ({ ...o, lag: o.lagDays - minLag }));
   const maxLagDays = Math.max(...rebased.map(o => o.lag), 1);
   const spreadMo   = maxLagDays / MONTHS;
   const LABEL_W    = 130;
   const PLOT_W     = 320;
   const ROW_H      = 28;
-  const H          = stats.length * ROW_H + 28;
+  const H          = trimmed.length * ROW_H + 28;
 
   function getDotColor(o: ExtStat) {
     if (colorBy === "frame") {
@@ -1081,6 +1102,11 @@ function ColoredEntryTimeline({ stats, colorBy }: { stats: ExtStat[]; colorBy: "
     <div style={{ border: "1px solid var(--border)", padding: "20px 24px" }}>
       <p style={{ fontFamily: QTC, fontSize: 9, letterSpacing: "1.2", textTransform: "uppercase", color: "var(--t2)", marginBottom: 6 }}>
         Entry timing — colored by dominant {colorBy}
+        {wasTrimmed && (
+          <span style={{ marginLeft: 8, fontFamily: SANS, fontSize: 9, color: "var(--t2)", fontWeight: 400, letterSpacing: 0 }}>
+            · earliest & latest {TIMELINE_MAX / 2} of {stats.length} — use outlet filter to focus
+          </span>
+        )}
       </p>
       <div style={{ height: 20, marginBottom: 8 }}>
         {hovItem
@@ -1883,7 +1909,7 @@ export default function DiscrepancyDesk() {
           <InsightSection
             metricA={metricA} metricB={metricB}
             metricAParam={metricAParam} metricBParam={metricBParam}
-            stats={extStats}
+            stats={displayStats}
             articles={articles}
             scatterData={scatterData}
             reg={reg}
