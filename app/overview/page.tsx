@@ -1,5 +1,6 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -8,7 +9,7 @@ import {
 import {
   FRAMES, STAGES, SECTORS, CRISIS_DOMAINS, ANGLES,
   type Sector, type Frame, type Stage, type CrisisDomain, type Article, type Angle,
-} from "@/lib/mockData";
+} from "@/lib/articleTypes";
 import { useArticles } from "@/lib/useArticles";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -315,29 +316,47 @@ function DotPlotRow({ sector, mediaPct, ghgShare, gap, y, plotLeft, plotWidth }:
 }
 
 type OutletStat = ReturnType<typeof outletStatsFrom>[number];
-function OutletCard({ outlet }: { outlet: OutletStat }) {
+function OutletCard({ outlet, onNavigate }: {
+  outlet: OutletStat;
+  onNavigate: (params: Record<string, string>) => void;
+}) {
   const [hovFrame, setHovFrame] = useState<string | null>(null);
   const [hovAngle, setHovAngle] = useState<string | null>(null);
   return (
     <div style={{ padding: "16px 18px 18px", opacity: outlet.count === 0 ? 0.4 : 1 }}>
-      <div style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t1)", marginBottom: 10 }}>
+      <div
+        onClick={() => onNavigate({ outlet: outlet.name })}
+        title={`Show all ${outlet.name} articles`}
+        style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t1)", marginBottom: 10, cursor: "pointer" }}
+      >
         {outlet.name}
       </div>
       <Rule color="var(--border)" />
-      <div style={{ fontFamily: F.playfair, fontSize: 32, lineHeight: 1, color: "var(--t1)", margin: "10px 0" }}>
+      <div
+        onClick={() => onNavigate({ outlet: outlet.name })}
+        title={`Show all ${outlet.name} articles`}
+        style={{ fontFamily: F.playfair, fontSize: 32, lineHeight: 1, color: "var(--t1)", margin: "10px 0", cursor: "pointer" }}
+      >
         {outlet.count}
       </div>
       <Rule color="var(--border)" />
       {outlet.count > 0 && (
         <div style={{ marginTop: 10 }}>
           <div style={{ fontFamily: F.plex, fontSize: 10, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>Frames</div>
-          <div style={{ display: "flex", height: 8 }}>
+          <div style={{ display: "flex", height: 8, overflow: "hidden" }}>
             {outlet.framePcts.map((fp) => (
               <div key={fp.frame}
-                style={{ width: `${fp.pct}%`, height: "100%", background: fp.color, cursor: "default",
-                  opacity: hovFrame && hovFrame !== fp.frame ? 0.3 : 1, transition: "opacity 0.1s" }}
+                style={{
+                  flexGrow: fp.pct, flexShrink: fp.pct, flexBasis: 0,
+                  minWidth: hovFrame === fp.frame ? 25 : 0,
+                  height: "100%", background: fp.color, cursor: "pointer",
+                  opacity: hovFrame && hovFrame !== fp.frame ? 0.3 : 1,
+                  transition: "min-width 0.15s ease, opacity 0.1s",
+                }}
                 onMouseEnter={() => setHovFrame(fp.frame)}
                 onMouseLeave={() => setHovFrame(null)}
+                onClick={() => onNavigate({ outlet: outlet.name, frame: fp.frame })}
+                title={`${outlet.name} · ${FRAME_DEFS.find(d => d.key === fp.frame)?.short ?? fp.frame}`}
               />
             ))}
           </div>
@@ -345,13 +364,20 @@ function OutletCard({ outlet }: { outlet: OutletStat }) {
             {hovFrame && (() => { const f = FRAME_DEFS.find(d => d.key === hovFrame); const fp = outlet.framePcts.find(d => d.frame === hovFrame); return f && fp ? <span style={{ fontFamily: F.plex, fontSize: 10, color: f.color, fontWeight: 600 }}>{f.short} · {fp.pct}%</span> : null; })()}
           </div>
           <div style={{ fontFamily: F.plex, fontSize: 10, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>Angles</div>
-          <div style={{ display: "flex", height: 8 }}>
+          <div style={{ display: "flex", height: 8, overflow: "hidden" }}>
             {outlet.anglePcts.map((ap, i) => (
               <div key={ap.angle}
-                style={{ width: `${ap.pct}%`, height: "100%", background: ANGLE_COLORS[i % ANGLE_COLORS.length], cursor: "default",
-                  opacity: hovAngle && hovAngle !== ap.angle ? 0.3 : 1, transition: "opacity 0.1s" }}
+                style={{
+                  flexGrow: ap.pct, flexShrink: ap.pct, flexBasis: 0,
+                  minWidth: hovAngle === ap.angle ? 25 : 0,
+                  height: "100%", background: ANGLE_COLORS[i % ANGLE_COLORS.length], cursor: "pointer",
+                  opacity: hovAngle && hovAngle !== ap.angle ? 0.3 : 1,
+                  transition: "min-width 0.15s ease, opacity 0.1s",
+                }}
                 onMouseEnter={() => setHovAngle(ap.angle)}
                 onMouseLeave={() => setHovAngle(null)}
+                onClick={() => onNavigate({ outlet: outlet.name, angle: ap.angle })}
+                title={`${outlet.name} · ${ap.angle}`}
               />
             ))}
           </div>
@@ -366,7 +392,14 @@ function OutletCard({ outlet }: { outlet: OutletStat }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+function toSearch(params: Record<string, string>, currentCountry: string | null): string {
+  const p = new URLSearchParams(params);
+  if (currentCountry) p.set("country", currentCountry);
+  return `/search?${p.toString()}`;
+}
+
 export default function OverviewPage() {
+  const router = useRouter();
   const { articles: allArticles } = useArticles();
   const [hoveredAngleBar, setHoveredAngleBar] = useState<string | null>(null);
   const [country, setCountry] = useState<string | null>(null);
@@ -540,25 +573,35 @@ export default function OverviewPage() {
             <div style={{ marginBottom: 20 }}>
               <SectionHead>Coverage over time</SectionHead>
             </div>
-            <ResponsiveContainer width="100%" height={240}>
-              <AreaChart data={timeData} margin={{ left: -10, right: 10 }}>
-                <defs>
-                  <linearGradient id="articlesFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="10%" stopColor="var(--red)" stopOpacity={0.22} />
-                    <stop offset="95%" stopColor="var(--red)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="2 5" vertical={false} stroke="var(--border)" />
-                <XAxis dataKey="month" tick={{ fontFamily: F.plex, fontSize: 11, fill: "var(--t2)" }} axisLine={{ stroke: "var(--border)" }} tickLine={false} />
-                <YAxis tick={{ fontFamily: F.plex, fontSize: 11, fill: "var(--t2)" }} axisLine={false} tickLine={false} />
-                <Tooltip content={<CustomTooltip />} />
-                <Area type="stepAfter" dataKey="articles" name="Articles"
-                  stroke="var(--red)" strokeWidth={2}
-                  fill="url(#articlesFill)" dot={false} />
-              </AreaChart>
-            </ResponsiveContainer>
+            <div style={{ cursor: "pointer" }} title="Click a month to browse its articles">
+              <ResponsiveContainer width="100%" height={240}>
+                <AreaChart
+                  data={timeData}
+                  margin={{ left: -10, right: 10 }}
+                  onClick={(data) => {
+                    if (data?.activeLabel) {
+                      router.push(toSearch({ month: String(data.activeLabel) }, country));
+                    }
+                  }}
+                >
+                  <defs>
+                    <linearGradient id="articlesFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="10%" stopColor="var(--red)" stopOpacity={0.22} />
+                      <stop offset="95%" stopColor="var(--red)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="2 5" vertical={false} stroke="var(--border)" />
+                  <XAxis dataKey="month" tick={{ fontFamily: F.plex, fontSize: 11, fill: "var(--t2)" }} axisLine={{ stroke: "var(--border)" }} tickLine={false} />
+                  <YAxis tick={{ fontFamily: F.plex, fontSize: 11, fill: "var(--t2)" }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ stroke: "var(--t1)", strokeWidth: 1, strokeDasharray: "3 3" }} />
+                  <Area type="stepAfter" dataKey="articles" name="Articles"
+                    stroke="var(--red)" strokeWidth={2}
+                    fill="url(#articlesFill)" dot={false} activeDot={{ r: 4, fill: "var(--red)", stroke: "var(--bg)", strokeWidth: 2 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
             <EditorialNote>
-              Monthly article count across all outlets.
+              Click any month to browse its articles.
             </EditorialNote>
           </div>
 
@@ -587,7 +630,11 @@ export default function OverviewPage() {
                   const count = frameData.find((f) => f.frame === fd.key)?.count ?? 0;
                   const pct   = Math.round((count / (totalArts || 1)) * 100);
                   return (
-                    <div key={fd.key} className="flex items-center gap-2">
+                    <div key={fd.key} className="flex items-center gap-2"
+                      onClick={() => router.push(toSearch({ frame: fd.key }, country))}
+                      title={`Show ${fd.short} articles`}
+                      style={{ cursor: "pointer" }}
+                    >
                       <span style={{ width: 9, height: 9, display: "inline-block", background: fd.color, flexShrink: 0 }} />
                       <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)" }}>{fd.short}</span>
                       <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t1)", marginLeft: "auto" }}>{pct}%</span>
@@ -608,11 +655,13 @@ export default function OverviewPage() {
               {angleBars.map((b, i) => (
                 <div key={b.angle}
                   style={{ width: `${b.pct}%`, height: "100%", background: ANGLE_COLORS[i % ANGLE_COLORS.length],
-                    cursor: "default",
+                    cursor: "pointer",
                     opacity: hoveredAngleBar && hoveredAngleBar !== b.angle ? 0.35 : 1,
                     transition: "opacity 0.12s" }}
                   onMouseEnter={() => setHoveredAngleBar(b.angle)}
                   onMouseLeave={() => setHoveredAngleBar(null)}
+                  onClick={() => router.push(toSearch({ angle: b.angle }, country))}
+                  title={`Show ${b.angle} articles`}
                 />
               ))}
             </div>
@@ -633,7 +682,11 @@ export default function OverviewPage() {
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px" }}>
               {angleBars.map((b, i) => (
-                <div key={b.angle} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div key={b.angle}
+                  onClick={() => router.push(toSearch({ angle: b.angle }, country))}
+                  title={`Show ${b.angle} articles`}
+                  style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}
+                >
                   <span style={{ width: 8, height: 8, display: "inline-block", background: ANGLE_COLORS[i % ANGLE_COLORS.length], flexShrink: 0 }} />
                   <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)" }}>{b.angle}</span>
                 </div>
@@ -660,9 +713,11 @@ export default function OverviewPage() {
                   cx="50%" cy="50%"
                   innerRadius={52} outerRadius={88}
                   paddingAngle={1} dataKey="value"
+                  onClick={(d) => { if (d.name) router.push(toSearch({ sector: String(d.name) }, country)); }}
+                  style={{ cursor: "pointer" }}
                 >
                   {sectorData.map((s, i) => (
-                    <Cell key={s.sector} fill={SECTOR_COLORS[i % SECTOR_COLORS.length]} />
+                    <Cell key={s.sector} fill={SECTOR_COLORS[i % SECTOR_COLORS.length]} cursor="pointer" />
                   ))}
                 </Pie>
                 <Tooltip content={<SectorTooltip />} />
@@ -672,7 +727,11 @@ export default function OverviewPage() {
               {sectorData.map((s, i) => {
                 const pct = Math.round((s.count / (totalArts || 1)) * 100);
                 return (
-                  <div key={s.sector} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div key={s.sector}
+                    onClick={() => router.push(toSearch({ sector: s.sector }, country))}
+                    title={`Show ${s.sector} articles`}
+                    style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}
+                  >
                     <span style={{ width: 8, height: 8, display: "inline-block", background: SECTOR_COLORS[i % SECTOR_COLORS.length], flexShrink: 0 }} />
                     <span style={{ fontFamily: F.plex, fontSize: 10, color: "var(--t2)", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.sector}</span>
                     <span style={{ fontFamily: F.plex, fontSize: 10, color: "var(--t1)", fontWeight: 600 }}>{pct}%</span>
@@ -697,7 +756,10 @@ export default function OverviewPage() {
                 borderRight: (i % cols < cols - 1) && i < outletData.length - 1 ? "1px solid var(--border)" : "none",
                 borderBottom: i < outletData.length - cols ? "1px solid var(--border)" : "none",
               }}>
-                <OutletCard outlet={outlet} />
+                <OutletCard
+                  outlet={outlet}
+                  onNavigate={(params) => router.push(toSearch(params, country))}
+                />
               </div>
             ))}
           </div>
@@ -719,10 +781,14 @@ export default function OverviewPage() {
             {domainData.map((d, i) => {
               const pct = Math.round((d.count / (totalDomain || 1)) * 100);
               return (
-                <div key={d.domain} style={{
-                  borderRight: i < domainData.length - 1 ? "1px solid var(--border)" : "none",
-                  padding: "16px 22px",
-                }}>
+                <div key={d.domain}
+                  onClick={() => router.push(toSearch({ domain: d.domain }, country))}
+                  title={`Show ${d.domain} articles`}
+                  style={{
+                    borderRight: i < domainData.length - 1 ? "1px solid var(--border)" : "none",
+                    padding: "16px 22px", cursor: "pointer",
+                  }}
+                >
                   <div className="flex items-center gap-2" style={{ marginBottom: 10 }}>
                     <span style={{ width: 9, height: 9, display: "inline-block", background: DOMAIN_COLORS[i], flexShrink: 0 }} />
                     <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
@@ -795,7 +861,11 @@ export default function OverviewPage() {
               {stageTicks.map((s) => {
                 const color = s.stage === "Solutions" ? "var(--green)" : "var(--t2)";
                 return (
-                  <div key={s.stage} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                  <div key={s.stage}
+                    onClick={() => router.push(toSearch({ stage: s.stage }, country))}
+                    title={`Show ${s.stage} articles`}
+                    style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}
+                  >
                     <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 44, lineHeight: 1, color }}>
                       {s.pct}%
                     </div>
@@ -807,7 +877,11 @@ export default function OverviewPage() {
             <div style={{ borderTop: "0.5px solid var(--border)" }} />
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", marginTop: 8 }}>
               {stageTicks.map((s) => (
-                <div key={s.stage} style={{ textAlign: "center", fontFamily: F.plex, fontSize: 10, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                <div key={s.stage}
+                  onClick={() => router.push(toSearch({ stage: s.stage }, country))}
+                  title={`Show ${s.stage} articles`}
+                  style={{ textAlign: "center", fontFamily: F.plex, fontSize: 10, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.04em", cursor: "pointer" }}
+                >
                   {s.stage}
                 </div>
               ))}
