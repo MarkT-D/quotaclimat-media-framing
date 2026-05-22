@@ -7,8 +7,8 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell,
 } from "recharts";
 import { ArrowLeft, ExternalLink, AlertTriangle, CheckCircle, Info, Lightbulb } from "lucide-react";
-import { FRAMES } from "@/lib/mockData";
-import type { Article } from "@/lib/mockData";
+import { FRAMES } from "@/lib/articleTypes";
+import type { Article } from "@/lib/articleTypes";
 import Badge from "@/components/Badge";
 import ExplainPanel from "@/components/ExplainPanel";
 

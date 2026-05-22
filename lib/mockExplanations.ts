@@ -5,7 +5,7 @@
 // Framing:        SHAP/attention-style weights (production → BERT + SHAP/LIME)
 // -----------------------------------------------------------------------------
 
-import type { Article, Frame } from "./mockData";
+import type { Article, Frame } from "./articleTypes";
 
 export interface Token {
   text: string;         // raw token including surrounding punctuation

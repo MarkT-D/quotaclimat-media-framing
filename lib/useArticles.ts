@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import type { Article } from "./mockData";
+import type { Article } from "./articleTypes";
 
 let _cache: Article[] | null = null;
 let _promise: Promise<Article[]> | null = null;

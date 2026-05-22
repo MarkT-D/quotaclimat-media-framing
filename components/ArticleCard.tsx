@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { type Article } from "@/lib/mockData";
+import { type Article } from "@/lib/articleTypes";
 import Badge from "./Badge";
 
 interface Props {

@@ -24,22 +24,24 @@ const MAX_HEIGHT = 280; // generous enough to fit either variant's expanded heig
 
 export default function NewspaperHeader() {
   const pathname = usePathname();
-  const variant: Variant = pathname === "/" ? "hero" : "compact";
+  const variant: Variant = "compact";
 
   const [collapsed, setCollapsed] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
+  const hoveringRef = useRef(false);
 
   useEffect(() => {
     const el = headerRef.current;
 
     const onScroll = () => {
+      if (hoveringRef.current) return;
       const y = window.scrollY;
       if (y < EXPAND_AT) setCollapsed(false);
       else if (y > COLLAPSE_AT) setCollapsed(true);
     };
 
-    const onEnter = () => { if (window.scrollY > EXPAND_AT) setCollapsed(false); };
-    const onLeave = () => { if (window.scrollY > COLLAPSE_AT) setCollapsed(true); };
+    const onEnter = () => { hoveringRef.current = true; if (window.scrollY > EXPAND_AT) setCollapsed(false); };
+    const onLeave = () => { hoveringRef.current = false; if (window.scrollY > COLLAPSE_AT) setCollapsed(true); };
 
     window.addEventListener("scroll", onScroll, { passive: true });
     el?.addEventListener("mouseenter", onEnter);

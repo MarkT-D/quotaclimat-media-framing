@@ -5,7 +5,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from "recharts";
-import { FRAMES, STAGES, SECTORS, CRISIS_DOMAINS, type Frame } from "@/lib/mockData";
+import { FRAMES, STAGES, SECTORS, CRISIS_DOMAINS, type Frame } from "@/lib/articleTypes";
 import Badge from "@/components/Badge";
 
 type AnalysisResult = {

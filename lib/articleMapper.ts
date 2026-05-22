@@ -1,4 +1,4 @@
-import type { Article, Frame, Angle, Sector, CrisisDomain, Stage } from "./mockData";
+import type { Article, Frame, Angle, Sector, CrisisDomain, Stage } from "./articleTypes";
 
 export interface DbRow {
   id: number;

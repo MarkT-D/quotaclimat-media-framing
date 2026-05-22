@@ -37,7 +37,7 @@ export default function TypingGreeting({ style }: { style?: React.CSSProperties 
 
   return (
     <div style={style}>
-      Welcome<span style={{ color: "var(--t1)" }}>,</span><br />
+      Welcome<span style={{ color: "rgba(142, 227, 57, 1)" }}>,</span><br />
       <span>{text || " "}</span>
       <span className="typing-cursor" />
     </div>

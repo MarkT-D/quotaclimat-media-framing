@@ -1,5 +1,5 @@
-// Types and constants for QuotaClimat dashboard.
-// Data is sourced from the PostgreSQL backend via /api/articles.
+// Article types, constants, and outlet aggregation for the QuotaClimat dashboard.
+// Article data is sourced from Postgres via /api/articles.
 
 export const SECTORS = [
   "Energy",
@@ -75,7 +75,7 @@ export function getOutletStats(articles: Article[]) {
 
     const frameDist = {} as Record<Frame, number>;
     FRAMES.forEach((f) => (frameDist[f] = 0));
-    oa.forEach((a) => { FRAMES.forEach((f) => { if (a.frameScores[f] != null) frameDist[f]++; }); });
+    oa.forEach((a) => { if (a.primaryFrame != null) frameDist[a.primaryFrame]++; });
 
     const solutionRate = oa.length
       ? parseFloat(((stageDist["Solutions"] / oa.length) * 100).toFixed(1))

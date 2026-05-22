@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import { X, AlertTriangle, Layers, Info } from "lucide-react";
-import type { Article } from "@/lib/mockData";
+import type { Article } from "@/lib/articleTypes";
 import { getArticleExplanation, type Token } from "@/lib/mockExplanations";
 
 type View = "misinfo" | "framing";
