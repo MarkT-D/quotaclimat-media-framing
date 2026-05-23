@@ -3,10 +3,13 @@ import { useState, useMemo, useEffect, type ReactElement } from "react";
 import {
   ScatterChart,
   Scatter,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
@@ -85,12 +88,12 @@ const METRICS: Metric[] = [
     getValue: o => o.angleCoverage,
   },
   {
-    id: "lag", label: "Entry Timing", short: "Time", unit: "Months",
+    id: "lag", label: "Time", short: "Time", unit: "Months",
     desc: "months from first outlet's coverage to this outlet's first article",
     getValue: o => Math.round(o.lagDays / MONTHS),
   },
   {
-    id: "wordcount", label: "Avg. Word Count", short: "Words", unit: "Words",
+    id: "wordcount", label: "Word Count", short: "Word Count", unit: "Words",
     desc: "mean article length in words",
     getValue: o => o.avgWordCount,
   },
@@ -155,35 +158,39 @@ type InsightChartId =
   | "timeline-by-frame"
   | "timeline-by-angle"
   | "word-dist-by-group"
-  | "sector-grouped-dist";
+  | "sector-grouped-dist"
+  | "word-count-over-time";
+
+type PairRule = {
+  valid:      boolean;
+  byLanguage: boolean;
+  byTime:     boolean;
+  charts:     InsightChartId[];
+};
 
 function insightKey(a: string, b: string) { return [a, b].sort().join("|"); }
 
-// Keys may be written in any order — normalization happens at module load below.
-const _RAW_CATALOG: Record<string, InsightChartId[]> = {
-  "angle|frame":       ["cross-tab-heatmap", "frame-dist", "angle-dist"],
-  "country|frame":     ["country-group", "country-stacked-dist", "frame-dist"],
-  "country|angle":     ["country-group", "country-stacked-dist", "angle-dist"],
-  "country|lag":       ["country-group", "entry-timeline"],
-  "country|wordcount": ["country-group", "word-dist-by-group"],
-  "country|sector":    ["country-group", "sector-grouped-dist"],
-  "frame|lag":         ["timeline-by-frame", "entry-timeline", "correlation-panel"],
-  "frame|wordcount":   ["word-dist-by-group", "frame-dist", "correlation-panel"],
-  "frame|sector":      ["sector-grouped-dist", "frame-dist", "correlation-panel"],
-  "angle|lag":         ["timeline-by-angle", "entry-timeline", "correlation-panel"],
-  "angle|wordcount":   ["word-dist-by-group", "angle-dist", "correlation-panel"],
-  "angle|sector":      ["sector-grouped-dist", "angle-dist", "correlation-panel"],
-  "lag|sector":        ["entry-timeline", "correlation-panel"],
-  "lag|wordcount":     ["entry-timeline", "correlation-panel"],
-  "sector|wordcount":  ["word-dist-by-group", "correlation-panel"],
+const PAIR_RULES: Record<string, PairRule> = {
+  "angle|frame":      { valid: true,  byLanguage: true,  byTime: true,  charts: ["cross-tab-heatmap", "frame-dist", "angle-dist"] },
+  "frame|lag":        { valid: true,  byLanguage: true,  byTime: false, charts: ["timeline-by-frame", "entry-timeline", "correlation-panel"] },
+  "frame|wordcount":  { valid: true,  byLanguage: true,  byTime: false, charts: ["word-count-over-time", "frame-dist", "correlation-panel"] },
+  "frame|sector":     { valid: true,  byLanguage: true,  byTime: true,  charts: ["sector-grouped-dist", "frame-dist", "correlation-panel"] },
+  "country|frame":    { valid: true,  byLanguage: false, byTime: true,  charts: ["country-group", "country-stacked-dist", "frame-dist"] },
+  "angle|lag":        { valid: true,  byLanguage: true,  byTime: false, charts: ["timeline-by-angle", "entry-timeline", "correlation-panel"] },
+  "angle|wordcount":  { valid: true,  byLanguage: true,  byTime: false, charts: ["word-count-over-time", "angle-dist", "correlation-panel"] },
+  "angle|sector":     { valid: true,  byLanguage: true,  byTime: true,  charts: ["sector-grouped-dist", "angle-dist", "correlation-panel"] },
+  "angle|country":    { valid: true,  byLanguage: false, byTime: true,  charts: ["country-group", "country-stacked-dist", "angle-dist"] },
+  "lag|wordcount":    { valid: true,  byLanguage: true,  byTime: false, charts: ["word-count-over-time", "correlation-panel"] },
+  "lag|sector":       { valid: true,  byLanguage: true,  byTime: false, charts: ["entry-timeline", "correlation-panel"] },
+  "country|lag":      { valid: false, byLanguage: false, byTime: false, charts: [] },
+  "sector|wordcount": { valid: true,  byLanguage: true,  byTime: false, charts: ["word-count-over-time", "correlation-panel"] },
+  "country|wordcount":{ valid: true,  byLanguage: false, byTime: false, charts: ["word-count-over-time", "country-group"] },
+  "country|sector":   { valid: true,  byLanguage: false, byTime: true,  charts: ["country-group", "sector-grouped-dist"] },
 };
 
-const INSIGHT_CATALOG = Object.fromEntries(
-  Object.entries(_RAW_CATALOG).map(([k, v]) => {
-    const [a, b] = k.split("|");
-    return [insightKey(a, b), v];
-  })
-) as Record<string, InsightChartId[]>;
+function getPairRule(a: string, b: string): PairRule {
+  return PAIR_RULES[insightKey(a, b)] ?? { valid: false, byLanguage: false, byTime: false, charts: [] };
+}
 
 const PANEL_W = 296;
 
@@ -205,11 +212,12 @@ function DblRule() {
 }
 
 // ── HexPicker ──────────────────────────────────────────────────────────────
-function HexPicker({ metricA, metricB, expandedMetric, onNodeClick }: {
-  metricA:        string;
-  metricB:        string;
-  expandedMetric: string | null;
-  onNodeClick:    (id: string) => void;
+function HexPicker({ metricA, metricB, pendingA, compatibleIds, onNodeClick }: {
+  metricA:       string;
+  metricB:       string;
+  pendingA:      string | null;
+  compatibleIds: Set<string>;
+  onNodeClick:   (id: string) => void;
 }) {
   const nodeA = HEX_NODES.find(n => n.metricId === metricA)!;
   const nodeB = HEX_NODES.find(n => n.metricId === metricB)!;
@@ -219,6 +227,8 @@ function HexPicker({ metricA, metricB, expandedMetric, onNodeClick }: {
   const CIRC_R = 34;
   const DIAM_H = 24;
   const SPRING = "cubic-bezier(0.34,1.56,0.64,1)";
+
+  const pendingNode = pendingA ? HEX_NODES.find(n => n.metricId === pendingA) : null;
 
   return (
     <svg viewBox="20 5 360 390" width="100%" height="auto"
@@ -234,45 +244,69 @@ function HexPicker({ metricA, metricB, expandedMetric, onNodeClick }: {
         </radialGradient>
       </defs>
 
+      {/* Hex outline */}
       {HEX_NODES.map((n, i) => {
         const next = HEX_NODES[(i + 1) % HEX_NODES.length];
         return <line key={i} x1={n.cx} y1={n.cy} x2={next.cx} y2={next.cy} stroke="var(--border)" strokeWidth={1} />;
       })}
 
-      <line x1={nodeA.cx} y1={nodeA.cy} x2={nodeB.cx} y2={nodeB.cy}
-        stroke="#B9B9B9" strokeWidth={1.5} strokeDasharray="4 3" />
-      <line x1={nodeA.cx} y1={nodeA.cy} x2={200} y2={200}
-        stroke="var(--t1)" strokeWidth={1.5} strokeDasharray="5 3" />
-      <line x1={nodeB.cx} y1={nodeB.cy} x2={200} y2={200}
-        stroke="var(--t1)" strokeWidth={1.5} strokeDasharray="5 3" />
+      {/* Committed pair connector */}
+      {!pendingA && (
+        <>
+          <line x1={nodeA.cx} y1={nodeA.cy} x2={nodeB.cx} y2={nodeB.cy}
+            stroke="#B9B9B9" strokeWidth={1.5} strokeDasharray="4 3" />
+          <line x1={nodeA.cx} y1={nodeA.cy} x2={200} y2={200}
+            stroke="var(--t1)" strokeWidth={1.5} strokeDasharray="5 3" />
+          <line x1={nodeB.cx} y1={nodeB.cy} x2={200} y2={200}
+            stroke="var(--t1)" strokeWidth={1.5} strokeDasharray="5 3" />
+        </>
+      )}
+
+      {/* Animated dashes from pendingA to each compatible node */}
+      {pendingA && pendingNode && HEX_NODES.map(n => {
+        if (!compatibleIds.has(n.metricId)) return null;
+        return (
+          <line key={n.metricId}
+            x1={pendingNode.cx} y1={pendingNode.cy} x2={n.cx} y2={n.cy}
+            stroke={LIME} strokeWidth={1.5} strokeDasharray="5 4"
+            style={{ animation: "march 0.9s linear infinite" }} />
+        );
+      })}
 
       <polygon points="200,60 321,130 321,270 200,340 79,270 79,130"
         fill="url(#hexCloud)" style={{ pointerEvents: "none" }} />
 
       {HEX_NODES.map((node) => {
-        const isA        = node.metricId === metricA;
-        const isB        = node.metricId === metricB;
-        const isExpanded = node.metricId === expandedMetric;
-        const metric     = METRICS.find(m => m.id === node.metricId)!;
+        const isA          = node.metricId === metricA;
+        const isB          = node.metricId === metricB;
+        const isPendingA   = node.metricId === pendingA;
+        const isCompatible = compatibleIds.has(node.metricId);
+        const isIncompat   = pendingA !== null && !isPendingA && !isCompatible;
+        const metric       = METRICS.find(m => m.id === node.metricId)!;
+
+        // When pendingA set: show diamond on pending node (acts as "about to be A")
+        const showDiamond = isA && !pendingA || isPendingA;
+        const showCircle  = isB && !pendingA;
 
         return (
           <g key={node.metricId} onClick={() => onNodeClick(node.metricId)}
-            style={{ cursor: "pointer" }}>
+            style={{ cursor: isIncompat ? "not-allowed" : "pointer", opacity: isIncompat ? 0.25 : 1, transition: "opacity 0.2s" }}>
 
-            {isExpanded && (
+            {/* Animated ring for compatible nodes */}
+            {isCompatible && (
               <circle cx={node.cx} cy={node.cy} r={CIRC_R + 7}
-                fill="none" stroke="var(--t2)" strokeWidth={1}
-                strokeDasharray="3 2" opacity={0.65}
-                style={{ pointerEvents: "none" }} />
+                fill="none" stroke={LIME} strokeWidth={1.5}
+                strokeDasharray="4 3"
+                style={{ animation: "march 0.9s linear infinite", pointerEvents: "none" }} />
             )}
 
             <circle cx={node.cx} cy={node.cy} r={CIRC_R}
-              fill={isB ? LIME : "var(--bg)"}
-              stroke="var(--t1)" strokeWidth={isB ? 2.5 : 1.5}
+              fill={showCircle ? LIME : "var(--bg)"}
+              stroke="var(--t1)" strokeWidth={showCircle ? 2.5 : 1.5}
               style={{
-                opacity: isA ? 0 : 1,
+                opacity: showDiamond ? 0 : 1,
                 transformOrigin: `${node.cx}px ${node.cy}px`,
-                transform: isA ? "scale(0.1)" : "scale(1)",
+                transform: showDiamond ? "scale(0.1)" : "scale(1)",
                 transition: `opacity 0.3s ease, transform 0.45s ${SPRING}, fill 0.3s ease`,
               }}
             />
@@ -282,22 +316,22 @@ function HexPicker({ metricA, metricB, expandedMetric, onNodeClick }: {
                 width={DIAM_H * 2} height={DIAM_H * 2} rx={3}
                 fill={SALMON} stroke="var(--t1)" strokeWidth={2}
                 style={{
-                  opacity: isA ? 1 : 0,
+                  opacity: showDiamond ? 1 : 0,
                   transformOrigin: `${node.cx}px ${node.cy}px`,
-                  transform: isA ? "scale(1)" : "scale(0.1)",
+                  transform: showDiamond ? "scale(1)" : "scale(0.1)",
                   transition: `opacity 0.3s ease, transform 0.45s ${SPRING}`,
                 }} />
             </g>
 
             <text x={node.cx} y={node.cy + 4} textAnchor="middle"
               fontFamily={PDK} fontSize={10} fontWeight="600"
-              fill={isA ? "#fff" : isB ? "var(--t1)" : "var(--t2)"}
+              fill={showDiamond ? "#fff" : showCircle ? "var(--t1)" : "var(--t2)"}
               style={{ pointerEvents: "none", transition: "fill 0.3s ease", userSelect: "none" }}>
               {metric.short}
             </text>
             <text x={node.cx} y={node.cy + 15} textAnchor="middle"
               fontFamily={QTC} fontSize={7} letterSpacing="0.5"
-              fill={isA ? "rgba(255,255,255,0.65)" : "var(--t2)"}
+              fill={showDiamond ? "rgba(255,255,255,0.65)" : "var(--t2)"}
               style={{ pointerEvents: "none", userSelect: "none", transition: "fill 0.3s ease" }}>
               {metric.unit.toUpperCase()}
             </text>
@@ -309,13 +343,13 @@ function HexPicker({ metricA, metricB, expandedMetric, onNodeClick }: {
       <line x1={158} y1={193} x2={242} y2={193} stroke="var(--border)" strokeWidth={0.5} />
       <line x1={158} y1={215} x2={242} y2={215} stroke="var(--border)" strokeWidth={0.5} />
       <text x={200} y={183} textAnchor="middle" fontFamily={QTC} fontSize={13} fill={A_TEXT} letterSpacing="1.5">
-        {mA.short.toUpperCase()}
+        {pendingA ? METRICS.find(m => m.id === pendingA)!.short.toUpperCase() : mA.short.toUpperCase()}
       </text>
       <text x={200} y={208} textAnchor="middle" fontFamily={PF} fontStyle="italic" fontSize={13} fill="var(--t2)">
-        by
+        {pendingA ? "→" : "by"}
       </text>
       <text x={200} y={228} textAnchor="middle" fontFamily={QTC} fontSize={13} fill={B_TEXT} letterSpacing="1.5">
-        {mB.short.toUpperCase()}
+        {pendingA ? "?" : mB.short.toUpperCase()}
       </text>
     </svg>
   );
@@ -1373,10 +1407,113 @@ function SectorGroupedDistChart({ articles, mA, mB }: {
   );
 }
 
+// ── WordCountOverTimeChart ─────────────────────────────────────────────────
+const LINE_PALETTE = [
+  "var(--red)", "var(--green)", "#EF9F27", "#7C3AED", "var(--red-m)", "var(--green-m)",
+];
+
+function WordCountOverTimeChart({ articles, stats, filterMode }: {
+  articles:   Article[];
+  stats:      ExtStat[];
+  filterMode: "outlet" | "language" | "time";
+}) {
+  // Build month-keyed data grouped by outlet or language
+  const months = [...new Set(articles.map(a => a.publishedAt.slice(0, 7)))].sort();
+
+  type LineData = { key: string; color: string; data: Record<string, number[]> };
+
+  const lines: LineData[] = [];
+
+  if (filterMode === "outlet") {
+    stats.slice(0, 6).forEach((o, i) => {
+      const outletArts = articles.filter(a => a.outlet === o.id);
+      const data: Record<string, number[]> = {};
+      for (const a of outletArts) {
+        const m = a.publishedAt.slice(0, 7);
+        data[m] ??= [];
+        data[m].push(a.wordCount);
+      }
+      lines.push({ key: o.name, color: LINE_PALETTE[i % LINE_PALETTE.length], data });
+    });
+  } else if (filterMode === "language") {
+    const langs = [...new Set(articles.map(a => a.language).filter(Boolean))];
+    langs.slice(0, 6).forEach((lang, i) => {
+      const langArts = articles.filter(a => a.language === lang);
+      const data: Record<string, number[]> = {};
+      for (const a of langArts) {
+        const m = a.publishedAt.slice(0, 7);
+        data[m] ??= [];
+        data[m].push(a.wordCount);
+      }
+      lines.push({ key: lang!, color: LINE_PALETTE[i % LINE_PALETTE.length], data });
+    });
+  } else {
+    // "time" — single overall trend line
+    const data: Record<string, number[]> = {};
+    for (const a of articles) {
+      const m = a.publishedAt.slice(0, 7);
+      data[m] ??= [];
+      data[m].push(a.wordCount);
+    }
+    lines.push({ key: "All outlets", color: "var(--t1)", data });
+  }
+
+  const chartData = months.map(m => {
+    const row: Record<string, number | string> = { month: m };
+    for (const line of lines) {
+      const vals = line.data[m];
+      row[line.key] = vals && vals.length > 0
+        ? Math.round(vals.reduce((s, v) => s + v, 0) / vals.length)
+        : 0;
+    }
+    return row;
+  });
+
+  if (chartData.length === 0) return null;
+
+  return (
+    <div style={{ border: "1px solid var(--border)", padding: "20px 24px" }}>
+      <p style={{ fontFamily: QTC, fontSize: 9, letterSpacing: "1.2", textTransform: "uppercase", color: "var(--t2)", marginBottom: 4 }}>
+        Avg. word count over time
+        {filterMode !== "time" && (
+          <span style={{ marginLeft: 8, fontFamily: SANS, fontSize: 9, letterSpacing: 0, color: "var(--t2)", fontWeight: 400 }}>
+            · by {filterMode}
+          </span>
+        )}
+      </p>
+      <p style={{ fontFamily: PF, fontStyle: "italic", fontSize: 13, color: "var(--t2)", marginBottom: 16 }}>
+        Does article length shift as coverage matures?
+      </p>
+      <ResponsiveContainer width="100%" height={240}>
+        <LineChart data={chartData} margin={{ top: 4, right: 16, bottom: 24, left: 0 }}>
+          <CartesianGrid strokeDasharray="2 6" stroke="var(--border)" strokeOpacity={0.5} />
+          <XAxis dataKey="month"
+            tick={{ fontFamily: SANS, fontSize: 9, fill: "var(--t2)" }}
+            angle={-35} textAnchor="end" interval={Math.floor(months.length / 6)} />
+          <YAxis tick={{ fontFamily: SANS, fontSize: 9, fill: "var(--t2)" }}
+            label={{ value: "words", angle: -90, position: "insideTopLeft", offset: 12,
+              style: { fontFamily: PF, fontStyle: "italic", fontSize: 11, fill: "var(--t2)" } }} />
+          <Tooltip
+            contentStyle={{ background: "var(--bg)", border: "0.5px solid var(--border)", fontFamily: SS, fontSize: 12 }}
+            labelStyle={{ fontFamily: PFSC, fontSize: 11 }}
+          />
+          {lines.length > 1 && <Legend iconType="circle" iconSize={8}
+            wrapperStyle={{ fontFamily: SANS, fontSize: 10, paddingTop: 8 }} />}
+          {lines.map(line => (
+            <Line key={line.key} type="monotone" dataKey={line.key}
+              stroke={line.color} strokeWidth={1.5} dot={false}
+              activeDot={{ r: 4, fill: line.color }} />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
 // ── InsightSection ─────────────────────────────────────────────────────────
 function InsightSection({
   metricA, metricB, metricAParam, metricBParam,
-  stats, articles, scatterData, reg, mA, mB, mALabel, mBLabel,
+  stats, articles, scatterData, reg, mA, mB, mALabel, mBLabel, filterMode,
 }: {
   metricA:      string;
   metricB:      string;
@@ -1390,10 +1527,11 @@ function InsightSection({
   mB:           Metric;
   mALabel:      string;
   mBLabel:      string;
+  filterMode:   "outlet" | "language" | "time";
 }) {
-  const key    = insightKey(metricA, metricB);
-  const charts = INSIGHT_CATALOG[key] ?? [];
-  if (charts.length === 0 || stats.length === 0) return null;
+  const rule   = getPairRule(metricA, metricB);
+  const charts = rule.charts;
+  if (!rule.valid || charts.length === 0 || stats.length === 0) return null;
 
   const nodes = charts.map(id => {
     switch (id) {
@@ -1419,6 +1557,8 @@ function InsightSection({
         return { id, el: <WordDistByGroupChart articles={articles} mA={mA} mB={mB} /> };
       case "sector-grouped-dist":
         return { id, el: <SectorGroupedDistChart articles={articles} mA={mA} mB={mB} /> };
+      case "word-count-over-time":
+        return { id, el: <WordCountOverTimeChart articles={articles} stats={stats} filterMode={filterMode} /> };
       default:
         return null;
     }
@@ -1518,9 +1658,9 @@ export default function DiscrepancyDesk() {
   const [metricB, setMetricB]               = useState("frame");
   const [metricAParam, setMetricAParam]     = useState<MetricParam>({});
   const [metricBParam, setMetricBParam]     = useState<MetricParam>({});
-  const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
-  const [stagedParam, setStagedParam]       = useState<MetricParam>({});
-  const [filterMode, setFilterMode]         = useState<"outlet" | "language" | "month">("outlet");
+  const [pendingA, setPendingA]             = useState<string | null>(null);
+  const [pendingAParam, setPendingAParam]   = useState<MetricParam>({});
+  const [filterMode, setFilterMode]         = useState<"outlet" | "language" | "time">("outlet");
   const [selectedOutlets, setSelectedOutlets] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -1532,6 +1672,12 @@ export default function DiscrepancyDesk() {
       setSelectedOutlets(new Set(top5));
     }
   }, [extStats]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const r = getPairRule(metricA, metricB);
+    if (filterMode === "time"     && !r.byTime)     setFilterMode("outlet");
+    if (filterMode === "language" && !r.byLanguage) setFilterMode("outlet");
+  }, [metricA, metricB]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const mA = METRICS.find(m => m.id === metricA)!;
   const mB = METRICS.find(m => m.id === metricB)!;
@@ -1582,34 +1728,30 @@ export default function DiscrepancyDesk() {
     return { slope, int, minX: Math.min(...xs), maxX: Math.max(...xs), r };
   }, [scatterData]);
 
+  const compatibleIds = useMemo((): Set<string> => {
+    if (!pendingA) return new Set();
+    return new Set(
+      HEX_NODES.map(n => n.metricId).filter(id => id !== pendingA && getPairRule(pendingA, id).valid)
+    );
+  }, [pendingA]);
+
   const handleHexClick = (id: string) => {
-    if (id !== metricA) {
-      if (id === metricB) {
-        const tmpParam = metricBParam;
-        setMetricA(id); setMetricAParam(tmpParam);
-        setMetricB(metricA); setMetricBParam(metricAParam);
-        setStagedParam(tmpParam);
-      } else {
-        setMetricA(id); setMetricAParam({});
-        setMetricB(metricA); setMetricBParam(metricAParam);
-        setStagedParam({});
-      }
+    if (pendingA === null) {
+      setPendingA(id);
+      setPendingAParam({});
+    } else if (id === pendingA) {
+      setPendingA(null);
+      setPendingAParam({});
     } else {
-      setStagedParam(metricAParam);
+      const rule = getPairRule(pendingA, id);
+      if (!rule.valid) return;
+      setMetricA(pendingA);
+      setMetricAParam(pendingAParam);
+      setMetricB(id);
+      setMetricBParam({});
+      setPendingA(null);
+      setPendingAParam({});
     }
-    setExpandedMetric(prev => prev === id ? null : id);
-  };
-
-  const assignAsA = () => {
-    setMetricA(expandedMetric!);
-    setMetricAParam(stagedParam);
-    setExpandedMetric(null);
-  };
-
-  const assignAsB = () => {
-    setMetricB(expandedMetric!);
-    setMetricBParam(stagedParam);
-    setExpandedMetric(null);
   };
 
   const toggleOutlet = (id: string) => {
@@ -1624,39 +1766,39 @@ export default function DiscrepancyDesk() {
   const today     = new Date().toLocaleDateString("en-GB",  { day: "numeric", month: "long",  year: "numeric" });
   const monthYear = new Date().toLocaleDateString("en-US",  { month: "long",  year: "numeric" });
 
-  const expandedM    = expandedMetric ? METRICS.find(m => m.id === expandedMetric) : null;
-  const isLeftNode   = expandedMetric === "wordcount" || expandedMetric === "sector";
-  const panelPadTop  = expandedMetric ? getPanelPaddingTop(expandedMetric) : 0;
+  const pendingM    = pendingA ? METRICS.find(m => m.id === pendingA) : null;
+  const isLeftNode  = pendingA === "wordcount" || pendingA === "sector";
+  const panelPadTop = pendingA ? getPanelPaddingTop(pendingA) : 0;
 
-  const panelContent = expandedM ? (
+  const panelContent = pendingM ? (
     <div style={{
       background: "#F5F1EA", border: "1px solid var(--border)",
       padding: "18px 20px", boxShadow: "3px 3px 0 var(--border)",
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
         <span style={{ fontFamily: PFSC, fontSize: 12, color: "var(--t1)", letterSpacing: "0.02em" }}>
-          {expandedM.label}
+          {pendingM.label}
         </span>
-        <button onClick={() => setExpandedMetric(null)} style={{
+        <button onClick={() => { setPendingA(null); setPendingAParam({}); }} style={{
           background: "none", border: "none", cursor: "pointer",
           fontFamily: QTC, fontSize: 14, color: "var(--t2)",
           lineHeight: 1, padding: "0 0 0 8px",
         }}>×</button>
       </div>
       <p style={{ fontFamily: SS, fontSize: 12, color: "var(--t2)", lineHeight: 1.5, marginBottom: 14 }}>
-        {expandedM.desc}
+        {pendingM.desc}
       </p>
-      {expandedM.id === "frame" && (
+      {pendingM.id === "frame" && (
         <div style={{ marginBottom: 14 }}>
           <p style={{ fontFamily: QTC, fontSize: 8, letterSpacing: "0.8", textTransform: "uppercase", color: "var(--t2)", marginBottom: 6 }}>
             Filter to frame
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
             {[null, ...FRAMES].map(f => {
-              const active = f === null ? !stagedParam.frameFilter : stagedParam.frameFilter === f;
+              const active = f === null ? !pendingAParam.frameFilter : pendingAParam.frameFilter === f;
               return (
                 <button key={f ?? "all"}
-                  onClick={() => setStagedParam(f ? { frameFilter: f } : {})}
+                  onClick={() => setPendingAParam(f ? { frameFilter: f } : {})}
                   style={{
                     padding: "2px 7px",
                     background: active ? "var(--t1)" : "transparent",
@@ -1672,17 +1814,17 @@ export default function DiscrepancyDesk() {
           </div>
         </div>
       )}
-      {expandedM.id === "angle" && (
+      {pendingM.id === "angle" && (
         <div style={{ marginBottom: 14 }}>
           <p style={{ fontFamily: QTC, fontSize: 8, letterSpacing: "0.8", textTransform: "uppercase", color: "var(--t2)", marginBottom: 6 }}>
             Filter to angle
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
             {[null, ...ANGLES].map(a => {
-              const active = a === null ? !stagedParam.angleFilter : stagedParam.angleFilter === a;
+              const active = a === null ? !pendingAParam.angleFilter : pendingAParam.angleFilter === a;
               return (
                 <button key={a ?? "all"}
-                  onClick={() => setStagedParam(a ? { angleFilter: a } : {})}
+                  onClick={() => setPendingAParam(a ? { angleFilter: a } : {})}
                   style={{
                     padding: "2px 7px",
                     background: active ? "var(--t1)" : "transparent",
@@ -1698,26 +1840,9 @@ export default function DiscrepancyDesk() {
           </div>
         </div>
       )}
-      <div style={{ display: "flex", gap: 8 }}>
-        <button onClick={assignAsA} style={{
-          flex: 1, padding: "7px 0",
-          background: SALMON, color: "#fff",
-          border: "none", cursor: "pointer",
-          fontFamily: QTC, fontSize: 9, letterSpacing: "0.8",
-          textTransform: "uppercase",
-        }}>
-          Set as A (x-axis)
-        </button>
-        <button onClick={assignAsB} style={{
-          flex: 1, padding: "7px 0",
-          background: LIME, color: "var(--t1)",
-          border: "none", cursor: "pointer",
-          fontFamily: QTC, fontSize: 9, letterSpacing: "0.8",
-          textTransform: "uppercase",
-        }}>
-          Set as B (y-axis)
-        </button>
-      </div>
+      <p style={{ fontFamily: PF, fontStyle: "italic", fontSize: 12, color: "var(--t2)", marginTop: 4 }}>
+        Now click a highlighted node to pair
+      </p>
     </div>
   ) : null;
 
@@ -1765,17 +1890,17 @@ export default function DiscrepancyDesk() {
         <div style={{
           display: "flex", alignItems: "flex-start", justifyContent: "center",
           gap: 16, margin: "4px auto 0",
-          maxWidth: expandedM ? 840 : 480,
+          maxWidth: pendingM ? 840 : 480,
           transition: "max-width 0.3s ease",
         }}>
           {/* Left panel zone — sector and wordcount nodes */}
           <div style={{
-            width: expandedM && isLeftNode ? PANEL_W : 0,
+            width: pendingM && isLeftNode ? PANEL_W : 0,
             flexShrink: 0, overflow: "hidden",
             transition: "width 0.25s ease",
             paddingTop: panelPadTop,
           }}>
-            {expandedM && isLeftNode && panelContent}
+            {pendingM && isLeftNode && panelContent}
           </div>
 
           {/* Hex */}
@@ -1783,48 +1908,55 @@ export default function DiscrepancyDesk() {
             <HexPicker
               metricA={metricA}
               metricB={metricB}
-              expandedMetric={expandedMetric}
+              pendingA={pendingA}
+              compatibleIds={compatibleIds}
               onNodeClick={handleHexClick}
             />
           </div>
 
           {/* Right panel zone — all other nodes */}
           <div style={{
-            width: expandedM && !isLeftNode ? PANEL_W : 0,
+            width: pendingM && !isLeftNode ? PANEL_W : 0,
             flexShrink: 0, overflow: "hidden",
             transition: "width 0.25s ease",
             paddingTop: panelPadTop,
           }}>
-            {expandedM && !isLeftNode && panelContent}
+            {pendingM && !isLeftNode && panelContent}
           </div>
         </div>
-        {!expandedM && (
-          <p style={{
-            fontFamily: PF, fontStyle: "italic", fontSize: 14, lineHeight: "20px",
-            color: "var(--t2)", textAlign: "center", margin: "10px auto 0", maxWidth: 480,
-          }}>
-            Click a node to select it as axis A — old A becomes B. Click again to refine its filter.
-          </p>
-        )}
+        <p style={{
+          fontFamily: PF, fontStyle: "italic", fontSize: 14, lineHeight: "20px",
+          color: "var(--t2)", textAlign: "center", margin: "10px auto 0", maxWidth: 480,
+        }}>
+          {pendingA
+            ? "Now click a highlighted node to set the paired axis"
+            : "Click a metric node to begin — it becomes your primary axis"
+          }
+        </p>
 
         {/* controls */}
         <div style={{ maxWidth: 760, margin: "28px auto 0" }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
             <div style={{ display: "flex" }}>
-              {(["outlet", "language", "month"] as const).map((mode, i) => (
-                <button key={mode} onClick={() => setFilterMode(mode)} style={{
+              {(["outlet", "language", "time"] as const).map((mode, i) => {
+                const disabled = (mode === "time" && !getPairRule(metricA, metricB).byTime)
+                              || (mode === "language" && !getPairRule(metricA, metricB).byLanguage);
+                return (
+                <button key={mode} onClick={() => { if (!disabled) setFilterMode(mode); }} style={{
                   padding: "5px 20px",
                   background: filterMode === mode ? "var(--t1)" : "transparent",
-                  color: filterMode === mode ? "var(--bg)" : "var(--t1)",
-                  border: "1px solid var(--t1)",
+                  color: filterMode === mode ? "var(--bg)" : disabled ? "var(--t2)" : "var(--t1)",
+                  border: `1px solid ${disabled ? "var(--border)" : "var(--t1)"}`,
                   marginLeft: i > 0 ? -1 : 0,
                   fontFamily: QTC, fontSize: 12, letterSpacing: "0.8",
-                  textTransform: "uppercase", cursor: "pointer",
+                  textTransform: "uppercase",
+                  cursor: disabled ? "not-allowed" : "pointer",
+                  opacity: disabled ? 0.35 : 1,
                   position: "relative", zIndex: filterMode === mode ? 1 : 0,
                 }}>
-                  {mode}
+                  by {mode}
                 </button>
-              ))}
+              );})}
             </div>
           </div>
 
@@ -1871,7 +2003,7 @@ export default function DiscrepancyDesk() {
               fontFamily: QTC, fontSize: 10, letterSpacing: "0.8",
               textTransform: "uppercase", color: "var(--t2)",
             }}>
-              {filterMode === "language" ? "Language filter — coming soon" : "Month filter — coming soon"}
+              {filterMode === "language" ? "Language filter — coming soon" : "Time filter — coming soon"}
             </div>
           )}
 
@@ -1915,6 +2047,7 @@ export default function DiscrepancyDesk() {
             reg={reg}
             mA={mA} mB={mB}
             mALabel={mALabel} mBLabel={mBLabel}
+            filterMode={filterMode}
           />
         )}
 
