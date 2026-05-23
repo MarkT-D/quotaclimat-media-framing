@@ -430,6 +430,13 @@ export default function OverviewPage() {
   const outletData = useMemo(() => outletStatsFrom(arts).sort((a, b) => b.count - a.count).slice(0, 10), [arts]);
   const angleData  = useMemo(() => angleCountsFrom(arts), [arts]);
   const timeData   = useMemo(() => timeSeriesFrom(arts), [arts]);
+  const dataYear   = useMemo(() => {
+    const years = arts.map(a => new Date(a.publishedAt).getFullYear()).filter(y => y > 2000);
+    if (!years.length) return new Date().getFullYear();
+    const freq = new Map<number, number>();
+    years.forEach(y => freq.set(y, (freq.get(y) ?? 0) + 1));
+    return [...freq.entries()].sort((a, b) => b[1] - a[1])[0][0];
+  }, [arts]);
   const angleBars  = useMemo(() => {
     const total = angleData.reduce((s, d) => s + d.count, 0) || 1;
     return [...angleData]
@@ -580,7 +587,16 @@ export default function OverviewPage() {
                   margin={{ left: -10, right: 10 }}
                   onClick={(data) => {
                     if (data?.activeLabel) {
-                      router.push(toSearch({ month: String(data.activeLabel) }, country));
+                      const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+                      const mi = MONTHS.indexOf(String(data.activeLabel));
+                      if (mi >= 0) {
+                        const mm = String(mi + 1).padStart(2, "0");
+                        const lastDay = new Date(dataYear, mi + 1, 0).getDate();
+                        router.push(toSearch({
+                          dateFrom: `${dataYear}-${mm}-01`,
+                          dateTo:   `${dataYear}-${mm}-${String(lastDay).padStart(2, "0")}`,
+                        }, country));
+                      }
                     }
                   }}
                 >
@@ -765,45 +781,6 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        {/* Crisis domains — 3-up KPI-style cells, mirroring the top-of-page
-            2×2 quadrant treatment. Soft-rule column dividers between cells,
-            Track B Playfair stat numbers (44px) for the percentage, color
-            swatch + uppercase Plex label for the domain. The thin 2px
-            progress bar from the prior implementation is dropped: three
-            percentages summing to 100% don't benefit from a redundant
-            proportional channel, and the bar registered too faintly against
-            the page background to do visual work. */}
-        <div className="mt-6">
-          <div style={{ paddingBottom: 14 }}>
-            <SectionHead>Crisis domains</SectionHead>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)" }}>
-            {domainData.map((d, i) => {
-              const pct = Math.round((d.count / (totalDomain || 1)) * 100);
-              return (
-                <div key={d.domain}
-                  onClick={() => router.push(toSearch({ domain: d.domain }, country))}
-                  title={`Show ${d.domain} articles`}
-                  style={{
-                    borderRight: i < domainData.length - 1 ? "1px solid var(--border)" : "none",
-                    padding: "16px 22px", cursor: "pointer",
-                  }}
-                >
-                  <div className="flex items-center gap-2" style={{ marginBottom: 10 }}>
-                    <span style={{ width: 9, height: 9, display: "inline-block", background: DOMAIN_COLORS[i], flexShrink: 0 }} />
-                    <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                      {d.domain}
-                    </span>
-                  </div>
-                  <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 44, lineHeight: 1, color: "var(--t1)" }}>
-                    {pct}%
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
         {/* Coverage vs. Emissions — no enclosing border, no column divider
             between meta and dot-plot. The chart's tonal weight (red/green dots,
             axis ticks, gap labels) provides enough visual separation from the
@@ -844,53 +821,82 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        {/* Causal stage distribution — 4-up HTML grid. Replaces the prior SVG
-            which used preserveAspectRatio="none" to fill the container width;
-            that stretched the text inside the SVG ~3× horizontally without
-            vertical scaling, deforming the percentage glyphs. HTML grid lets
-            the 44px Playfair stat-card numbers render at canonical Track B
-            size and proportion, with the axis line and per-cell tick produced
-            by ordinary CSS borders. */}
-        <div className="mt-6">
-          <div style={{ paddingBottom: 14 }}>
-            <SectionHead>Causal stage distribution</SectionHead>
-            <SectionMeta bg="var(--bg2)">What aspects of the crisis do articles focus on?</SectionMeta>
-          </div>
-          <div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)" }}>
-              {stageTicks.map((s) => {
-                const color = s.stage === "Solutions" ? "var(--green)" : "var(--t2)";
-                return (
-                  <div key={s.stage}
-                    onClick={() => router.push(toSearch({ stage: s.stage }, country))}
-                    title={`Show ${s.stage} articles`}
-                    style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}
-                  >
-                    <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 44, lineHeight: 1, color }}>
-                      {s.pct}%
+        {/* Crisis domains + Causal stage — French data only (QuotaClimat taxonomy) */}
+        {country === "FR" && (
+          <>
+            <div className="mt-6">
+              <div style={{ paddingBottom: 14 }}>
+                <SectionHead>Crisis domains</SectionHead>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)" }}>
+                {domainData.map((d, i) => {
+                  const pct = Math.round((d.count / (totalDomain || 1)) * 100);
+                  return (
+                    <div key={d.domain}
+                      onClick={() => router.push(toSearch({ domain: d.domain }, country))}
+                      title={`Show ${d.domain} articles`}
+                      style={{
+                        borderRight: i < domainData.length - 1 ? "1px solid var(--border)" : "none",
+                        padding: "16px 22px", cursor: "pointer",
+                      }}
+                    >
+                      <div className="flex items-center gap-2" style={{ marginBottom: 10 }}>
+                        <span style={{ width: 9, height: 9, display: "inline-block", background: DOMAIN_COLORS[i], flexShrink: 0 }} />
+                        <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                          {d.domain}
+                        </span>
+                      </div>
+                      <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 44, lineHeight: 1, color: "var(--t1)" }}>
+                        {pct}%
+                      </div>
                     </div>
-                    <div style={{ width: 1.5, height: 22, background: color, marginTop: 10 }} />
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-            <div style={{ borderTop: "0.5px solid var(--border)" }} />
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", marginTop: 8 }}>
-              {stageTicks.map((s) => (
-                <div key={s.stage}
-                  onClick={() => router.push(toSearch({ stage: s.stage }, country))}
-                  title={`Show ${s.stage} articles`}
-                  style={{ textAlign: "center", fontFamily: F.plex, fontSize: 10, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.04em", cursor: "pointer" }}
-                >
-                  {s.stage}
+
+            <div className="mt-6">
+              <div style={{ paddingBottom: 14 }}>
+                <SectionHead>Causal stage distribution</SectionHead>
+                <SectionMeta bg="var(--bg2)">What aspects of the crisis do articles focus on?</SectionMeta>
+              </div>
+              <div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)" }}>
+                  {stageTicks.map((s) => {
+                    const color = s.stage === "Solutions" ? "var(--green)" : "var(--t2)";
+                    return (
+                      <div key={s.stage}
+                        onClick={() => router.push(toSearch({ stage: s.stage }, country))}
+                        title={`Show ${s.stage} articles`}
+                        style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: "pointer" }}
+                      >
+                        <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 44, lineHeight: 1, color }}>
+                          {s.pct}%
+                        </div>
+                        <div style={{ width: 1.5, height: 22, background: color, marginTop: 10 }} />
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
+                <div style={{ borderTop: "0.5px solid var(--border)" }} />
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", marginTop: 8 }}>
+                  {stageTicks.map((s) => (
+                    <div key={s.stage}
+                      onClick={() => router.push(toSearch({ stage: s.stage }, country))}
+                      title={`Show ${s.stage} articles`}
+                      style={{ textAlign: "center", fontFamily: F.plex, fontSize: 10, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.04em", cursor: "pointer" }}
+                    >
+                      {s.stage}
+                    </div>
+                  ))}
+                </div>
+                <EditorialNote>
+                  Solutions-focused articles account for only {solutionPct}% of coverage. Research consistently shows solution framing increases reader action intent.
+                </EditorialNote>
+              </div>
             </div>
-            <EditorialNote>
-              Solutions-focused articles account for only {solutionPct}% of coverage. Research consistently shows solution framing increases reader action intent.
-            </EditorialNote>
-          </div>
-        </div>
+          </>
+        )}
 
         <div className="pb-12" />
 
