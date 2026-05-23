@@ -33,9 +33,10 @@ const COUNTRY_NAMES: Record<string, string> = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function tokenBg(w: number): string {
+function tokenBg(w: number, mode: "frame" | "angle"): string {
   if (w < 0.15) return "transparent";
-  return `rgba(184, 64, 46, ${Math.min(w * 0.7, 0.38)})`;
+  const rgb = mode === "frame" ? "184, 64, 46" : "74, 103, 65";
+  return `rgba(${rgb}, ${Math.min(w * 0.7, 0.38)})`;
 }
 
 function groupIntoParagraphs(tokens: Token[]): Token[][] {
@@ -76,6 +77,7 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
   const [tokens, setTokens]             = useState<Token[] | null>(null);
   const [bodyExpanded, setBodyExpanded]  = useState(false);
   const [showAllKw, setShowAllKw]        = useState(false);
+  const [highlightMode, setHighlightMode] = useState<"frame" | "angle">("frame");
 
   useEffect(() => {
     fetch(`/api/articles/${id}`)
@@ -243,12 +245,24 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
 
       {/* ── Article body with SHAP highlights ── */}
       <div style={{ marginTop: 24, borderTop: "1px solid var(--border)", paddingTop: 20 }}>
-        <p style={{
-          fontFamily: F.qtc, fontSize: 9, letterSpacing: "1.2px",
-          textTransform: "uppercase", color: "var(--t2)", marginBottom: 14,
-        }}>
-          Article text · framing signals highlighted
-        </p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+          <p style={{ fontFamily: F.qtc, fontSize: 9, letterSpacing: "1.2px", textTransform: "uppercase", color: "var(--t2)", margin: 0 }}>
+            Article text · {highlightMode === "frame" ? "framing" : "angle"} signals highlighted
+          </p>
+          <div style={{ display: "flex", gap: 4 }}>
+            {(["frame", "angle"] as const).map(m => (
+              <button key={m} onClick={() => setHighlightMode(m)} style={{
+                fontFamily: F.plex, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.04em",
+                background: highlightMode === m ? "var(--t1)" : "transparent",
+                color: highlightMode === m ? "var(--bg)" : "var(--t2)",
+                border: `1px solid ${highlightMode === m ? "var(--t1)" : "var(--border)"}`,
+                padding: "2px 10px", cursor: "pointer", transition: "all 0.12s",
+              }}>
+                {m === "frame" ? "Frame" : "Angle"}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {tokens === null ? (
           <div>
@@ -265,7 +279,7 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
               {(bodyExpanded ? paragraphs : paragraphs.slice(0, 1)).map((para, pi) => (
                 <p key={pi} style={{ marginBottom: 16 }}>
                   {para.map((t, ti) => (
-                    <span key={ti} style={{ background: tokenBg(t.framingWeight), padding: "1px 0" }}>
+                    <span key={ti} style={{ background: tokenBg(highlightMode === "frame" ? t.framingWeight : t.angleWeight, highlightMode), padding: "1px 0" }}>
                       {t.text}
                     </span>
                   ))}

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useMemo, useRef, Suspense } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -144,17 +145,25 @@ function SearchFilter({ label, value, onChange, opts, displayFn }: {
 }) {
   const [inputVal, setInputVal] = useState("");
   const [open, setOpen] = useState(false);
+  const [dropPos, setDropPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const anchorRef = useRef<HTMLDivElement>(null);
   const display = (v: string) => displayFn ? displayFn(v) : v;
-  const filtered = opts
-    .filter(o => display(o).toLowerCase().includes(inputVal.toLowerCase()))
-    .slice(0, 8);
+  const filtered = opts.filter(o => display(o).toLowerCase().includes(inputVal.toLowerCase()));
+
+  const openDrop = () => {
+    if (anchorRef.current) {
+      const r = anchorRef.current.getBoundingClientRect();
+      setDropPos({ top: r.bottom + 4, left: r.left });
+    }
+    setOpen(true);
+  };
 
   return (
     <div className="flex items-center" style={{ gap: 6 }}>
       <span style={{ fontFamily: F.qtc, fontSize: 9, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>
         {label}
       </span>
-      <div style={{ position: "relative" }}>
+      <div ref={anchorRef} style={{ position: "relative" }}>
         {value ? (
           <button
             onClick={() => { onChange(""); setInputVal(""); }}
@@ -168,46 +177,46 @@ function SearchFilter({ label, value, onChange, opts, displayFn }: {
             {display(value)} <span style={{ fontSize: 10, color: "var(--t2)" }}>×</span>
           </button>
         ) : (
-          <>
-            <input
-              value={inputVal}
-              onChange={e => { setInputVal(e.target.value); setOpen(true); }}
-              onFocus={() => setOpen(true)}
-              onBlur={() => setTimeout(() => setOpen(false), 150)}
-              placeholder="All"
-              style={{
-                fontFamily: F.plex, fontSize: 11, color: "var(--t1)",
-                background: "transparent", border: "none", borderBottom: "1px solid var(--border)",
-                outline: "none", width: 80, padding: "1px 2px",
-                textTransform: "uppercase", letterSpacing: "0.04em",
-              }}
-            />
-            {open && filtered.length > 0 && (
-              <div style={{
-                position: "absolute", top: "calc(100% + 4px)", left: 0,
-                background: "var(--bg)", border: "1px solid var(--border)",
-                zIndex: 20, minWidth: 160, maxHeight: 220, overflowY: "auto",
-              }}>
-                {filtered.map(o => (
-                  <button
-                    key={o}
-                    onMouseDown={() => { onChange(o); setInputVal(""); setOpen(false); }}
-                    style={{
-                      display: "block", width: "100%", textAlign: "left",
-                      fontFamily: F.plex, fontSize: 11, color: "var(--t1)",
-                      background: "none", border: "none", cursor: "pointer",
-                      padding: "5px 10px",
-                      textTransform: "uppercase", letterSpacing: "0.04em",
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.background = "var(--bg2)"; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = "none"; }}
-                  >
-                    {display(o)}
-                  </button>
-                ))}
-              </div>
-            )}
-          </>
+          <input
+            value={inputVal}
+            onChange={e => { setInputVal(e.target.value); openDrop(); }}
+            onFocus={openDrop}
+            onBlur={() => setTimeout(() => setOpen(false), 150)}
+            placeholder="All"
+            style={{
+              fontFamily: F.plex, fontSize: 11, color: "var(--t1)",
+              background: "transparent", border: "none", borderBottom: "1px solid var(--border)",
+              outline: "none", width: 80, padding: "1px 2px",
+              textTransform: "uppercase", letterSpacing: "0.04em",
+            }}
+          />
+        )}
+        {open && filtered.length > 0 && createPortal(
+          <div style={{
+            position: "fixed", top: dropPos.top, left: dropPos.left,
+            background: "var(--bg)", border: "1px solid var(--border)",
+            zIndex: 9999, minWidth: 160,
+            maxHeight: 140, overflowY: "auto",
+          }}>
+            {filtered.map(o => (
+              <button
+                key={o}
+                onMouseDown={() => { onChange(o); setInputVal(""); setOpen(false); }}
+                style={{
+                  display: "block", width: "100%", textAlign: "left",
+                  fontFamily: F.plex, fontSize: 11, color: "var(--t1)",
+                  background: "none", border: "none", cursor: "pointer",
+                  padding: "5px 10px",
+                  textTransform: "uppercase", letterSpacing: "0.04em",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = "var(--bg2)"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "none"; }}
+              >
+                {display(o)}
+              </button>
+            ))}
+          </div>,
+          document.body
         )}
       </div>
     </div>
@@ -307,6 +316,11 @@ function SearchPageInner() {
       .map(([code]) => code);
   }, [allArticles]);
 
+  const availableLanguages = useMemo(() => {
+    const codes = new Set(allArticles.map(a => getLanguageCode(a.language)));
+    return LANGUAGES.filter(l => codes.has(l));
+  }, [allArticles]);
+
   const [query,      setQuery]      = useState(searchParams.get("q")       ?? "");
   const [sector,     setSector]     = useState<Sector | "">((searchParams.get("sector")  as Sector) ?? "");
   const [domain,     setDomain]     = useState<CrisisDomain | "">((searchParams.get("domain") as CrisisDomain) ?? "");
@@ -315,15 +329,15 @@ function SearchPageInner() {
   const [frame,      setFrame]      = useState<Frame | "">((searchParams.get("frame")   as Frame)   ?? "");
   const [lang,       setLang]       = useState<Language | "">((searchParams.get("lang") as Language) ?? "");
   const [outlet,     setOutlet]     = useState<string>(searchParams.get("outlet") ?? "");
-  const [maxMisinfo, setMaxMisinfo] = useState<number>(Number(searchParams.get("misinfo") ?? 100));
+
   const [country,    setCountry]    = useState<string>(searchParams.get("country") ?? "");
   const [dateFrom,   setDateFrom]   = useState<string>(searchParams.get("dateFrom") ?? "");
   const [dateTo,     setDateTo]     = useState<string>(searchParams.get("dateTo")   ?? "");
   const [page,       setPage]       = useState(0);
+  const [perPage,    setPerPage]    = useState(9);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [uploadFile,  setUploadFile]  = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const PER_PAGE = 9;
 
   const bump = () => setPage(0);
 
@@ -341,18 +355,18 @@ function SearchPageInner() {
       (!country  || a.country === country) &&
       (!dateFrom || a.publishedAt >= dateFrom) &&
       (!dateTo   || a.publishedAt <= dateTo) &&
-      (a.misinformationScore == null || a.misinformationScore * 100 <= maxMisinfo)
+      true
     );
-  }), [allArticles, query, sector, domain, stage, angle, frame, lang, outlet, country, dateFrom, dateTo, maxMisinfo]);
+  }), [allArticles, query, sector, domain, stage, angle, frame, lang, outlet, country, dateFrom, dateTo]);
 
-  const paginated  = results.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
-  const totalPages = Math.ceil(results.length / PER_PAGE);
-  const hasFilters = !!(query || sector || domain || stage || angle || frame || lang || outlet || country || dateFrom || dateTo || maxMisinfo < 100);
-  const activeFilterCount = [sector, domain, stage, angle, frame, lang, outlet, country, dateFrom || dateTo ? "d" : "", maxMisinfo < 100 ? "m" : ""].filter(Boolean).length;
+  const paginated  = results.slice(page * perPage, (page + 1) * perPage);
+  const totalPages = Math.ceil(results.length / perPage);
+  const hasFilters = !!(query || sector || domain || stage || angle || frame || lang || outlet || country || dateFrom || dateTo);
+  const activeFilterCount = [sector, domain, stage, angle, frame, lang, outlet, country, dateFrom || dateTo ? "d" : ""].filter(Boolean).length;
 
   const resetFilters = () => {
     setQuery(""); setSector(""); setDomain(""); setStage(""); setAngle("");
-    setFrame(""); setLang(""); setOutlet(""); setCountry(""); setDateFrom(""); setDateTo(""); setMaxMisinfo(100); setPage(0);
+    setFrame(""); setLang(""); setOutlet(""); setCountry(""); setDateFrom(""); setDateTo(""); setPage(0);
   };
 
   function fmtDate(d: string) {
@@ -504,7 +518,7 @@ function SearchPageInner() {
             {/* Row 4: Searchable filters — Language, Country, Outlet */}
             <div className="flex items-center flex-wrap" style={{ gap: "8px 24px" }}>
               <SearchFilter
-                label="Language" value={lang} opts={LANGUAGES}
+                label="Language" value={lang} opts={availableLanguages}
                 onChange={(v) => { setLang(v as Language | ""); bump(); }}
                 displayFn={(l) => LANGUAGE_NAMES[l] ?? l}
               />
@@ -536,15 +550,6 @@ function SearchPageInner() {
               </div>
               <DropFilter label="Stage"  value={stage}  onChange={(v) => { setStage(v as Stage | ""); bump(); }}         opts={STAGES as unknown as string[]} />
               <DropFilter label="Domain" value={domain} onChange={(v) => { setDomain(v as CrisisDomain | ""); bump(); }} opts={CRISIS_DOMAINS as unknown as string[]} />
-              <div className="flex items-center" style={{ gap: 8 }}>
-                <span style={{ fontFamily: F.qtc, fontSize: 9, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>
-                  Misinfo ≤ {maxMisinfo}%
-                </span>
-                <input type="range" min={0} max={100} value={maxMisinfo}
-                  onChange={(e) => { setMaxMisinfo(Number(e.target.value)); bump(); }}
-                  style={{ width: 90, accentColor: "var(--green)" }}
-                />
-              </div>
             </div>
 
           </div>
@@ -556,21 +561,53 @@ function SearchPageInner() {
         <span style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t2)" }}>
           Showing {paginated.length} of {results.length.toLocaleString()} articles
         </span>
-        {totalPages > 1 && (
-          <div className="flex items-center gap-5">
-            <button onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0}
-              style={{ fontFamily: F.plex, fontSize: 12, color: page === 0 ? "var(--border)" : "var(--t1)", background: "none", border: "none", cursor: page === 0 ? "default" : "pointer" }}>
-              ← Prev
-            </button>
-            <span style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t2)" }}>
-              {page + 1} / {totalPages}
-            </span>
-            <button onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
-              style={{ fontFamily: F.plex, fontSize: 12, color: page >= totalPages - 1 ? "var(--border)" : "var(--t1)", background: "none", border: "none", cursor: page >= totalPages - 1 ? "default" : "pointer" }}>
-              Next →
-            </button>
+        <div className="flex items-center gap-5">
+          {/* Per-page selector */}
+          <div className="flex items-center gap-2">
+            <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)" }}>Per page</span>
+            <select
+              value={perPage}
+              onChange={e => { setPerPage(Number(e.target.value)); setPage(0); }}
+              style={{
+                fontFamily: F.plex, fontSize: 11, color: "var(--t1)",
+                background: "transparent", border: "1px solid var(--border)",
+                outline: "none", padding: "2px 6px", cursor: "pointer",
+              }}
+            >
+              {[9, 18, 36, 72].map(n => <option key={n} value={n}>{n}</option>)}
+            </select>
           </div>
-        )}
+          {/* Page navigation */}
+          {totalPages > 1 && (
+            <>
+              <button onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0}
+                style={{ fontFamily: F.plex, fontSize: 12, color: page === 0 ? "var(--border)" : "var(--t1)", background: "none", border: "none", cursor: page === 0 ? "default" : "pointer" }}>
+                ← Prev
+              </button>
+              <div className="flex items-center gap-1">
+                <input
+                  type="number" min={1} max={totalPages}
+                  value={page + 1}
+                  onChange={e => {
+                    const v = Math.max(1, Math.min(totalPages, Number(e.target.value) || 1));
+                    setPage(v - 1);
+                  }}
+                  style={{
+                    fontFamily: F.plex, fontSize: 12, color: "var(--t1)",
+                    background: "transparent", border: "none",
+                    borderBottom: "1px solid var(--border)",
+                    outline: "none", width: 36, textAlign: "center", padding: "1px 2px",
+                  }}
+                />
+                <span style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t2)" }}>/ {totalPages}</span>
+              </div>
+              <button onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
+                style={{ fontFamily: F.plex, fontSize: 12, color: page >= totalPages - 1 ? "var(--border)" : "var(--t1)", background: "none", border: "none", cursor: page >= totalPages - 1 ? "default" : "pointer" }}>
+                Next →
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Broadsheet section break */}
@@ -591,7 +628,7 @@ function SearchPageInner() {
                 paddingLeft:   col === 0 ? 0  : 32,
                 paddingRight:  col === 2 ? 0  : 32,
               }}>
-                <NewsItem article={article} index={page * PER_PAGE + i} />
+                <NewsItem article={article} index={page * perPage + i} />
               </div>
             );
           })}

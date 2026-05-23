@@ -5,12 +5,13 @@
 // Framing:        SHAP/attention-style weights (production → BERT + SHAP/LIME)
 // -----------------------------------------------------------------------------
 
-import type { Article, Frame } from "./articleTypes";
+import type { Article, Frame, Angle } from "./articleTypes";
 
 export interface Token {
-  text: string;         // raw token including surrounding punctuation
-  misinfoWeight: number; // 0–1 contribution to misinfo score
-  framingWeight: number; // 0–1 contribution to primary frame score
+  text: string;
+  misinfoWeight: number;
+  framingWeight: number;
+  angleWeight:   number;
   isWhitespace: boolean;
 }
 
@@ -64,6 +65,45 @@ const FRAME_SIGNALS: Record<Frame, Record<string, number>> = {
     jobs: 0.78, employment: 0.73, profit: 0.67, competitive: 0.74,
     subsidy: 0.76, revenue: 0.7, losses: 0.8, expensive: 0.71,
     stranded: 0.77, capital: 0.69, assets: 0.73, modelling: 0.64,
+  },
+};
+
+const ANGLE_SIGNALS: Record<Angle, Record<string, number>> = {
+  "Health": {
+    health: 0.92, disease: 0.87, hospital: 0.85, illness: 0.88,
+    cancer: 0.83, pollution: 0.81, respiratory: 0.9, toxic: 0.86,
+    exposure: 0.78, mortality: 0.85, wellbeing: 0.82, medical: 0.79,
+    asthma: 0.88, contamination: 0.84, epidemiology: 0.87,
+  },
+  "Economics": {
+    economic: 0.87, cost: 0.82, investment: 0.83, market: 0.78,
+    billion: 0.76, gdp: 0.86, financial: 0.82, growth: 0.72,
+    price: 0.73, budget: 0.77, revenue: 0.7, losses: 0.8,
+    capital: 0.69, assets: 0.73, subsidy: 0.76, modelling: 0.64,
+  },
+  "Jobs": {
+    jobs: 0.9, employment: 0.87, workers: 0.85, workforce: 0.88,
+    unemployment: 0.84, labour: 0.82, redundancies: 0.86, layoffs: 0.89,
+    retraining: 0.8, skills: 0.74, salary: 0.77,
+    unions: 0.83, industry: 0.72, automation: 0.79,
+  },
+  "Politics": {
+    government: 0.86, policy: 0.81, minister: 0.83, parliament: 0.79,
+    regulation: 0.77, legislation: 0.85, party: 0.76, vote: 0.73,
+    election: 0.82, political: 0.88, opposition: 0.8,
+    debate: 0.74, mandate: 0.79, policymakers: 0.82,
+  },
+  "Geopolitics": {
+    international: 0.85, global: 0.82, treaty: 0.88, agreement: 0.79,
+    diplomatic: 0.86, bilateral: 0.87, multilateral: 0.89,
+    sovereignty: 0.83, foreign: 0.78, geopolitical: 0.91,
+    alliance: 0.85, nations: 0.76, sanctions: 0.84,
+  },
+  "Purchasing Power": {
+    price: 0.85, inflation: 0.88, cost: 0.82, affordable: 0.86,
+    household: 0.83, consumer: 0.87, spending: 0.81, income: 0.79,
+    poverty: 0.86, wages: 0.82, bills: 0.88,
+    electricity: 0.77, fuel: 0.83, expensive: 0.85,
   },
 };
 
@@ -135,6 +175,7 @@ export function getArticleExplanation(article: Article): {
   const bodyText = generateBodyText(article);
   const seed = articleSeed(article.id);
   const frameSignals = article.primaryFrame != null ? (FRAME_SIGNALS[article.primaryFrame] ?? {}) : {};
+  const angleSignals = article.primaryAngle != null ? (ANGLE_SIGNALS[article.primaryAngle as Angle] ?? {}) : {};
 
   // Preserve whitespace by splitting on it (keeping delimiters)
   const rawParts = bodyText.split(/(\s+)/);
@@ -144,7 +185,7 @@ export function getArticleExplanation(article: Article): {
     .filter((p) => p.length > 0)
     .map((part) => {
       if (/^\s+$/.test(part)) {
-        return { text: part, misinfoWeight: 0, framingWeight: 0, isWhitespace: true };
+        return { text: part, misinfoWeight: 0, framingWeight: 0, angleWeight: 0, isWhitespace: true };
       }
 
       const clean = part.toLowerCase().replace(/[^a-z0-9'-]/g, "");
@@ -161,14 +202,23 @@ export function getArticleExplanation(article: Article): {
       const primaryFrameScore = article.primaryFrame != null ? (article.frameScores[article.primaryFrame] ?? 0) : 0;
       const fBase = frameSignals[clean] ?? 0;
       const fNoise = stableRand(seed * 5 + wi * 11 + 9999) * 0.15 * primaryFrameScore;
-      let fw = fBase > 0
+      const fw = fBase > 0
         ? Math.min(1, fBase * (0.55 + primaryFrameScore * 0.75) + stableRand(seed * 2 + wi) * 0.06)
         : fNoise;
+
+      // --- Angle weight ---
+      const primaryAngleScore = article.primaryAngle != null ? ((article.angleScores?.[article.primaryAngle as Angle]) ?? 0) : 0;
+      const aBase = angleSignals[clean] ?? 0;
+      const aNoise = stableRand(seed * 7 + wi * 13 + 4321) * 0.15 * primaryAngleScore;
+      const aw = aBase > 0
+        ? Math.min(1, aBase * (0.55 + primaryAngleScore * 0.75) + stableRand(seed * 3 + wi) * 0.06)
+        : aNoise;
 
       return {
         text: part,
         misinfoWeight: parseFloat(mw.toFixed(3)),
         framingWeight: parseFloat(fw.toFixed(3)),
+        angleWeight:   parseFloat(aw.toFixed(3)),
         isWhitespace: false,
       };
     });
