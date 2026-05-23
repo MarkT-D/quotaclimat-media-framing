@@ -49,6 +49,7 @@ export interface Article {
   primaryFrame: Frame | null;
   frameScores: Partial<Record<Frame, number>>;  // only non-null scores
   primaryAngle: Angle | null;
+  angleScores: Partial<Record<Angle, number>>;
   misinformationScore?: number;             // not in DB yet
   wordCount: number;
   excerpt: string;

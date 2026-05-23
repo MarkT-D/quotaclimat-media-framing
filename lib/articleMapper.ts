@@ -129,6 +129,7 @@ export function mapDbRowToArticle(row: DbRow): Article {
     primaryFrame,
     frameScores,
     primaryAngle,
+    angleScores,
     wordCount: row.word_count ?? 0,
     excerpt,
     url: row.url ?? undefined,
