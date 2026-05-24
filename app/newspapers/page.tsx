@@ -14,7 +14,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { getOutletStats, FRAMES, ANGLES } from "@/lib/articleTypes";
-import type { OutletStat, Frame, Stage, Angle, Article } from "@/lib/articleTypes";
+import type { OutletStat, Frame, Stage, Angle, Sector, Article } from "@/lib/articleTypes";
 import { useArticles } from "@/lib/useArticles";
 
 // ── tokens ─────────────────────────────────────────────────────────────────
@@ -147,49 +147,168 @@ const PRESETS = [
 ];
 
 // ── insight chart catalog ──────────────────────────────────────────────────
-type InsightChartId =
-  | "cross-tab-heatmap"
-  | "country-group"
-  | "country-stacked-dist"
-  | "correlation-panel"
-  | "frame-dist"
-  | "angle-dist"
-  | "entry-timeline"
-  | "timeline-by-frame"
-  | "timeline-by-angle"
-  | "word-dist-by-group"
-  | "sector-grouped-dist"
-  | "word-count-over-time";
+type ShareOverTimeConfig = {
+  id:          "share-over-time";
+  linesBy:     "outlet" | "language" | "country" | "frame" | "angle" | "sector";
+  measureBy:   "frame" | "angle" | "sector";
+  toggleWith?: "frame" | "angle" | "sector";
+};
+
+type ChartConfig =
+  | { id: "ranked-panel" }
+  | ShareOverTimeConfig
+  | { id: "word-count-over-time" }
+  | { id: "correlation-panel" }
+  | { id: "frame-dist" }
+  | { id: "angle-dist" }
+  | { id: "entry-timeline" }
+  | { id: "timeline-by-frame" }
+  | { id: "timeline-by-angle" }
+  | { id: "cross-tab-heatmap" }
+  | { id: "country-group" }
+  | { id: "country-stacked-dist" }
+  | { id: "sector-grouped-dist" }
+  | { id: "word-dist-by-group" };
+
+type InsightChartId = ChartConfig["id"];
 
 type PairRule = {
   valid:      boolean;
   byLanguage: boolean;
   byTime:     boolean;
-  charts:     InsightChartId[];
+  charts: {
+    byOutlet:   ChartConfig[];
+    byLanguage: ChartConfig[];
+    byTime:     ChartConfig[];
+  };
 };
 
 function insightKey(a: string, b: string) { return [a, b].sort().join("|"); }
 
 const PAIR_RULES: Record<string, PairRule> = {
-  "angle|frame":      { valid: true,  byLanguage: true,  byTime: true,  charts: ["cross-tab-heatmap", "frame-dist", "angle-dist"] },
-  "frame|lag":        { valid: true,  byLanguage: true,  byTime: false, charts: ["timeline-by-frame", "entry-timeline", "correlation-panel"] },
-  "frame|wordcount":  { valid: true,  byLanguage: true,  byTime: false, charts: ["word-count-over-time", "frame-dist", "correlation-panel"] },
-  "frame|sector":     { valid: true,  byLanguage: true,  byTime: true,  charts: ["sector-grouped-dist", "frame-dist", "correlation-panel"] },
-  "country|frame":    { valid: true,  byLanguage: false, byTime: true,  charts: ["country-group", "country-stacked-dist", "frame-dist"] },
-  "angle|lag":        { valid: true,  byLanguage: true,  byTime: false, charts: ["timeline-by-angle", "entry-timeline", "correlation-panel"] },
-  "angle|wordcount":  { valid: true,  byLanguage: true,  byTime: false, charts: ["word-count-over-time", "angle-dist", "correlation-panel"] },
-  "angle|sector":     { valid: true,  byLanguage: true,  byTime: true,  charts: ["sector-grouped-dist", "angle-dist", "correlation-panel"] },
-  "angle|country":    { valid: true,  byLanguage: false, byTime: true,  charts: ["country-group", "country-stacked-dist", "angle-dist"] },
-  "lag|wordcount":    { valid: true,  byLanguage: true,  byTime: false, charts: ["word-count-over-time", "correlation-panel"] },
-  "lag|sector":       { valid: true,  byLanguage: true,  byTime: false, charts: ["entry-timeline", "correlation-panel"] },
-  "country|lag":      { valid: false, byLanguage: false, byTime: false, charts: [] },
-  "sector|wordcount": { valid: true,  byLanguage: true,  byTime: false, charts: ["word-count-over-time", "correlation-panel"] },
-  "country|wordcount":{ valid: true,  byLanguage: false, byTime: false, charts: ["word-count-over-time", "country-group"] },
-  "country|sector":   { valid: true,  byLanguage: false, byTime: true,  charts: ["country-group", "sector-grouped-dist"] },
+  "angle|frame": {
+    valid: true, byLanguage: true, byTime: true,
+    charts: {
+      byOutlet:   [{ id: "ranked-panel" }, { id: "correlation-panel" }],
+      byLanguage: [{ id: "ranked-panel" }, { id: "correlation-panel" }],
+      byTime:     [{ id: "share-over-time", linesBy: "frame", measureBy: "frame", toggleWith: "angle" }, { id: "cross-tab-heatmap" }],
+    },
+  },
+  "frame|lag": {
+    valid: true, byLanguage: true, byTime: false,
+    charts: {
+      byOutlet:   [{ id: "share-over-time", linesBy: "outlet",   measureBy: "frame" }, { id: "timeline-by-frame" }, { id: "correlation-panel" }],
+      byLanguage: [{ id: "share-over-time", linesBy: "language", measureBy: "frame" }, { id: "timeline-by-frame" }],
+      byTime:     [],
+    },
+  },
+  "frame|wordcount": {
+    valid: true, byLanguage: true, byTime: true,
+    charts: {
+      byOutlet:   [{ id: "word-count-over-time" }, { id: "frame-dist" }, { id: "correlation-panel" }],
+      byLanguage: [{ id: "word-count-over-time" }, { id: "frame-dist" }],
+      byTime:     [{ id: "word-count-over-time" }],
+    },
+  },
+  "frame|sector": {
+    valid: true, byLanguage: true, byTime: true,
+    charts: {
+      byOutlet:   [{ id: "ranked-panel" }, { id: "correlation-panel" }],
+      byLanguage: [{ id: "ranked-panel" }],
+      byTime:     [{ id: "share-over-time", linesBy: "sector", measureBy: "sector", toggleWith: "frame" }, { id: "sector-grouped-dist" }],
+    },
+  },
+  "country|frame": {
+    valid: true, byLanguage: false, byTime: true,
+    charts: {
+      byOutlet:   [{ id: "ranked-panel" }, { id: "country-group" }, { id: "correlation-panel" }],
+      byLanguage: [],
+      byTime:     [{ id: "share-over-time", linesBy: "country", measureBy: "frame" }, { id: "country-group" }],
+    },
+  },
+  "angle|lag": {
+    valid: true, byLanguage: true, byTime: false,
+    charts: {
+      byOutlet:   [{ id: "share-over-time", linesBy: "outlet",   measureBy: "angle" }, { id: "timeline-by-angle" }, { id: "correlation-panel" }],
+      byLanguage: [{ id: "share-over-time", linesBy: "language", measureBy: "angle" }, { id: "timeline-by-angle" }],
+      byTime:     [],
+    },
+  },
+  "angle|wordcount": {
+    valid: true, byLanguage: true, byTime: true,
+    charts: {
+      byOutlet:   [{ id: "word-count-over-time" }, { id: "angle-dist" }, { id: "correlation-panel" }],
+      byLanguage: [{ id: "word-count-over-time" }, { id: "angle-dist" }],
+      byTime:     [{ id: "word-count-over-time" }],
+    },
+  },
+  "angle|sector": {
+    valid: true, byLanguage: true, byTime: true,
+    charts: {
+      byOutlet:   [{ id: "ranked-panel" }, { id: "correlation-panel" }],
+      byLanguage: [{ id: "ranked-panel" }],
+      byTime:     [{ id: "share-over-time", linesBy: "sector", measureBy: "sector", toggleWith: "angle" }, { id: "sector-grouped-dist" }],
+    },
+  },
+  "angle|country": {
+    valid: true, byLanguage: false, byTime: true,
+    charts: {
+      byOutlet:   [{ id: "ranked-panel" }, { id: "country-group" }, { id: "correlation-panel" }],
+      byLanguage: [],
+      byTime:     [{ id: "share-over-time", linesBy: "country", measureBy: "angle" }, { id: "country-group" }],
+    },
+  },
+  "lag|wordcount": {
+    valid: true, byLanguage: true, byTime: false,
+    charts: {
+      byOutlet:   [{ id: "word-count-over-time" }, { id: "entry-timeline" }, { id: "correlation-panel" }],
+      byLanguage: [{ id: "word-count-over-time" }, { id: "entry-timeline" }],
+      byTime:     [],
+    },
+  },
+  "lag|sector": {
+    valid: true, byLanguage: true, byTime: false,
+    charts: {
+      byOutlet:   [{ id: "share-over-time", linesBy: "outlet",   measureBy: "sector" }, { id: "entry-timeline" }, { id: "correlation-panel" }],
+      byLanguage: [{ id: "share-over-time", linesBy: "language", measureBy: "sector" }, { id: "entry-timeline" }],
+      byTime:     [],
+    },
+  },
+  "country|lag": {
+    valid: false, byLanguage: false, byTime: false,
+    charts: { byOutlet: [], byLanguage: [], byTime: [] },
+  },
+  "sector|wordcount": {
+    valid: true, byLanguage: true, byTime: true,
+    charts: {
+      byOutlet:   [{ id: "word-count-over-time" }, { id: "sector-grouped-dist" }, { id: "correlation-panel" }],
+      byLanguage: [{ id: "word-count-over-time" }, { id: "sector-grouped-dist" }],
+      byTime:     [{ id: "word-count-over-time" }],
+    },
+  },
+  "country|wordcount": {
+    valid: true, byLanguage: false, byTime: true,
+    charts: {
+      byOutlet:   [],
+      byLanguage: [],
+      byTime:     [{ id: "word-count-over-time" }, { id: "country-group" }],
+    },
+  },
+  "country|sector": {
+    valid: true, byLanguage: false, byTime: true,
+    charts: {
+      byOutlet:   [],
+      byLanguage: [],
+      byTime:     [{ id: "share-over-time", linesBy: "country", measureBy: "sector" }, { id: "country-group" }],
+    },
+  },
 };
 
 function getPairRule(a: string, b: string): PairRule {
-  return PAIR_RULES[insightKey(a, b)] ?? { valid: false, byLanguage: false, byTime: false, charts: [] };
+  return PAIR_RULES[insightKey(a, b)] ?? {
+    valid: false, byLanguage: false, byTime: false,
+    charts: { byOutlet: [], byLanguage: [], byTime: [] },
+  };
 }
 
 const PANEL_W = 296;
@@ -1407,26 +1526,317 @@ function SectorGroupedDistChart({ articles, mA, mB }: {
   );
 }
 
-// ── WordCountOverTimeChart ─────────────────────────────────────────────────
+// ── RankedPanelChart ──────────────────────────────────────────────────────
 const LINE_PALETTE = [
   "var(--red)", "var(--green)", "#EF9F27", "#7C3AED", "var(--red-m)", "var(--green-m)",
 ];
 
-function WordCountOverTimeChart({ articles, stats, filterMode }: {
+function RankedPanelChart({ articles, mA, mB, filterMode, stats }: {
   articles:   Article[];
+  mA:         Metric;
+  mB:         Metric;
+  filterMode: "outlet" | "language";
   stats:      ExtStat[];
-  filterMode: "outlet" | "language" | "time";
 }) {
-  // Build month-keyed data grouped by outlet or language
+  type Group = { key: string; label: string; arts: Article[] };
+
+  const groups: Group[] = filterMode === "outlet"
+    ? stats.slice(0, 5).map(o => ({
+        key: o.id, label: o.name,
+        arts: articles.filter(a => a.outlet === o.id),
+      }))
+    : [...new Set(articles.map(a => a.language).filter((l): l is string => l !== null))]
+        .slice(0, 5)
+        .map(lang => ({
+          key: lang, label: lang,
+          arts: articles.filter(a => a.language === lang),
+        }));
+
+  type CatEntry = { label: string; count: number; pct: number; color: string };
+
+  function getCats(m: Metric, arts: Article[]): CatEntry[] {
+    const total = arts.length || 1;
+    if (m.id === "frame") {
+      return FRAMES.map((f, i) => {
+        const count = arts.filter(a => a.primaryFrame === f).length;
+        return { label: f, count, pct: Math.round(count / total * 100),
+          color: FRAME_COLORS.find(fc => fc.frame === f)?.color ?? LINE_PALETTE[i % LINE_PALETTE.length] };
+      }).filter(e => e.count > 0).sort((a, b) => b.count - a.count);
+    }
+    if (m.id === "angle") {
+      return ANGLES.map((a, i) => {
+        const count = arts.filter(ar => ar.primaryAngle === a).length;
+        return { label: a, count, pct: Math.round(count / total * 100),
+          color: ANGLE_COLORS[a as Angle] ?? LINE_PALETTE[i % LINE_PALETTE.length] };
+      }).filter(e => e.count > 0).sort((a, b) => b.count - a.count);
+    }
+    if (m.id === "sector") {
+      const sectors = [...new Set(arts.map(a => a.sector).filter((s): s is Sector => s !== null))];
+      return sectors.map((s, i) => {
+        const count = arts.filter(a => a.sector === s).length;
+        return { label: s, count, pct: Math.round(count / total * 100), color: LINE_PALETTE[i % LINE_PALETTE.length] };
+      }).filter(e => e.count > 0).sort((a, b) => b.count - a.count);
+    }
+    return [];
+  }
+
+  const metricsToRender = [mA, mB].filter(m => ["frame", "angle", "sector"].includes(m.id));
+  if (groups.length === 0 || metricsToRender.length === 0) return null;
+
+  return (
+    <div style={{ border: "1px solid var(--border)", padding: "20px 24px" }}>
+      <p style={{ fontFamily: QTC, fontSize: 9, letterSpacing: "1.2", textTransform: "uppercase", color: "var(--t2)", marginBottom: 4 }}>
+        {metricsToRender.map(m => m.label).join(" & ")} · ranked by {filterMode}
+      </p>
+      <p style={{ fontFamily: PF, fontStyle: "italic", fontSize: 13, color: "var(--t2)", marginBottom: 16 }}>
+        How do framing priorities differ across {filterMode}s?
+      </p>
+      <div style={{ display: "flex", gap: 20, overflowX: "auto" }}>
+        {groups.map(g => (
+          <div key={g.key} style={{ minWidth: 148, flex: "1 1 148px" }}>
+            <p style={{
+              fontFamily: PFSC, fontSize: 10, color: "var(--t1)", marginBottom: 12,
+              letterSpacing: "0.02em", wordBreak: "break-word",
+            }}>
+              {g.label.length > 22 ? g.label.slice(0, 20) + "…" : g.label}
+            </p>
+            {metricsToRender.map(m => {
+              const cats = getCats(m, g.arts);
+              const maxPct = Math.max(...cats.map(c => c.pct), 1);
+              return (
+                <div key={m.id} style={{ marginBottom: 16 }}>
+                  <p style={{ fontFamily: QTC, fontSize: 7, letterSpacing: "0.8", textTransform: "uppercase", color: "var(--t2)", marginBottom: 6 }}>
+                    {m.short}
+                  </p>
+                  {cats.slice(0, 5).map(cat => (
+                    <div key={cat.label} style={{ marginBottom: 5 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
+                        <span style={{ fontFamily: SANS, fontSize: 8, color: "var(--t2)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {cat.label.length > 14 ? cat.label.slice(0, 12) + "…" : cat.label}
+                        </span>
+                        <span style={{ fontFamily: QTC, fontSize: 8, color: "var(--t1)", flexShrink: 0 }}>
+                          {cat.pct}%
+                        </span>
+                      </div>
+                      <div style={{ height: 4, background: "var(--bg2)" }}>
+                        <div style={{ height: "100%", width: `${cat.pct / maxPct * 100}%`, background: cat.color }} />
+                      </div>
+                    </div>
+                  ))}
+                  {cats.length === 0 && (
+                    <p style={{ fontFamily: SS, fontStyle: "italic", fontSize: 11, color: "var(--t2)" }}>No data</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── ShareOverTimeChart ─────────────────────────────────────────────────────
+function ShareOverTimeChart({
+  articles, stats, linesBy, measureBy, toggleWith, metricAParam, metricBParam,
+}: {
+  articles:      Article[];
+  stats:         ExtStat[];
+  linesBy:       "outlet" | "language" | "country" | "frame" | "angle" | "sector";
+  measureBy:     "frame" | "angle" | "sector";
+  toggleWith?:   "frame" | "angle" | "sector";
+  metricAParam:  MetricParam;
+  metricBParam:  MetricParam;
+}) {
+  const [activeDim, setActiveDim] = useState<"frame" | "angle" | "sector">(measureBy);
+
+  const effectiveLinesBy = linesBy === measureBy ? activeDim : linesBy;
+  const effectiveMeasure = activeDim;
+
+  const selectedFilter: string | null =
+    effectiveMeasure === "frame" ? (metricAParam.frameFilter ?? metricBParam.frameFilter ?? null) :
+    effectiveMeasure === "angle" ? (metricAParam.angleFilter ?? metricBParam.angleFilter ?? null) :
+    null;
+
+  const months = useMemo(
+    () => [...new Set(articles.map(a => a.publishedAt.slice(0, 7)))].sort(),
+    [articles]
+  );
+
+  type GroupEntry = { key: string; label: string; color: string; filter: (a: Article) => boolean };
+
+  const groups = useMemo((): GroupEntry[] => {
+    if (effectiveLinesBy === "outlet") {
+      return stats.slice(0, 5).map((o, i) => ({
+        key: o.id, label: o.name, color: LINE_PALETTE[i % LINE_PALETTE.length],
+        filter: (a: Article) => a.outlet === o.id,
+      }));
+    }
+    if (effectiveLinesBy === "language") {
+      return [...new Set(articles.map(a => a.language).filter((l): l is string => l !== null))]
+        .slice(0, 5)
+        .map((lang, i) => ({
+          key: lang, label: lang, color: LINE_PALETTE[i % LINE_PALETTE.length],
+          filter: (a: Article) => a.language === lang,
+        }));
+    }
+    if (effectiveLinesBy === "country") {
+      return [...new Set(stats.map(o => o.outletCountry).filter(Boolean))]
+        .slice(0, 5)
+        .map((c, i) => ({
+          key: c, label: c, color: LINE_PALETTE[i % LINE_PALETTE.length],
+          filter: (a: Article) => a.country === c,
+        }));
+    }
+    if (effectiveLinesBy === "frame") {
+      return FRAMES.map((f, i) => ({
+        key: f, label: f,
+        color: FRAME_COLORS[i]?.color ?? LINE_PALETTE[i % LINE_PALETTE.length],
+        filter: (a: Article) => a.primaryFrame === f,
+      }));
+    }
+    if (effectiveLinesBy === "angle") {
+      return ANGLES.map((a, i) => ({
+        key: a, label: a,
+        color: ANGLE_COLORS[a as Angle] ?? LINE_PALETTE[i % LINE_PALETTE.length],
+        filter: (ar: Article) => ar.primaryAngle === a,
+      }));
+    }
+    // sector
+    return [...new Set(articles.map(a => a.sector).filter((s): s is Sector => s !== null))]
+      .slice(0, 6)
+      .map((s, i) => ({
+        key: s, label: s, color: LINE_PALETTE[i % LINE_PALETTE.length],
+        filter: (a: Article) => a.sector === s,
+      }));
+  }, [effectiveLinesBy, articles, stats]);
+
+  const linesAreCategories = effectiveLinesBy === effectiveMeasure;
+
+  const chartData = useMemo(() => {
+    return months.map(m => {
+      const monthArts = articles.filter(a => a.publishedAt.slice(0, 7) === m);
+      const row: Record<string, string | number> = { month: m };
+      for (const g of groups) {
+        const groupArts = monthArts.filter(g.filter);
+        let pct: number;
+        if (linesAreCategories) {
+          pct = monthArts.length > 0 ? Math.round(groupArts.length / monthArts.length * 100) : 0;
+        } else if (selectedFilter) {
+          const matching = groupArts.filter(a =>
+            effectiveMeasure === "frame" ? a.primaryFrame === selectedFilter :
+            effectiveMeasure === "angle" ? a.primaryAngle === selectedFilter :
+            a.sector === selectedFilter
+          ).length;
+          pct = groupArts.length > 0 ? Math.round(matching / groupArts.length * 100) : 0;
+        } else {
+          const matching = groupArts.filter(a =>
+            effectiveMeasure === "frame" ? a.primaryFrame !== null :
+            effectiveMeasure === "angle" ? a.primaryAngle !== null :
+            a.sector !== null
+          ).length;
+          pct = groupArts.length > 0 ? Math.round(matching / groupArts.length * 100) : 0;
+        }
+        row[g.label] = pct;
+      }
+      return row;
+    });
+  }, [months, articles, groups, linesAreCategories, selectedFilter, effectiveMeasure]);
+
+  if (chartData.length === 0 || groups.length === 0) return null;
+
+  return (
+    <div style={{ border: "1px solid var(--border)", padding: "20px 24px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+        <p style={{ fontFamily: QTC, fontSize: 9, letterSpacing: "1.2", textTransform: "uppercase", color: "var(--t2)" }}>
+          {effectiveMeasure} share over time · by {effectiveLinesBy}
+        </p>
+        {toggleWith && (
+          <div style={{ display: "flex" }}>
+            {([measureBy, toggleWith] as const).map((dim, i) => (
+              <button key={dim} onClick={() => setActiveDim(dim)}
+                style={{
+                  padding: "3px 10px",
+                  background: activeDim === dim ? "var(--t1)" : "transparent",
+                  color: activeDim === dim ? "var(--bg)" : "var(--t2)",
+                  border: "1px solid var(--border)", marginLeft: i > 0 ? -1 : 0,
+                  fontFamily: QTC, fontSize: 8, letterSpacing: "0.5",
+                  textTransform: "capitalize", cursor: "pointer",
+                }}>
+                {dim}s
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <p style={{ fontFamily: PF, fontStyle: "italic", fontSize: 13, color: "var(--t2)", marginBottom: 16 }}>
+        {selectedFilter
+          ? `"${selectedFilter}" share within each group over time`
+          : linesAreCategories
+            ? `How each ${effectiveMeasure}'s share of coverage evolves`
+            : `${effectiveMeasure.charAt(0).toUpperCase() + effectiveMeasure.slice(1)} coverage rate per group over time`
+        }
+      </p>
+      <ResponsiveContainer width="100%" height={240}>
+        <LineChart data={chartData} margin={{ top: 4, right: 16, bottom: 24, left: 0 }}>
+          <CartesianGrid strokeDasharray="2 6" stroke="var(--border)" strokeOpacity={0.5} />
+          <XAxis dataKey="month"
+            tick={{ fontFamily: SANS, fontSize: 9, fill: "var(--t2)" }}
+            angle={-35} textAnchor="end" interval={Math.floor(months.length / 6)} />
+          <YAxis tick={{ fontFamily: SANS, fontSize: 9, fill: "var(--t2)" }}
+            domain={[0, 100]}
+            label={{ value: "%", angle: -90, position: "insideTopLeft", offset: 12,
+              style: { fontFamily: PF, fontStyle: "italic", fontSize: 11, fill: "var(--t2)" } }}
+          />
+          <Tooltip
+            contentStyle={{ background: "var(--bg)", border: "0.5px solid var(--border)", fontFamily: SS, fontSize: 12 }}
+            labelStyle={{ fontFamily: PFSC, fontSize: 11 }}
+            formatter={(v) => [`${v ?? 0}%`]}
+          />
+          {groups.length > 1 && (
+            <Legend iconType="circle" iconSize={8}
+              wrapperStyle={{ fontFamily: SANS, fontSize: 10, paddingTop: 8 }} />
+          )}
+          {groups.map(g => (
+            <Line key={g.label} type="monotone" dataKey={g.label}
+              stroke={g.color} strokeWidth={1.5} dot={false}
+              activeDot={{ r: 4, fill: g.color }} />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+// ── WordCountOverTimeChart ─────────────────────────────────────────────────
+function WordCountOverTimeChart({ articles, stats, filterMode, mA, mB, metricAParam, metricBParam }: {
+  articles:      Article[];
+  stats:         ExtStat[];
+  filterMode:    "outlet" | "language" | "time";
+  mA:            Metric;
+  mB:            Metric;
+  metricAParam:  MetricParam;
+  metricBParam:  MetricParam;
+}) {
+  const groupMetric = mA.id === "wordcount" ? mB : mA;
+  const groupParam  = mA.id === "wordcount" ? metricBParam : metricAParam;
+  const frameF      = groupParam.frameFilter ?? null;
+  const angleF      = groupParam.angleFilter ?? null;
+
+  function matchesFilter(a: Article): boolean {
+    if (frameF) return a.primaryFrame === frameF;
+    if (angleF) return a.primaryAngle === angleF;
+    return true;
+  }
+
   const months = [...new Set(articles.map(a => a.publishedAt.slice(0, 7)))].sort();
 
   type LineData = { key: string; color: string; data: Record<string, number[]> };
-
   const lines: LineData[] = [];
 
   if (filterMode === "outlet") {
     stats.slice(0, 6).forEach((o, i) => {
-      const outletArts = articles.filter(a => a.outlet === o.id);
+      const outletArts = articles.filter(a => a.outlet === o.id && matchesFilter(a));
       const data: Record<string, number[]> = {};
       for (const a of outletArts) {
         const m = a.publishedAt.slice(0, 7);
@@ -1436,9 +1846,9 @@ function WordCountOverTimeChart({ articles, stats, filterMode }: {
       lines.push({ key: o.name, color: LINE_PALETTE[i % LINE_PALETTE.length], data });
     });
   } else if (filterMode === "language") {
-    const langs = [...new Set(articles.map(a => a.language).filter(Boolean))];
+    const langs = [...new Set(articles.filter(matchesFilter).map(a => a.language).filter(Boolean))];
     langs.slice(0, 6).forEach((lang, i) => {
-      const langArts = articles.filter(a => a.language === lang);
+      const langArts = articles.filter(a => a.language === lang && matchesFilter(a));
       const data: Record<string, number[]> = {};
       for (const a of langArts) {
         const m = a.publishedAt.slice(0, 7);
@@ -1448,14 +1858,43 @@ function WordCountOverTimeChart({ articles, stats, filterMode }: {
       lines.push({ key: lang!, color: LINE_PALETTE[i % LINE_PALETTE.length], data });
     });
   } else {
-    // "time" — single overall trend line
-    const data: Record<string, number[]> = {};
-    for (const a of articles) {
-      const m = a.publishedAt.slice(0, 7);
-      data[m] ??= [];
-      data[m].push(a.wordCount);
+    // "time" mode
+    const hasGroupCats  = ["frame", "angle", "sector"].includes(groupMetric.id);
+    const hasCatFilter  = frameF !== null || angleF !== null;
+
+    if (hasGroupCats && !hasCatFilter) {
+      if (groupMetric.id === "frame") {
+        FRAMES.forEach((f, i) => {
+          const fArts = articles.filter(a => a.primaryFrame === f);
+          const data: Record<string, number[]> = {};
+          for (const a of fArts) { const m = a.publishedAt.slice(0, 7); data[m] ??= []; data[m].push(a.wordCount); }
+          lines.push({ key: f, color: FRAME_COLORS[i]?.color ?? LINE_PALETTE[i % LINE_PALETTE.length], data });
+        });
+      } else if (groupMetric.id === "angle") {
+        ANGLES.forEach((a, i) => {
+          const aArts = articles.filter(ar => ar.primaryAngle === a);
+          const data: Record<string, number[]> = {};
+          for (const ar of aArts) { const m = ar.publishedAt.slice(0, 7); data[m] ??= []; data[m].push(ar.wordCount); }
+          lines.push({ key: a, color: ANGLE_COLORS[a as Angle] ?? LINE_PALETTE[i % LINE_PALETTE.length], data });
+        });
+      } else if (groupMetric.id === "sector") {
+        const sectors = [...new Set(articles.map(a => a.sector).filter((s): s is Sector => s !== null))];
+        sectors.forEach((s, i) => {
+          const sArts = articles.filter(a => a.sector === s);
+          const data: Record<string, number[]> = {};
+          for (const a of sArts) { const m = a.publishedAt.slice(0, 7); data[m] ??= []; data[m].push(a.wordCount); }
+          lines.push({ key: s, color: LINE_PALETTE[i % LINE_PALETTE.length], data });
+        });
+      }
+    } else {
+      const data: Record<string, number[]> = {};
+      for (const a of articles.filter(matchesFilter)) {
+        const m = a.publishedAt.slice(0, 7);
+        data[m] ??= [];
+        data[m].push(a.wordCount);
+      }
+      lines.push({ key: frameF ?? angleF ?? "All outlets", color: "var(--t1)", data });
     }
-    lines.push({ key: "All outlets", color: "var(--t1)", data });
   }
 
   const chartData = months.map(m => {
@@ -1471,15 +1910,18 @@ function WordCountOverTimeChart({ articles, stats, filterMode }: {
 
   if (chartData.length === 0) return null;
 
+  const filterLabel = frameF ?? angleF;
+
   return (
     <div style={{ border: "1px solid var(--border)", padding: "20px 24px" }}>
       <p style={{ fontFamily: QTC, fontSize: 9, letterSpacing: "1.2", textTransform: "uppercase", color: "var(--t2)", marginBottom: 4 }}>
         Avg. word count over time
-        {filterMode !== "time" && (
-          <span style={{ marginLeft: 8, fontFamily: SANS, fontSize: 9, letterSpacing: 0, color: "var(--t2)", fontWeight: 400 }}>
-            · by {filterMode}
-          </span>
-        )}
+        {filterLabel
+          ? <span style={{ marginLeft: 8, fontFamily: SANS, fontSize: 9, letterSpacing: 0, color: "var(--t2)", fontWeight: 400 }}>· filtered to {filterLabel}</span>
+          : filterMode !== "time"
+            ? <span style={{ marginLeft: 8, fontFamily: SANS, fontSize: 9, letterSpacing: 0, color: "var(--t2)", fontWeight: 400 }}>· by {filterMode}</span>
+            : null
+        }
       </p>
       <p style={{ fontFamily: PF, fontStyle: "italic", fontSize: 13, color: "var(--t2)", marginBottom: 16 }}>
         Does article length shift as coverage matures?
@@ -1529,40 +1971,53 @@ function InsightSection({
   mBLabel:      string;
   filterMode:   "outlet" | "language" | "time";
 }) {
-  const rule   = getPairRule(metricA, metricB);
-  const charts = rule.charts;
-  if (!rule.valid || charts.length === 0 || stats.length === 0) return null;
+  const rule = getPairRule(metricA, metricB);
+  const chartConfigs: ChartConfig[] =
+    filterMode === "outlet"   ? rule.charts.byOutlet   :
+    filterMode === "language" ? rule.charts.byLanguage  :
+                                rule.charts.byTime;
 
-  const nodes = charts.map(id => {
-    switch (id) {
+  if (!rule.valid || chartConfigs.length === 0 || stats.length === 0) return null;
+
+  const nodes = chartConfigs.map((config, ci): { id: string; el: ReactElement } | null => {
+    switch (config.id) {
+      case "ranked-panel":
+        return { id: config.id + ci, el: <RankedPanelChart articles={articles} mA={mA} mB={mB}
+          filterMode={filterMode as "outlet" | "language"} stats={stats} /> };
+      case "share-over-time":
+        return { id: config.id + ci, el: <ShareOverTimeChart articles={articles} stats={stats}
+          linesBy={config.linesBy} measureBy={config.measureBy} toggleWith={config.toggleWith}
+          metricAParam={metricAParam} metricBParam={metricBParam} /> };
       case "cross-tab-heatmap":
-        return { id, el: <CrossTabHeatmap articles={articles} /> };
+        return { id: config.id + ci, el: <CrossTabHeatmap articles={articles} /> };
       case "country-group":
-        return { id, el: <CountryGroupChart stats={stats} mA={mA} mB={mB} metricAParam={metricAParam} metricBParam={metricBParam} /> };
+        return { id: config.id + ci, el: <CountryGroupChart stats={stats} mA={mA} mB={mB} metricAParam={metricAParam} metricBParam={metricBParam} /> };
       case "country-stacked-dist":
-        return { id, el: <CountryStackedDistChart stats={stats} mA={mA} mB={mB} /> };
+        return { id: config.id + ci, el: <CountryStackedDistChart stats={stats} mA={mA} mB={mB} /> };
       case "correlation-panel":
-        return reg ? { id, el: <CorrelationPanel scatterData={scatterData} reg={reg} mA={mA} mB={mB} mALabel={mALabel} mBLabel={mBLabel} /> } : null;
+        return reg ? { id: config.id + ci, el: <CorrelationPanel scatterData={scatterData} reg={reg} mA={mA} mB={mB} mALabel={mALabel} mBLabel={mBLabel} /> } : null;
       case "frame-dist":
-        return { id, el: <FrameDistributionChart stats={stats} /> };
+        return { id: config.id + ci, el: <FrameDistributionChart stats={stats} /> };
       case "angle-dist":
-        return { id, el: <AngleDistributionChart stats={stats} /> };
+        return { id: config.id + ci, el: <AngleDistributionChart stats={stats} /> };
       case "entry-timeline":
-        return { id, el: <EntryTimelineChart stats={stats} /> };
+        return { id: config.id + ci, el: <EntryTimelineChart stats={stats} /> };
       case "timeline-by-frame":
-        return { id, el: <ColoredEntryTimeline stats={stats} colorBy="frame" /> };
+        return { id: config.id + ci, el: <ColoredEntryTimeline stats={stats} colorBy="frame" /> };
       case "timeline-by-angle":
-        return { id, el: <ColoredEntryTimeline stats={stats} colorBy="angle" /> };
+        return { id: config.id + ci, el: <ColoredEntryTimeline stats={stats} colorBy="angle" /> };
       case "word-dist-by-group":
-        return { id, el: <WordDistByGroupChart articles={articles} mA={mA} mB={mB} /> };
+        return { id: config.id + ci, el: <WordDistByGroupChart articles={articles} mA={mA} mB={mB} /> };
       case "sector-grouped-dist":
-        return { id, el: <SectorGroupedDistChart articles={articles} mA={mA} mB={mB} /> };
+        return { id: config.id + ci, el: <SectorGroupedDistChart articles={articles} mA={mA} mB={mB} /> };
       case "word-count-over-time":
-        return { id, el: <WordCountOverTimeChart articles={articles} stats={stats} filterMode={filterMode} /> };
+        return { id: config.id + ci, el: <WordCountOverTimeChart articles={articles} stats={stats}
+          filterMode={filterMode} mA={mA} mB={mB}
+          metricAParam={metricAParam} metricBParam={metricBParam} /> };
       default:
         return null;
     }
-  }).filter((x): x is { id: InsightChartId; el: ReactElement } => x !== null);
+  }).filter((x): x is { id: string; el: ReactElement } => x !== null);
 
   if (nodes.length === 0) return null;
 
