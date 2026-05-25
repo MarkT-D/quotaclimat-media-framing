@@ -1,8 +1,6 @@
 "use client";
 import { useState, useMemo, useEffect, type ReactElement } from "react";
 import {
-  ScatterChart,
-  Scatter,
   LineChart,
   Line,
   XAxis,
@@ -11,9 +9,8 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  ReferenceLine,
 } from "recharts";
-import { getOutletStats, FRAMES, ANGLES } from "@/lib/articleTypes";
+import { getOutletStats, FRAMES, ANGLES, SECTORS } from "@/lib/articleTypes";
 import type { OutletStat, Frame, Stage, Angle, Sector, Article } from "@/lib/articleTypes";
 import { useArticles } from "@/lib/useArticles";
 
@@ -32,8 +29,10 @@ const QTC  = "var(--font-quantico)";
 
 // ── types ───────────────────────────────────────────────────────────────────
 type MetricParam = {
-  frameFilter?: Frame;
-  angleFilter?: Angle;
+  frameFilter?:   Frame;
+  angleFilter?:   Angle;
+  sectorFilter?:  Sector;
+  countryFilter?: string;
 };
 
 interface ExtStat extends OutletStat {
@@ -44,6 +43,7 @@ interface ExtStat extends OutletStat {
   countryCode:   number;
   outletCountry: string;
   angleDist:     Partial<Record<Angle, number>>;
+  sectorDist:    Partial<Record<Sector, number>>;
 }
 
 // ── metric system ──────────────────────────────────────────────────────────
@@ -63,6 +63,10 @@ function resolveValue(m: Metric, o: ExtStat, p: MetricParam): number {
   }
   if (m.id === "angle" && p.angleFilter) {
     const c = o.angleDist[p.angleFilter] ?? 0;
+    return o.articleCount > 0 ? Math.round(c / o.articleCount * 100) : 0;
+  }
+  if (m.id === "sector" && p.sectorFilter) {
+    const c = o.sectorDist[p.sectorFilter] ?? 0;
     return o.articleCount > 0 ? Math.round(c / o.articleCount * 100) : 0;
   }
   return m.getValue(o);
@@ -139,6 +143,56 @@ const ANGLE_COLORS: Record<Angle, string> = {
 };
 
 const MONTHS = 30.44; // days per month for lag conversion
+
+const COUNTRY_NAMES: Record<string, string> = {
+  // Europe
+  AD: "Andorra",          AT: "Austria",           BE: "Belgium",
+  BG: "Bulgaria",         BY: "Belarus",           CH: "Switzerland",
+  CY: "Cyprus",           CZ: "Czechia",           DE: "Germany",
+  DK: "Denmark",          EE: "Estonia",           ES: "Spain",
+  FI: "Finland",          FR: "France",            GB: "United Kingdom",
+  GR: "Greece",           HR: "Croatia",           HU: "Hungary",
+  IE: "Ireland",          IS: "Iceland",           IT: "Italy",
+  LI: "Liechtenstein",    LT: "Lithuania",         LU: "Luxembourg",
+  LV: "Latvia",           MC: "Monaco",            MD: "Moldova",
+  ME: "Montenegro",       MK: "North Macedonia",   MT: "Malta",
+  NL: "Netherlands",      NO: "Norway",            PL: "Poland",
+  PT: "Portugal",         RO: "Romania",           RS: "Serbia",
+  RU: "Russia",           SE: "Sweden",            SI: "Slovenia",
+  SK: "Slovakia",         TR: "Turkey",            UA: "Ukraine",
+  UK: "United Kingdom",   XK: "Kosovo",
+  // Americas
+  AR: "Argentina",        BO: "Bolivia",           BR: "Brazil",
+  CA: "Canada",           CL: "Chile",             CO: "Colombia",
+  CR: "Costa Rica",       CU: "Cuba",              DO: "Dominican Rep.",
+  EC: "Ecuador",          GT: "Guatemala",         HN: "Honduras",
+  MX: "Mexico",           NI: "Nicaragua",         PA: "Panama",
+  PE: "Peru",             PY: "Paraguay",          SV: "El Salvador",
+  US: "United States",    UY: "Uruguay",           VE: "Venezuela",
+  // Africa
+  AO: "Angola",           BJ: "Benin",             BF: "Burkina Faso",
+  BI: "Burundi",          CM: "Cameroon",          CD: "DR Congo",
+  CG: "Congo",            CI: "Côte d'Ivoire",     DZ: "Algeria",
+  EG: "Egypt",            ET: "Ethiopia",          GH: "Ghana",
+  GN: "Guinea",           KE: "Kenya",             LY: "Libya",
+  MA: "Morocco",          ML: "Mali",              MZ: "Mozambique",
+  NE: "Niger",            NG: "Nigeria",           RW: "Rwanda",
+  SD: "Sudan",            SN: "Senegal",           SO: "Somalia",
+  SS: "South Sudan",      TN: "Tunisia",           TZ: "Tanzania",
+  UG: "Uganda",           ZA: "South Africa",      ZM: "Zambia",
+  ZW: "Zimbabwe",
+  // Asia-Pacific
+  AE: "UAE",              AF: "Afghanistan",        AU: "Australia",
+  BD: "Bangladesh",       CN: "China",              ID: "Indonesia",
+  IN: "India",            IQ: "Iraq",               IR: "Iran",
+  IL: "Israel",           JP: "Japan",              KZ: "Kazakhstan",
+  KR: "South Korea",      KW: "Kuwait",             MM: "Myanmar",
+  MN: "Mongolia",         MY: "Malaysia",           NP: "Nepal",
+  NZ: "New Zealand",      PH: "Philippines",        PK: "Pakistan",
+  QA: "Qatar",            SA: "Saudi Arabia",       SG: "Singapore",
+  SY: "Syria",            TH: "Thailand",           TW: "Taiwan",
+  UZ: "Uzbekistan",       VN: "Vietnam",            YE: "Yemen",
+};
 
 const PRESETS = [
   { a: "country",   b: "frame",     label: "Country vs Frame Coverage" },
@@ -255,7 +309,7 @@ const PAIR_RULES: Record<string, PairRule> = {
     charts: {
       byOutlet:   [{ id: "ranked-panel" }, { id: "country-group" }, { id: "correlation-panel" }],
       byLanguage: [],
-      byTime:     [{ id: "share-over-time", linesBy: "country", measureBy: "angle" }, { id: "country-group" }],
+      byTime:     [{ id: "share-over-time", linesBy: "angle", measureBy: "angle" }, { id: "country-group" }],
     },
   },
   "lag|wordcount": {
@@ -287,19 +341,19 @@ const PAIR_RULES: Record<string, PairRule> = {
     },
   },
   "country|wordcount": {
-    valid: true, byLanguage: false, byTime: true,
+    valid: true, byLanguage: true, byTime: true,
     charts: {
-      byOutlet:   [],
-      byLanguage: [],
+      byOutlet:   [{ id: "word-count-over-time" }],
+      byLanguage: [{ id: "word-count-over-time" }],
       byTime:     [{ id: "word-count-over-time" }, { id: "country-group" }],
     },
   },
   "country|sector": {
     valid: true, byLanguage: false, byTime: true,
     charts: {
-      byOutlet:   [],
-      byLanguage: [],
-      byTime:     [{ id: "share-over-time", linesBy: "country", measureBy: "sector" }, { id: "country-group" }],
+      byOutlet:   [{ id: "country-group" }, { id: "sector-grouped-dist" }],
+      byLanguage: [{ id: "sector-grouped-dist" }],
+      byTime:     [{ id: "share-over-time", linesBy: "sector", measureBy: "sector" }, { id: "country-group" }],
     },
   },
 };
@@ -471,38 +525,6 @@ function HexPicker({ metricA, metricB, pendingA, compatibleIds, onNodeClick }: {
         {pendingA ? "?" : mB.short.toUpperCase()}
       </text>
     </svg>
-  );
-}
-
-// ── ScatterTooltip ─────────────────────────────────────────────────────────
-function ScatterTooltip({ active, payload, mA, mB, mALabel, mBLabel }: {
-  active?:   boolean;
-  payload?:  Array<{ payload: { name: string; x: number; y: number } }>;
-  mA:        Metric;
-  mB:        Metric;
-  mALabel:   string;
-  mBLabel:   string;
-}) {
-  if (!active || !payload?.length) return null;
-  const { name, x, y } = payload[0].payload;
-  return (
-    <div style={{
-      background: "var(--bg)", border: "0.5px solid var(--border)",
-      padding: "10px 14px", fontFamily: SS, fontSize: 13,
-      lineHeight: 1.6, boxShadow: "2px 2px 0 var(--bg2)",
-    }}>
-      <p style={{ fontWeight: 600, color: "var(--t1)", marginBottom: 6, fontFamily: PFSC, fontSize: 12, letterSpacing: "0.03em" }}>
-        {name}
-      </p>
-      <p style={{ color: "var(--t2)" }}>
-        <span style={{ background: SALMON, color: "#fff", padding: "0 4px", fontFamily: QTC, fontSize: 10 }}>A</span>{" "}
-        {mALabel}: <strong style={{ color: "var(--t1)" }}>{x} {mA.unit}</strong>
-      </p>
-      <p style={{ color: "var(--t2)" }}>
-        <span style={{ background: LIME, color: "var(--t1)", padding: "0 4px", fontFamily: QTC, fontSize: 10 }}>B</span>{" "}
-        {mBLabel}: <strong style={{ color: "var(--t1)" }}>{y} {mB.unit}</strong>
-      </p>
-    </div>
   );
 }
 
@@ -1649,14 +1671,29 @@ function ShareOverTimeChart({
   metricBParam:  MetricParam;
 }) {
   const [activeDim, setActiveDim] = useState<"frame" | "angle" | "sector">(measureBy);
+  const [activeOutlet, setActiveOutlet] = useState<string | null>(null);
 
   const effectiveLinesBy = linesBy === measureBy ? activeDim : linesBy;
   const effectiveMeasure = activeDim;
 
+  // reset outlet selection when dimension or linesBy changes
+  useEffect(() => { setActiveOutlet(null); }, [effectiveLinesBy, effectiveMeasure]);
+
   const selectedFilter: string | null =
     effectiveMeasure === "frame" ? (metricAParam.frameFilter ?? metricBParam.frameFilter ?? null) :
     effectiveMeasure === "angle" ? (metricAParam.angleFilter ?? metricBParam.angleFilter ?? null) :
+    effectiveMeasure === "sector" ? (metricAParam.sectorFilter ?? metricBParam.sectorFilter ?? null) :
     null;
+
+  const linesAreCategories = effectiveLinesBy === effectiveMeasure;
+
+  // when in category-lines mode, let user scope to a single outlet
+  const scopedArticles = useMemo(() =>
+    linesAreCategories && activeOutlet
+      ? articles.filter(a => a.outlet === activeOutlet)
+      : articles,
+    [linesAreCategories, activeOutlet, articles]
+  );
 
   const months = useMemo(
     () => [...new Set(articles.map(a => a.publishedAt.slice(0, 7)))].sort(),
@@ -1703,19 +1740,15 @@ function ShareOverTimeChart({
       }));
     }
     // sector
-    return [...new Set(articles.map(a => a.sector).filter((s): s is Sector => s !== null))]
-      .slice(0, 6)
-      .map((s, i) => ({
-        key: s, label: s, color: LINE_PALETTE[i % LINE_PALETTE.length],
-        filter: (a: Article) => a.sector === s,
-      }));
+    return SECTORS.map((s, i) => ({
+      key: s, label: s, color: LINE_PALETTE[i % LINE_PALETTE.length],
+      filter: (a: Article) => a.sector === s,
+    }));
   }, [effectiveLinesBy, articles, stats]);
-
-  const linesAreCategories = effectiveLinesBy === effectiveMeasure;
 
   const chartData = useMemo(() => {
     return months.map(m => {
-      const monthArts = articles.filter(a => a.publishedAt.slice(0, 7) === m);
+      const monthArts = scopedArticles.filter(a => a.publishedAt.slice(0, 7) === m);
       const row: Record<string, string | number> = { month: m };
       for (const g of groups) {
         const groupArts = monthArts.filter(g.filter);
@@ -1741,9 +1774,19 @@ function ShareOverTimeChart({
       }
       return row;
     });
-  }, [months, articles, groups, linesAreCategories, selectedFilter, effectiveMeasure]);
+  }, [months, scopedArticles, groups, linesAreCategories, selectedFilter, effectiveMeasure]);
 
   if (chartData.length === 0 || groups.length === 0) return null;
+
+  const outletToggleBtnStyle = (active: boolean) => ({
+    padding: "2px 8px",
+    background: active ? "var(--t1)" : "transparent",
+    color: active ? "var(--bg)" : "var(--t2)",
+    border: "1px solid var(--border)",
+    fontFamily: QTC, fontSize: 8, letterSpacing: "0.5",
+    cursor: "pointer", whiteSpace: "nowrap" as const,
+    maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis",
+  });
 
   return (
     <div style={{ border: "1px solid var(--border)", padding: "20px 24px" }}>
@@ -1769,7 +1812,7 @@ function ShareOverTimeChart({
           </div>
         )}
       </div>
-      <p style={{ fontFamily: PF, fontStyle: "italic", fontSize: 13, color: "var(--t2)", marginBottom: 16 }}>
+      <p style={{ fontFamily: PF, fontStyle: "italic", fontSize: 13, color: "var(--t2)", marginBottom: linesAreCategories && stats.length > 1 ? 8 : 16 }}>
         {selectedFilter
           ? `"${selectedFilter}" share within each group over time`
           : linesAreCategories
@@ -1777,6 +1820,15 @@ function ShareOverTimeChart({
             : `${effectiveMeasure.charAt(0).toUpperCase() + effectiveMeasure.slice(1)} coverage rate per group over time`
         }
       </p>
+      {linesAreCategories && stats.length > 1 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 16 }}>
+          <button onClick={() => setActiveOutlet(null)} style={outletToggleBtnStyle(activeOutlet === null)}>All</button>
+          {stats.slice(0, 5).map(o => (
+            <button key={o.id} onClick={() => setActiveOutlet(o.id)} style={outletToggleBtnStyle(activeOutlet === o.id)}
+              title={o.name}>{o.name}</button>
+          ))}
+        </div>
+      )}
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={chartData} margin={{ top: 4, right: 16, bottom: 24, left: 0 }}>
           <CartesianGrid strokeDasharray="2 6" stroke="var(--border)" strokeOpacity={0.5} />
@@ -1818,10 +1870,19 @@ function WordCountOverTimeChart({ articles, stats, filterMode, mA, mB, metricAPa
   metricAParam:  MetricParam;
   metricBParam:  MetricParam;
 }) {
+  const [activeOutlet, setActiveOutlet] = useState<string | null>(null);
+
   const groupMetric = mA.id === "wordcount" ? mB : mA;
   const groupParam  = mA.id === "wordcount" ? metricBParam : metricAParam;
   const frameF      = groupParam.frameFilter ?? null;
   const angleF      = groupParam.angleFilter ?? null;
+
+  const hasGroupCats = ["frame", "angle", "sector"].includes(groupMetric.id);
+  const hasCatFilter = frameF !== null || angleF !== null;
+  const showOutletToggle = filterMode === "time" && hasGroupCats && !hasCatFilter;
+
+  // reset outlet selection when mode or pair changes
+  useEffect(() => { setActiveOutlet(null); }, [filterMode, groupMetric.id]);
 
   function matchesFilter(a: Article): boolean {
     if (frameF) return a.primaryFrame === frameF;
@@ -1830,6 +1891,11 @@ function WordCountOverTimeChart({ articles, stats, filterMode, mA, mB, metricAPa
   }
 
   const months = [...new Set(articles.map(a => a.publishedAt.slice(0, 7)))].sort();
+
+  // base articles for time+category mode respect outlet toggle
+  const baseArts = showOutletToggle && activeOutlet
+    ? articles.filter(a => a.outlet === activeOutlet)
+    : articles;
 
   type LineData = { key: string; color: string; data: Record<string, number[]> };
   const lines: LineData[] = [];
@@ -1859,28 +1925,24 @@ function WordCountOverTimeChart({ articles, stats, filterMode, mA, mB, metricAPa
     });
   } else {
     // "time" mode
-    const hasGroupCats  = ["frame", "angle", "sector"].includes(groupMetric.id);
-    const hasCatFilter  = frameF !== null || angleF !== null;
-
     if (hasGroupCats && !hasCatFilter) {
       if (groupMetric.id === "frame") {
         FRAMES.forEach((f, i) => {
-          const fArts = articles.filter(a => a.primaryFrame === f);
+          const fArts = baseArts.filter(a => a.primaryFrame === f);
           const data: Record<string, number[]> = {};
           for (const a of fArts) { const m = a.publishedAt.slice(0, 7); data[m] ??= []; data[m].push(a.wordCount); }
           lines.push({ key: f, color: FRAME_COLORS[i]?.color ?? LINE_PALETTE[i % LINE_PALETTE.length], data });
         });
       } else if (groupMetric.id === "angle") {
         ANGLES.forEach((a, i) => {
-          const aArts = articles.filter(ar => ar.primaryAngle === a);
+          const aArts = baseArts.filter(ar => ar.primaryAngle === a);
           const data: Record<string, number[]> = {};
           for (const ar of aArts) { const m = ar.publishedAt.slice(0, 7); data[m] ??= []; data[m].push(ar.wordCount); }
           lines.push({ key: a, color: ANGLE_COLORS[a as Angle] ?? LINE_PALETTE[i % LINE_PALETTE.length], data });
         });
       } else if (groupMetric.id === "sector") {
-        const sectors = [...new Set(articles.map(a => a.sector).filter((s): s is Sector => s !== null))];
-        sectors.forEach((s, i) => {
-          const sArts = articles.filter(a => a.sector === s);
+        SECTORS.forEach((s, i) => {
+          const sArts = baseArts.filter(a => a.sector === s);
           const data: Record<string, number[]> = {};
           for (const a of sArts) { const m = a.publishedAt.slice(0, 7); data[m] ??= []; data[m].push(a.wordCount); }
           lines.push({ key: s, color: LINE_PALETTE[i % LINE_PALETTE.length], data });
@@ -1888,7 +1950,7 @@ function WordCountOverTimeChart({ articles, stats, filterMode, mA, mB, metricAPa
       }
     } else {
       const data: Record<string, number[]> = {};
-      for (const a of articles.filter(matchesFilter)) {
+      for (const a of baseArts.filter(matchesFilter)) {
         const m = a.publishedAt.slice(0, 7);
         data[m] ??= [];
         data[m].push(a.wordCount);
@@ -1912,6 +1974,16 @@ function WordCountOverTimeChart({ articles, stats, filterMode, mA, mB, metricAPa
 
   const filterLabel = frameF ?? angleF;
 
+  const outletBtnStyle = (active: boolean) => ({
+    padding: "2px 8px",
+    background: active ? "var(--t1)" : "transparent",
+    color: active ? "var(--bg)" : "var(--t2)",
+    border: "1px solid var(--border)",
+    fontFamily: QTC, fontSize: 8, letterSpacing: "0.5",
+    cursor: "pointer", whiteSpace: "nowrap" as const,
+    maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis",
+  });
+
   return (
     <div style={{ border: "1px solid var(--border)", padding: "20px 24px" }}>
       <p style={{ fontFamily: QTC, fontSize: 9, letterSpacing: "1.2", textTransform: "uppercase", color: "var(--t2)", marginBottom: 4 }}>
@@ -1923,9 +1995,18 @@ function WordCountOverTimeChart({ articles, stats, filterMode, mA, mB, metricAPa
             : null
         }
       </p>
-      <p style={{ fontFamily: PF, fontStyle: "italic", fontSize: 13, color: "var(--t2)", marginBottom: 16 }}>
+      <p style={{ fontFamily: PF, fontStyle: "italic", fontSize: 13, color: "var(--t2)", marginBottom: showOutletToggle && stats.length > 1 ? 8 : 16 }}>
         Does article length shift as coverage matures?
       </p>
+      {showOutletToggle && stats.length > 1 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 16 }}>
+          <button onClick={() => setActiveOutlet(null)} style={outletBtnStyle(activeOutlet === null)}>All</button>
+          {stats.slice(0, 5).map(o => (
+            <button key={o.id} onClick={() => setActiveOutlet(o.id)} style={outletBtnStyle(activeOutlet === o.id)}
+              title={o.name}>{o.name}</button>
+          ))}
+        </div>
+      )}
       <ResponsiveContainer width="100%" height={240}>
         <LineChart data={chartData} margin={{ top: 4, right: 16, bottom: 24, left: 0 }}>
           <CartesianGrid strokeDasharray="2 6" stroke="var(--border)" strokeOpacity={0.5} />
@@ -2025,7 +2106,6 @@ function InsightSection({
 
   return (
     <div style={{ marginTop: 48 }}>
-      <div style={{ borderTop: "1px solid var(--border)", marginBottom: 28 }} />
       <div>{first.el}</div>
       {rest.length > 0 && (
         <div style={{
@@ -2051,7 +2131,7 @@ export default function DiscrepancyDesk() {
         ...o,
         angleCoverage: 0, lagDays: 0, avgWordCount: 0,
         sectorCount: 0, countryCode: 0, outletCountry: "",
-        angleDist: {},
+        angleDist: {}, sectorDist: {},
       }));
     }
 
@@ -2105,7 +2185,12 @@ export default function DiscrepancyDesk() {
         angleDist[a.primaryAngle] = (angleDist[a.primaryAngle] ?? 0) + 1;
       }
 
-      return { ...o, angleCoverage, lagDays, avgWordCount, sectorCount, countryCode, outletCountry: dc, angleDist };
+      const sectorDist: Partial<Record<Sector, number>> = {};
+      for (const a of oa) if (a.sector) {
+        sectorDist[a.sector] = (sectorDist[a.sector] ?? 0) + 1;
+      }
+
+      return { ...o, angleCoverage, lagDays, avgWordCount, sectorCount, countryCode, outletCountry: dc, angleDist, sectorDist };
     });
   }, [articles, allStats]);
 
@@ -2117,6 +2202,8 @@ export default function DiscrepancyDesk() {
   const [pendingAParam, setPendingAParam]   = useState<MetricParam>({});
   const [filterMode, setFilterMode]         = useState<"outlet" | "language" | "time">("outlet");
   const [selectedOutlets, setSelectedOutlets] = useState<Set<string>>(new Set());
+  const [countrySearch, setCountrySearch]   = useState("");
+  const [outletSearch, setOutletSearch]     = useState("");
 
   useEffect(() => {
     if (extStats.length > 0 && selectedOutlets.size === 0) {
@@ -2137,18 +2224,31 @@ export default function DiscrepancyDesk() {
   const mA = METRICS.find(m => m.id === metricA)!;
   const mB = METRICS.find(m => m.id === metricB)!;
 
-  const mALabel = metricAParam.frameFilter ? `${mA.label} · ${metricAParam.frameFilter}`
-                : metricAParam.angleFilter  ? `${mA.label} · ${metricAParam.angleFilter}`
+  const mALabel = metricAParam.frameFilter   ? `${mA.label} · ${metricAParam.frameFilter}`
+                : metricAParam.angleFilter    ? `${mA.label} · ${metricAParam.angleFilter}`
+                : metricAParam.sectorFilter   ? `${mA.label} · ${metricAParam.sectorFilter}`
+                : metricAParam.countryFilter  ? `${mA.label} · ${metricAParam.countryFilter}`
                 : mA.label;
-  const mBLabel = metricBParam.frameFilter ? `${mB.label} · ${metricBParam.frameFilter}`
-                : metricBParam.angleFilter  ? `${mB.label} · ${metricBParam.angleFilter}`
+  const mBLabel = metricBParam.frameFilter   ? `${mB.label} · ${metricBParam.frameFilter}`
+                : metricBParam.angleFilter    ? `${mB.label} · ${metricBParam.angleFilter}`
+                : metricBParam.sectorFilter   ? `${mB.label} · ${metricBParam.sectorFilter}`
+                : metricBParam.countryFilter  ? `${mB.label} · ${metricBParam.countryFilter}`
                 : mB.label;
 
-  const displayStats = useMemo(() =>
-    selectedOutlets.size === 0
-      ? extStats
-      : extStats.filter(o => selectedOutlets.has(o.id)),
-    [extStats, selectedOutlets]
+  const activeCountryFilter: string | undefined =
+    mA.id === "country" ? metricAParam.countryFilter :
+    mB.id === "country" ? metricBParam.countryFilter : undefined;
+
+  const displayStats = useMemo(() => {
+    let base = extStats;
+    if (selectedOutlets.size > 0) base = base.filter(o => selectedOutlets.has(o.id));
+    if (activeCountryFilter)       base = base.filter(o => o.outletCountry === activeCountryFilter);
+    return base;
+  }, [extStats, selectedOutlets, activeCountryFilter]);
+
+  const filteredArticles = useMemo(() =>
+    activeCountryFilter ? articles.filter(a => a.country === activeCountryFilter) : articles,
+    [articles, activeCountryFilter]
   );
 
 
@@ -2194,9 +2294,11 @@ export default function DiscrepancyDesk() {
     if (pendingA === null) {
       setPendingA(id);
       setPendingAParam({});
+      setCountrySearch("");
     } else if (id === pendingA) {
       setPendingA(null);
       setPendingAParam({});
+      setCountrySearch("");
     } else {
       const rule = getPairRule(pendingA, id);
       if (!rule.valid) return;
@@ -2206,6 +2308,7 @@ export default function DiscrepancyDesk() {
       setMetricBParam({});
       setPendingA(null);
       setPendingAParam({});
+      setCountrySearch("");
     }
   };
 
@@ -2218,8 +2321,7 @@ export default function DiscrepancyDesk() {
     });
   };
 
-  const today     = new Date().toLocaleDateString("en-GB",  { day: "numeric", month: "long",  year: "numeric" });
-  const monthYear = new Date().toLocaleDateString("en-US",  { month: "long",  year: "numeric" });
+  const today = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
   const pendingM    = pendingA ? METRICS.find(m => m.id === pendingA) : null;
   const isLeftNode  = pendingA === "wordcount" || pendingA === "sector";
@@ -2295,6 +2397,100 @@ export default function DiscrepancyDesk() {
           </div>
         </div>
       )}
+      {pendingM.id === "sector" && (
+        <div style={{ marginBottom: 14 }}>
+          <p style={{ fontFamily: QTC, fontSize: 8, letterSpacing: "0.8", textTransform: "uppercase", color: "var(--t2)", marginBottom: 6 }}>
+            Filter to sector
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+            {[null, ...SECTORS].map(s => {
+              const active = s === null ? !pendingAParam.sectorFilter : pendingAParam.sectorFilter === s;
+              return (
+                <button key={s ?? "all"}
+                  onClick={() => setPendingAParam(s ? { sectorFilter: s } : {})}
+                  style={{
+                    padding: "2px 7px",
+                    background: active ? "var(--t1)" : "transparent",
+                    color: active ? "var(--bg)" : "var(--t2)",
+                    border: "1px solid var(--border)",
+                    fontFamily: QTC, fontSize: 8, letterSpacing: "0.5",
+                    cursor: "pointer",
+                  }}>
+                  {s === null ? "All" : s}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {pendingM.id === "country" && (() => {
+        const allCodes = [...new Set(extStats.map(o => o.outletCountry).filter(Boolean))].sort();
+        const q = countrySearch.trim().toLowerCase();
+        const matched = allCodes.filter(c =>
+          (COUNTRY_NAMES[c] ?? c).toLowerCase().includes(q) || c.toLowerCase().includes(q)
+        );
+        const activeCode = pendingAParam.countryFilter ?? null;
+        // always show active selection even if not in top-3
+        const visible = matched.slice(0, 3);
+        if (activeCode && !visible.includes(activeCode) && matched.includes(activeCode)) {
+          visible[2] = activeCode;
+        }
+        return (
+          <div style={{ marginBottom: 14 }}>
+            <p style={{ fontFamily: QTC, fontSize: 8, letterSpacing: "0.8", textTransform: "uppercase", color: "var(--t2)", marginBottom: 6 }}>
+              Filter to country
+            </p>
+            <input
+              type="text"
+              placeholder="Search country…"
+              value={countrySearch}
+              onChange={e => setCountrySearch(e.target.value)}
+              style={{
+                width: "100%", marginBottom: 6, padding: "4px 8px",
+                border: "1px solid var(--border)", background: "var(--bg)",
+                fontFamily: SANS, fontSize: 11, color: "var(--t1)",
+                outline: "none", boxSizing: "border-box",
+              }}
+            />
+            <button
+              onClick={() => setPendingAParam({})}
+              style={{
+                display: "block", width: "100%", textAlign: "left",
+                padding: "3px 8px", marginBottom: 4,
+                background: !activeCode ? "var(--t1)" : "transparent",
+                color: !activeCode ? "var(--bg)" : "var(--t1)",
+                border: "1px solid var(--border)",
+                fontFamily: QTC, fontSize: 8, letterSpacing: "0.5",
+                cursor: "pointer",
+              }}>
+              All countries
+            </button>
+            {visible.map(c => {
+              const active = activeCode === c;
+              return (
+                <button key={c}
+                  onClick={() => setPendingAParam({ countryFilter: c })}
+                  style={{
+                    display: "block", width: "100%", textAlign: "left",
+                    padding: "3px 8px", marginBottom: 4,
+                    background: active ? "var(--t1)" : "transparent",
+                    color: active ? "var(--bg)" : "var(--t1)",
+                    border: "1px solid var(--border)",
+                    fontFamily: QTC, fontSize: 8, letterSpacing: "0.5",
+                    cursor: "pointer",
+                  }}>
+                  {COUNTRY_NAMES[c] ?? c}
+                </button>
+              );
+            })}
+            {matched.length > 3 && (
+              <p style={{ fontFamily: SANS, fontSize: 10, color: "var(--t2)", marginTop: 2 }}>
+                +{matched.length - 3} more — refine search
+              </p>
+            )}
+          </div>
+        );
+      })()}
       <p style={{ fontFamily: PF, fontStyle: "italic", fontSize: 12, color: "var(--t2)", marginTop: 4 }}>
         Now click a highlighted node to pair
       </p>
@@ -2415,52 +2611,79 @@ export default function DiscrepancyDesk() {
             </div>
           </div>
 
-          {filterMode === "outlet" ? (
-            <div style={{
-              border: "1px solid var(--t1)", padding: "12px 16px",
-              display: "flex", flexWrap: "wrap",
-              gap: 8, alignItems: "center", justifyContent: "center",
-            }}>
-              {[...extStats].sort((a, b) => b.articleCount - a.articleCount).slice(0, 20).map(o => {
-                const active   = selectedOutlets.has(o.id);
-                const disabled = !active && selectedOutlets.size >= 5;
-                return (
-                  <button key={o.id}
-                    onClick={() => { if (active || !disabled) toggleOutlet(o.id); }}
-                    title={o.name}
-                    style={{
-                      padding: "3px 10px",
-                      background: active ? "var(--t1)" : "transparent",
-                      color: active ? "var(--bg)" : "var(--t2)",
-                      border: "none",
-                      fontFamily: QTC, fontSize: 10, letterSpacing: "0.5",
-                      textTransform: "uppercase",
-                      cursor: disabled ? "default" : "pointer",
-                      opacity: disabled ? 0.3 : 1,
-                      transition: "opacity 0.15s",
-                      maxWidth: 140, overflow: "hidden",
-                      textOverflow: "ellipsis", whiteSpace: "nowrap",
-                    }}>
-                    {o.name}
-                  </button>
-                );
-              })}
-              <span style={{
-                fontFamily: QTC, fontSize: 9, letterSpacing: "0.8",
-                textTransform: "uppercase", color: "var(--t2)", whiteSpace: "nowrap",
-              }}>
-                choose up to 5
-              </span>
-            </div>
-          ) : (
-            <div style={{
-              border: "1px solid var(--border)", padding: "14px 16px", textAlign: "center",
-              fontFamily: QTC, fontSize: 10, letterSpacing: "0.8",
-              textTransform: "uppercase", color: "var(--t2)",
-            }}>
-              {filterMode === "language" ? "Language filter — coming soon" : "Time filter — coming soon"}
-            </div>
-          )}
+          {filterMode === "outlet" && (() => {
+            const q = outletSearch.trim().toLowerCase();
+            const selected = [...extStats].filter(o => selectedOutlets.has(o.id));
+            const results = q
+              ? extStats.filter(o => !selectedOutlets.has(o.id) && o.name.toLowerCase().includes(q))
+              : [];
+            const canAdd = selectedOutlets.size < 5;
+            return (
+              <div style={{ border: "1px solid var(--t1)", padding: "12px 16px" }}>
+                {/* selected outlets — always visible */}
+                {selected.length > 0 && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
+                    {selected.map(o => (
+                      <button key={o.id} onClick={() => toggleOutlet(o.id)}
+                        title={`Remove ${o.name}`}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 5,
+                          padding: "3px 8px",
+                          background: "var(--t1)", color: "var(--bg)",
+                          border: "none", cursor: "pointer",
+                          fontFamily: QTC, fontSize: 10, letterSpacing: "0.5",
+                          textTransform: "uppercase",
+                        }}>
+                        {o.name}
+                        <span style={{ fontSize: 12, lineHeight: 1, opacity: 0.7 }}>×</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {/* search input */}
+                <input
+                  type="text"
+                  placeholder={canAdd ? "Search outlet to add…" : "5 selected — remove one to swap"}
+                  value={outletSearch}
+                  onChange={e => setOutletSearch(e.target.value)}
+                  style={{
+                    width: "100%", padding: "5px 10px",
+                    border: "1px solid var(--border)", background: "var(--bg)",
+                    fontFamily: SANS, fontSize: 11, color: "var(--t1)",
+                    outline: "none", boxSizing: "border-box",
+                  }}
+                />
+                {/* search results */}
+                {results.length > 0 && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                    {results.slice(0, 8).map(o => (
+                      <button key={o.id}
+                        onClick={() => { if (canAdd) { toggleOutlet(o.id); setOutletSearch(""); } }}
+                        style={{
+                          padding: "3px 10px",
+                          background: "transparent", color: canAdd ? "var(--t1)" : "var(--t2)",
+                          border: "1px solid var(--border)", cursor: canAdd ? "pointer" : "default",
+                          fontFamily: QTC, fontSize: 10, letterSpacing: "0.5",
+                          textTransform: "uppercase", opacity: canAdd ? 1 : 0.4,
+                        }}>
+                        {o.name}
+                      </button>
+                    ))}
+                    {results.length > 8 && (
+                      <span style={{ fontFamily: SANS, fontSize: 10, color: "var(--t2)", alignSelf: "center" }}>
+                        +{results.length - 8} more
+                      </span>
+                    )}
+                  </div>
+                )}
+                {q && results.length === 0 && (
+                  <p style={{ fontFamily: SANS, fontSize: 10, color: "var(--t2)", marginTop: 6 }}>
+                    No outlets match &ldquo;{outletSearch}&rdquo;
+                  </p>
+                )}
+              </div>
+            );
+          })()}
 
           <div style={{
             display: "flex", alignItems: "center",
@@ -2497,7 +2720,7 @@ export default function DiscrepancyDesk() {
             metricA={metricA} metricB={metricB}
             metricAParam={metricAParam} metricBParam={metricBParam}
             stats={displayStats}
-            articles={articles}
+            articles={filteredArticles}
             scatterData={scatterData}
             reg={reg}
             mA={mA} mB={mB}
@@ -2567,112 +2790,6 @@ export default function DiscrepancyDesk() {
               ))}
             </div>
           </div>
-        )}
-
-        {/* scatter section header */}
-        <div style={{ marginTop: 56 }}>
-          <DblRule />
-          <div style={{
-            display: "flex", justifyContent: "space-between",
-            alignItems: "center", padding: "10px 0",
-            fontFamily: PDK, fontSize: 14, color: "var(--t2)",
-          }}>
-            <span>
-              <em style={{ fontFamily: PF, fontStyle: "italic" }}>{mBLabel}</em>
-              {" "}coverage · across{" "}
-              <em style={{ fontFamily: PF, fontStyle: "italic" }}>{mALabel}</em>
-              {" "}· {monthYear}
-            </span>
-            <span>Source · n = {displayStats.length} outlets</span>
-          </div>
-          <div style={{ borderTop: "1px solid var(--border)", marginBottom: 12 }} />
-        </div>
-
-        <p style={{
-          fontFamily: SS, fontSize: 15, lineHeight: "20px",
-          color: "var(--t1)", marginBottom: 24, maxWidth: 820,
-        }}>
-          Each dot is one outlet. x-axis = <em>{mALabel}</em> ({mA.desc}); y-axis = <em>{mBLabel}</em>. The dashed line is the regression — dots above over-index on {mB.short} for their level of {mA.short}.
-        </p>
-
-        {/* scatter plot */}
-        {loading ? (
-          <div style={{
-            height: 580, display: "flex",
-            alignItems: "center", justifyContent: "center",
-            fontFamily: QTC, fontSize: 12, letterSpacing: "1.2",
-            textTransform: "uppercase", color: "var(--t2)",
-          }}>
-            Loading data…
-          </div>
-        ) : displayStats.length === 0 ? (
-          <div style={{
-            height: 580, display: "flex",
-            alignItems: "center", justifyContent: "center",
-            fontFamily: PDK, fontSize: 16, color: "var(--t2)",
-          }}>
-            Select at least one outlet above.
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={580}>
-            <ScatterChart margin={{ top: 20, right: 80, bottom: 56, left: 24 }}>
-              <CartesianGrid strokeDasharray="2 6" stroke="var(--border)" strokeOpacity={0.5} />
-              <XAxis
-                type="number" dataKey="x" name={mA.label}
-                tick={{ fontFamily: SANS, fontSize: 11, fill: "var(--t2)" }}
-                label={{
-                  value: `${mALabel} (${mA.unit}) →`,
-                  position: "insideBottomRight", offset: -8,
-                  style: { fontFamily: PF, fontStyle: "italic", fontSize: 13, fill: "var(--t1)" },
-                }}
-              />
-              <YAxis
-                type="number" dataKey="y" name={mB.label}
-                tick={{ fontFamily: SANS, fontSize: 11, fill: "var(--t2)" }}
-                label={{
-                  value: `↑ ${mBLabel} (${mB.unit})`,
-                  angle: -90, position: "insideTopLeft", offset: 16,
-                  style: { fontFamily: PF, fontStyle: "italic", fontSize: 13, fill: "var(--t1)" },
-                }}
-              />
-              <Tooltip
-                cursor={{ strokeDasharray: "3 3", stroke: "var(--t2)" }}
-                content={(props: unknown) => {
-                  const p = props as {
-                    active?: boolean;
-                    payload?: Array<{ payload: { name: string; x: number; y: number } }>;
-                  };
-                  return <ScatterTooltip active={p.active} payload={p.payload} mA={mA} mB={mB} mALabel={mALabel} mBLabel={mBLabel} />;
-                }}
-              />
-              <Scatter
-                data={scatterData}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                shape={(props: any) => {
-                  const { cx, cy, payload } = props as { cx: number; cy: number; payload: { name: string } };
-                  const nm    = payload.name;
-                  const label = nm.length > 18 ? nm.substring(0, 16) + "…" : nm;
-                  return (
-                    <g>
-                      <circle cx={cx} cy={cy} r={5} fill="var(--t1)" fillOpacity={0.72} />
-                      <text x={cx + 8} y={cy - 1} fontSize={10} fontFamily={SANS} fill="var(--t1)" fillOpacity={0.72}>
-                        {label}
-                      </text>
-                    </g>
-                  );
-                }}
-              />
-              {reg && (
-                <ReferenceLine
-                  segment={[
-                    { x: reg.minX, y: reg.slope * reg.minX + reg.int },
-                    { x: reg.maxX, y: reg.slope * reg.maxX + reg.int },
-                  ]}
-                  stroke="var(--t2)" strokeDasharray="6 3" strokeWidth={1.5}
-                />
-              )}
-            </ScatterChart>
-          </ResponsiveContainer>
         )}
 
         {/* footer */}

@@ -229,15 +229,6 @@ function EditionTeaser({ ed }: { ed: Edition }) {
   );
 }
 
-// ─── Stats ticker ─────────────────────────────────────────────────────────────
-
-const TICKER_ITEMS = [
-  "Coverage gaps", "Framing bias", "Sector proportionality",
-  "GHG alignment", "Outlet accountability", "74 outlets monitored",
-  "Narrative tracking", "Climate journalism",
-];
-const TICKER_TEXT = TICKER_ITEMS.join("  ·  ") + "  ·  ";
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
@@ -284,24 +275,12 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Ticker — bottom of hero */}
-        <div style={{ borderTop: "1px solid var(--t1)" }} />
-        <div className="py-2 overflow-hidden">
-          <div style={{
-            display: "flex", width: "max-content", whiteSpace: "nowrap",
-            animation: "ticker 40s linear infinite",
-            fontFamily: F.plex, fontSize: 14, color: "var(--t2)",
-          }}>
-            <span>{TICKER_TEXT}</span>
-            <span aria-hidden="true">{TICKER_TEXT}</span>
-          </div>
-        </div>
       </div>
 
       {/* Sliding layer — solid background covers the hero as you scroll */}
-      <div style={{ position: "relative", zIndex: 1, backgroundColor: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", marginTop: "60px" }}>
+      <div style={{ position: "relative", zIndex: 1, backgroundColor: "var(--bg)", marginTop: "60px" }}>
 
-        <div id="editions" style={{ paddingTop: 24, paddingBottom: 48 }}>
+        <div id="editions" style={{ paddingTop: 24, paddingBottom: 24 }}>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
             {EDITIONS.map((ed, i) => (
               <ScrollReveal key={ed.href} delay={i * 120} style={{

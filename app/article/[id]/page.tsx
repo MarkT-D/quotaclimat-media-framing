@@ -3,7 +3,7 @@ import { use, useState, useEffect } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell,
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, ReferenceLine, Cell, Tooltip,
 } from "recharts";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { FRAMES, ANGLES } from "@/lib/articleTypes";
@@ -20,8 +20,8 @@ const F = {
   qtc:      "var(--font-quantico)",
 };
 
-const FRAME_COLORS = ["var(--red)", "#EF9F27", "var(--red-m)", "#7C3AED", "var(--green)"];
-const ANGLE_COLORS = ["#2D4228", "#3A5535", "#4A6741", "#6B9B65", "#A8BE8A", "#C8DEB8"];
+const FRAME_COLORS = ["var(--red)", "var(--green)", "var(--red-m)", "#7C3AED", "#EF9F27"];
+const ANGLE_COLORS = ["var(--red)", "#EF9F27", "var(--green)", "var(--red-m)", "#7C3AED", "var(--green-m)"];
 
 const KW_LIMIT = 8;
 
@@ -51,19 +51,29 @@ function groupIntoParagraphs(tokens: Token[]): Token[][] {
   return paras.filter(p => p.length > 0);
 }
 
-// ─── Chart tooltip ────────────────────────────────────────────────────────────
+const FRAME_TICK: Record<string, string> = {
+  "Attribution of Responsibility": "Responsib.",
+  "Human Interest":                "Human Int.",
+  "Conflict":                      "Conflict",
+  "Morality":                      "Morality",
+  "Economic Consequences":         "Economic",
+};
 
-interface TooltipPayloadItem { value: number; payload: Record<string, string | number> }
-
-function ChartTooltip({ active, payload, labelKey }: { active?: boolean; payload?: TooltipPayloadItem[]; labelKey: string }) {
+function DevTooltip({ active, payload }: {
+  active?: boolean;
+  payload?: { payload: { fullFrame?: string; fullAngle?: string; score: number; dev: number } }[];
+}) {
   if (!active || !payload?.length) return null;
+  const d = payload[0].payload;
+  const label = d.fullFrame ?? d.fullAngle ?? "";
+  const sign  = d.dev >= 0 ? "+" : "";
   return (
-    <div style={{
-      background: "var(--bg)", border: "1px solid var(--border)",
-      padding: "8px 12px", fontFamily: F.plex,
-    }}>
-      <p style={{ color: "var(--t2)", fontSize: 11, marginBottom: 2 }}>{payload[0]?.payload?.[labelKey]}</p>
-      <p style={{ color: "var(--t1)", fontSize: 12, fontWeight: 500 }}>{payload[0]?.value}%</p>
+    <div style={{ background: "var(--bg)", border: "1px solid var(--border)", padding: "8px 12px", fontFamily: F.plex, fontSize: 11 }}>
+      <p style={{ color: "var(--t1)", fontWeight: 600, marginBottom: 4 }}>{label}</p>
+      <p style={{ color: "var(--t2)" }}>
+        {d.score}%&ensp;·&ensp;
+        <span style={{ color: d.dev >= 0 ? "var(--green)" : "var(--red)" }}>{sign}{d.dev}pp vs baseline</span>
+      </p>
     </div>
   );
 }
@@ -115,6 +125,18 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
     score:     Math.round(((article.angleScores?.[a as Angle]) ?? 0) * 100),
     fill:      ANGLE_COLORS[i],
   }));
+
+  // Diverging chart data — deviation from equal-share baseline
+  const FRAME_BASELINE = Math.round(100 / FRAMES.length);   // 20
+  const ANGLE_BASELINE = Math.round(100 / ANGLES.length);   // ~17
+
+  const frameDevData = [...frameBarData]
+    .sort((a, b) => b.score - a.score)
+    .map(d => ({ ...d, dev: d.score - FRAME_BASELINE, tick: FRAME_TICK[d.fullFrame] ?? d.frame }));
+
+  const angleDevData = [...angleBarData]
+    .sort((a, b) => b.score - a.score)
+    .map(d => ({ ...d, dev: d.score - ANGLE_BASELINE, tick: d.angle }));
 
   // Keywords
   const visibleKw = showAllKw ? article.keywords : article.keywords.slice(0, KW_LIMIT);
@@ -300,53 +322,88 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
         )}
       </div>
 
-      {/* ── Charts ── */}
+      {/* ── Diverging bar charts ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2" style={{ gap: 1, background: "var(--border)", marginTop: 28 }}>
-        {/* Frame chart */}
+
+        {/* Frame diverging */}
         <div style={{ background: "var(--bg)", padding: "20px 20px 16px" }}>
           <p style={{ fontFamily: F.plex, fontSize: 11, fontWeight: 500, color: "var(--t1)", marginBottom: 2 }}>
             Frame probabilities
           </p>
-          <p style={{ fontFamily: F.plex, fontSize: 10, color: "var(--t2)", marginBottom: 12 }}>
-            Semetko &amp; Valkenburg (2000)
+          <p style={{ fontFamily: F.plex, fontSize: 10, color: "var(--t2)", marginBottom: 4 }}>
+            Semetko &amp; Valkenburg (2000) · equal share baseline {FRAME_BASELINE}%
           </p>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={frameBarData} layout="vertical" margin={{ left: 90, right: 12 }}>
-              <XAxis type="number" domain={[0, 100]} unit="%" tick={{ fontSize: 9, fontFamily: F.plex, fill: "var(--t2)" }} />
-              <YAxis type="category" dataKey="frame" tick={{ fontSize: 9, fontFamily: F.plex, fill: "var(--t2)" }} width={90} />
-              <Tooltip content={<ChartTooltip labelKey="fullFrame" />} />
-              <Bar dataKey="score" radius={[0, 2, 2, 0]}>
-                {frameBarData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+          <ResponsiveContainer width="100%" height={230}>
+            <BarChart data={frameDevData} margin={{ top: 20, right: 8, bottom: 4, left: 8 }}>
+              <XAxis
+                dataKey="tick"
+                tick={{ fontSize: 9, fontFamily: F.plex, fill: "var(--t2)" }}
+                axisLine={{ stroke: "var(--border)" }}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 9, fontFamily: F.plex, fill: "var(--t2)" }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={v => `${v > 0 ? "+" : ""}${v}pp`}
+                width={36}
+              />
+              <ReferenceLine y={0} stroke="var(--t1)" strokeWidth={1} strokeDasharray="3 3" />
+              <Tooltip content={<DevTooltip />} cursor={{ fill: "var(--bg2)", fillOpacity: 0.5 }} />
+              <Bar dataKey="dev" maxBarSize={48}>
+                {frameDevData.map((entry, i) => (
+                  <Cell
+                    key={i}
+                    fill={entry.dev >= 0 ? entry.fill : "var(--bg2)"}
+                    stroke={entry.fullFrame === article.primaryFrame ? "var(--t1)" : "transparent"}
+                    strokeWidth={1.5}
+                  />
+                ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-          <p style={{ fontFamily: F.plex, fontSize: 10, color: "var(--t2)", marginTop: 6 }}>
-            Primary:&ensp;<span style={{ fontWeight: 600, color: "var(--t1)" }}>{article.primaryFrame ?? "—"}</span>
-          </p>
         </div>
 
-        {/* Angle chart */}
+        {/* Angle diverging */}
         <div style={{ background: "var(--bg)", padding: "20px 20px 16px" }}>
           <p style={{ fontFamily: F.plex, fontSize: 11, fontWeight: 500, color: "var(--t1)", marginBottom: 2 }}>
             Angle distribution
           </p>
-          <p style={{ fontFamily: F.plex, fontSize: 10, color: "var(--t2)", marginBottom: 12 }}>
-            QuotaClimat taxonomy
+          <p style={{ fontFamily: F.plex, fontSize: 10, color: "var(--t2)", marginBottom: 4 }}>
+            QuotaClimat taxonomy · equal share baseline {ANGLE_BASELINE}%
           </p>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={angleBarData} layout="vertical" margin={{ left: 90, right: 12 }}>
-              <XAxis type="number" domain={[0, 100]} unit="%" tick={{ fontSize: 9, fontFamily: F.plex, fill: "var(--t2)" }} />
-              <YAxis type="category" dataKey="angle" tick={{ fontSize: 9, fontFamily: F.plex, fill: "var(--t2)" }} width={90} />
-              <Tooltip content={<ChartTooltip labelKey="fullAngle" />} />
-              <Bar dataKey="score" radius={[0, 2, 2, 0]}>
-                {angleBarData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+          <ResponsiveContainer width="100%" height={230}>
+            <BarChart data={angleDevData} margin={{ top: 20, right: 8, bottom: 4, left: 8 }}>
+              <XAxis
+                dataKey="tick"
+                tick={{ fontSize: 9, fontFamily: F.plex, fill: "var(--t2)" }}
+                axisLine={{ stroke: "var(--border)" }}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 9, fontFamily: F.plex, fill: "var(--t2)" }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={v => `${v > 0 ? "+" : ""}${v}pp`}
+                width={36}
+              />
+              <ReferenceLine y={0} stroke="var(--t1)" strokeWidth={1} strokeDasharray="3 3" />
+              <Tooltip content={<DevTooltip />} cursor={{ fill: "var(--bg2)", fillOpacity: 0.5 }} />
+              <Bar dataKey="dev" maxBarSize={48}>
+                {angleDevData.map((entry, i) => (
+                  <Cell
+                    key={i}
+                    fill={entry.dev >= 0 ? entry.fill : "var(--bg2)"}
+                    stroke={entry.fullAngle === article.primaryAngle ? "var(--t1)" : "transparent"}
+                    strokeWidth={1.5}
+                  />
+                ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-          <p style={{ fontFamily: F.plex, fontSize: 10, color: "var(--t2)", marginTop: 6 }}>
-            Primary:&ensp;<span style={{ fontWeight: 600, color: "var(--t1)" }}>{article.primaryAngle ?? "—"}</span>
-          </p>
         </div>
+
+
       </div>
 
     </div>

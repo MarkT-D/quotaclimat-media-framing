@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useRef, Suspense } from "react";
+import { useState, useMemo, useRef, useEffect, Suspense } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -46,11 +46,11 @@ function getLanguageCode(language: string | null): Language {
 }
 
 const FRAME_COLORS: Record<Frame, string> = {
-  "Attribution of Responsibility": "var(--green)",
-  "Human Interest":                "var(--green-d)",
-  "Conflict":                      "var(--red)",
+  "Attribution of Responsibility": "var(--red)",
+  "Human Interest":                "var(--green)",
+  "Conflict":                      "var(--red-m)",
   "Morality":                      "#7C3AED",
-  "Economic Consequences":         "var(--green-m)",
+  "Economic Consequences":         "#EF9F27",
 };
 
 
@@ -223,6 +223,40 @@ function SearchFilter({ label, value, onChange, opts, displayFn }: {
   );
 }
 
+// ── Typing cycle for search heading ─────────────────────────────────────────
+
+const SEARCH_PHRASES = [
+  "the archive", "by keyword", "by outlet", "by sector",
+  "by frame", "by angle", "by date",
+] as const;
+
+const TYPE_MS   = 75;
+const DELETE_MS = 40;
+const PAUSE_MS  = 2000;
+
+function useTypingCycle(phrases: readonly string[]) {
+  const [text,  setText]  = useState(phrases[0]);
+  const [idx,   setIdx]   = useState(0);
+  const [phase, setPhase] = useState<"typing" | "pausing" | "deleting">("pausing");
+
+  useEffect(() => {
+    const target = phrases[idx];
+    let t: ReturnType<typeof setTimeout>;
+    if (phase === "pausing") {
+      t = setTimeout(() => setPhase("deleting"), PAUSE_MS);
+    } else if (phase === "deleting") {
+      if (text.length === 0) { setIdx(i => (i + 1) % phrases.length); setPhase("typing"); }
+      else { t = setTimeout(() => setText(s => s.slice(0, -1)), DELETE_MS); }
+    } else {
+      if (text.length < target.length) { t = setTimeout(() => setText(target.slice(0, text.length + 1)), TYPE_MS); }
+      else { setPhase("pausing"); }
+    }
+    return () => clearTimeout(t);
+  }, [text, phase, idx, phrases]);
+
+  return text;
+}
+
 // ── Article item ────────────────────────────────────────────────────────────
 
 function NewsItem({ article, index }: { article: Article; index: number }) {
@@ -258,13 +292,13 @@ function NewsItem({ article, index }: { article: Article; index: number }) {
           {article.title}
         </h2>
 
-        {/* Word count pill */}
+        {/* Read time pill */}
         <div style={{ marginBottom: 8 }}>
           <span style={{
             fontFamily: F.plex, fontSize: 10, color: "var(--t2)",
             border: "1px solid var(--border)", padding: "1px 6px",
           }}>
-            {article.wordCount.toLocaleString()} words
+            {Math.max(1, Math.ceil(article.wordCount / 200))} min read
           </span>
         </div>
 
@@ -306,6 +340,7 @@ function NewsItem({ article, index }: { article: Article; index: number }) {
 function SearchPageInner() {
   const { articles: allArticles } = useArticles();
   const searchParams = useSearchParams();
+  const cycleText = useTypingCycle(SEARCH_PHRASES);
 
   const countryOptions = useMemo(() => {
     const counts = new Map<string, number>();
@@ -335,7 +370,7 @@ function SearchPageInner() {
   const [dateTo,     setDateTo]     = useState<string>(searchParams.get("dateTo")   ?? "");
   const [page,       setPage]       = useState(0);
   const [perPage,    setPerPage]    = useState(9);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(true);
   const [uploadFile,  setUploadFile]  = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -377,25 +412,8 @@ function SearchPageInner() {
   return (
     <div className="max-w-[1440px] mx-auto px-11">
 
-      {/* Search input */}
-      <div className="pt-10 pb-2">
-        <input
-          type="text" value={query}
-          onChange={(e) => { setQuery(e.target.value); bump(); }}
-          onKeyDown={(e) => e.key === "Enter" && bump()}
-          placeholder="Search the archive…"
-          style={{
-            width: "100%", fontFamily: F.playfair,
-            fontWeight: 400, fontSize: 36, lineHeight: "40px",
-            color: "var(--t1)", background: "transparent", border: "none",
-            borderBottom: "2px solid var(--t1)", outline: "none",
-            paddingBottom: 12, textAlign: "center", caretColor: "var(--t1)",
-          }}
-        />
-      </div>
-
       {/* Filter toolbar */}
-      <div style={{ display: "flex", alignItems: "center", padding: "8px 0", marginTop: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", padding: "8px 0", paddingTop: 36 }}>
 
         {/* Left — active filter state */}
         <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
@@ -554,6 +572,33 @@ function SearchPageInner() {
 
           </div>
         </div>
+      </div>
+
+      {/* Search input — below filters, typing effect as background text */}
+      <div style={{ position: "relative", marginTop: 20, marginBottom: 4 }}>
+        {!query && (
+          <div style={{
+            position: "absolute", top: 0, left: 0, right: 0, pointerEvents: "none",
+            fontFamily: F.playfair, fontWeight: 400, fontSize: 26, lineHeight: "34px",
+            color: "var(--t2)",
+          }}>
+            Search <span>{cycleText}</span>
+            <span className="typing-cursor" />
+          </div>
+        )}
+        <input
+          type="text" value={query}
+          onChange={(e) => { setQuery(e.target.value); bump(); }}
+          onKeyDown={(e) => e.key === "Enter" && bump()}
+          style={{
+            width: "100%", fontFamily: F.playfair, fontWeight: 400,
+            fontSize: 26, lineHeight: "34px",
+            color: "var(--t1)", background: "transparent",
+            border: "none", borderBottom: "1px solid var(--border)",
+            outline: "none", padding: "0 0 10px",
+            caretColor: "var(--t1)",
+          }}
+        />
       </div>
 
       {/* Results meta + pagination */}

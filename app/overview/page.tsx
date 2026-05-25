@@ -551,84 +551,6 @@ export default function OverviewPage() {
           </div>
 
           <div className="w-full lg:w-[45%] mt-6 lg:mt-0">
-            {countryOptions.length > 0 && (
-              <div className="flex items-center justify-end gap-2" style={{ marginBottom: 14 }}>
-                {([null, ...topCountries] as (string | null)[]).map((c) => {
-                  const active = country === c;
-                  const label  = c ? countryLabel(c) : "All";
-                  return (
-                    <button key={c ?? "all"} onClick={() => { setCountry(c); setCountrySearchOpen(false); }} style={{
-                      fontFamily: F.plex, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em",
-                      background: active ? "var(--t1)" : "transparent",
-                      color: active ? "var(--bg)" : "var(--t2)",
-                      border: `1px solid ${active ? "var(--t1)" : "var(--border)"}`,
-                      padding: "3px 14px", cursor: "pointer", transition: "all 0.12s",
-                    }}>
-                      {label}
-                    </button>
-                  );
-                })}
-                {moreCountries.length > 0 && (
-                  <div style={{ position: "relative" }} ref={dropdownRef}>
-                    <button
-                      onClick={() => { setCountrySearchOpen(o => !o); setCountryQuery(""); }}
-                      style={{
-                        fontFamily: F.plex, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em",
-                        background: activeIsInMore ? "var(--t1)" : "transparent",
-                        color: activeIsInMore ? "var(--bg)" : "var(--t2)",
-                        border: `1px solid ${activeIsInMore ? "var(--t1)" : "var(--border)"}`,
-                        padding: "3px 14px", cursor: "pointer", transition: "all 0.12s",
-                      }}
-                    >
-                      {activeIsInMore ? countryLabel(country!) : `▾ ${moreCountries.length} more`}
-                    </button>
-                    {countrySearchOpen && (
-                      <div style={{
-                        position: "absolute", right: 0, top: "calc(100% + 4px)",
-                        background: "var(--bg)", border: "1px solid var(--border)",
-                        width: 220, zIndex: 50,
-                      }}>
-                        <div style={{ padding: "6px 10px", borderBottom: "1px solid var(--border)" }}>
-                          <input
-                            autoFocus
-                            value={countryQuery}
-                            onChange={e => setCountryQuery(e.target.value)}
-                            placeholder="Search…"
-                            style={{
-                              width: "100%", background: "transparent", border: "none", outline: "none",
-                              fontFamily: F.plex, fontSize: 12, color: "var(--t1)",
-                            }}
-                          />
-                        </div>
-                        <div style={{ maxHeight: 200, overflowY: "auto" }}>
-                          {filteredMore.map(c => (
-                            <div key={c}
-                              onClick={() => { setCountry(c); setCountrySearchOpen(false); setCountryQuery(""); }}
-                              onMouseEnter={() => setHoveredDropdownItem(c)}
-                              onMouseLeave={() => setHoveredDropdownItem(null)}
-                              style={{
-                                padding: "7px 12px", fontFamily: F.plex, fontSize: 12, cursor: "pointer",
-                                color: "var(--t1)",
-                                background: c === country || c === hoveredDropdownItem ? "var(--bg2)" : "transparent",
-                              }}
-                            >
-                              {countryLabel(c)}
-                              <span style={{ color: "var(--t2)", fontSize: 10, marginLeft: 6 }}>{c}</span>
-                            </div>
-                          ))}
-                          {filteredMore.length === 0 && (
-                            <div style={{ padding: "10px 12px", fontFamily: F.plex, fontSize: 12, color: "var(--t2)" }}>
-                              No matches
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
               {STATS.map((stat, i) => (
                 <div key={stat.label} style={{
@@ -649,7 +571,83 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        <Rule thick color="var(--t1)" />
+        {countryOptions.length > 0 && (
+          <div className="flex items-center justify-center gap-2" style={{ paddingBottom: 32 }}>
+            {([null, ...topCountries] as (string | null)[]).map((c) => {
+              const active = country === c;
+              const label  = c ? countryLabel(c) : "All";
+              return (
+                <button key={c ?? "all"} onClick={() => { setCountry(c); setCountrySearchOpen(false); }} style={{
+                  fontFamily: F.plex, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em",
+                  background: active ? "var(--t1)" : "transparent",
+                  color: active ? "var(--bg)" : "var(--t2)",
+                  border: `1px solid ${active ? "var(--t1)" : "var(--border)"}`,
+                  padding: "3px 14px", cursor: "pointer", transition: "all 0.12s",
+                }}>
+                  {label}
+                </button>
+              );
+            })}
+            {moreCountries.length > 0 && (
+              <div style={{ position: "relative" }} ref={dropdownRef}>
+                <button
+                  onClick={() => { setCountrySearchOpen(o => !o); setCountryQuery(""); }}
+                  style={{
+                    fontFamily: F.plex, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em",
+                    background: activeIsInMore ? "var(--t1)" : "transparent",
+                    color: activeIsInMore ? "var(--bg)" : "var(--t2)",
+                    border: `1px solid ${activeIsInMore ? "var(--t1)" : "var(--border)"}`,
+                    padding: "3px 14px", cursor: "pointer", transition: "all 0.12s",
+                  }}
+                >
+                  {activeIsInMore ? countryLabel(country!) : `▾ ${moreCountries.length} more`}
+                </button>
+                {countrySearchOpen && (
+                  <div style={{
+                    position: "absolute", left: "50%", transform: "translateX(-50%)", top: "calc(100% + 4px)",
+                    background: "var(--bg)", border: "1px solid var(--border)",
+                    width: 220, zIndex: 50,
+                  }}>
+                    <div style={{ padding: "6px 10px", borderBottom: "1px solid var(--border)" }}>
+                      <input
+                        autoFocus
+                        value={countryQuery}
+                        onChange={e => setCountryQuery(e.target.value)}
+                        placeholder="Search…"
+                        style={{
+                          width: "100%", background: "transparent", border: "none", outline: "none",
+                          fontFamily: F.plex, fontSize: 12, color: "var(--t1)",
+                        }}
+                      />
+                    </div>
+                    <div style={{ maxHeight: 200, overflowY: "auto" }}>
+                      {filteredMore.map(c => (
+                        <div key={c}
+                          onClick={() => { setCountry(c); setCountrySearchOpen(false); setCountryQuery(""); }}
+                          onMouseEnter={() => setHoveredDropdownItem(c)}
+                          onMouseLeave={() => setHoveredDropdownItem(null)}
+                          style={{
+                            padding: "7px 12px", fontFamily: F.plex, fontSize: 12, cursor: "pointer",
+                            color: "var(--t1)",
+                            background: c === country || c === hoveredDropdownItem ? "var(--bg2)" : "transparent",
+                          }}
+                        >
+                          {countryLabel(c)}
+                          <span style={{ color: "var(--t2)", fontSize: 10, marginLeft: 6 }}>{c}</span>
+                        </div>
+                      ))}
+                      {filteredMore.length === 0 && (
+                        <div style={{ padding: "10px 12px", fontFamily: F.plex, fontSize: 12, color: "var(--t2)" }}>
+                          No matches
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Coverage over time + Frame distribution — no enclosing border; soft-rule column divider between cells. */}
         <div className="grid grid-cols-2 mt-6">
