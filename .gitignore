@@ -46,3 +46,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# database dumps (too large for GitHub — keep locally or share via Drive)
+*.sql
+*.zip
+backend/db/*.csv

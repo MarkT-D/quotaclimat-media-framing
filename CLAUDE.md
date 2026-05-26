@@ -15,6 +15,46 @@ npm run lint     # ESLint (flat config, eslint 9)
 
 No test runner is configured yet.
 
+## Database (Docker)
+
+**Start / stop**
+```bash
+docker compose up -d       # start Postgres on localhost:5432
+docker compose down        # stop (data persists in pgdata volume)
+```
+
+**First-time setup — restore dump**
+```bash
+# Mac / Linux
+docker compose exec -T db psql -U quota quota_climate < quota_climate_dump.sql
+
+# Windows PowerShell (if redirect fails)
+Get-Content quota_climate_dump.sql | docker compose exec -T db psql -U quota quota_climate
+```
+
+**Wipe all data (keep schema)**
+```bash
+docker compose exec -T db psql -U quota quota_climate -c "TRUNCATE articles RESTART IDENTITY CASCADE;"
+```
+
+**Full reset — destroy volume and re-seed from dump**
+```bash
+docker compose down -v
+docker compose up -d
+docker compose exec -T db psql -U quota quota_climate < quota_climate_dump.sql
+```
+
+**Create a new dump from current DB state**
+```bash
+docker compose exec -T db pg_dump -U quota --no-owner --no-acl quota_climate > quota_climate_dump.sql
+```
+
+`.env` values (matches `.env.example`):
+```
+POSTGRES_PASSWORD=changeme
+DATABASE_URL=postgresql://quota:changeme@localhost:5432/quota_climate
+```
+
 ## Architecture
 
 **Stack:** Next.js 16 (App Router), React 19, Tailwind CSS v4 (PostCSS engine), Recharts, Lucide icons, TypeScript strict mode. Path alias `@/*` maps to the project root.
