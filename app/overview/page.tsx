@@ -335,9 +335,10 @@ function OutletCard({ outlet, onNavigate }: {
       <div
         onClick={() => onNavigate({ outlet: outlet.name })}
         title={`Show all ${outlet.name} articles`}
-        style={{ fontFamily: F.playfair, fontSize: 32, lineHeight: 1, color: "var(--t1)", margin: "10px 0", cursor: "pointer" }}
+        style={{ margin: "10px 0", cursor: "pointer" }}
       >
-        {outlet.count}
+        <span style={{ fontFamily: F.playfair, fontSize: 32, lineHeight: 1, color: "var(--t1)" }}>{outlet.count}</span>
+        <span style={{ fontFamily: F.plex, fontSize: 10, color: "var(--t2)", textTransform: "uppercase", letterSpacing: "0.05em", marginLeft: 6 }}>articles</span>
       </div>
       <Rule color="var(--border)" />
       {outlet.count > 0 && (
@@ -867,7 +868,7 @@ export default function OverviewPage() {
         <div className="mt-6" style={{ display: "flex" }}>
           <div style={{ width: "36%", padding: "22px 24px 24px 0", flexShrink: 0 }}>
             <SectionHead>Coverage vs. Emissions</SectionHead>
-            <SectionMeta bg="var(--green-l)">Media share vs. sector GHG share · 2024</SectionMeta>
+            <SectionMeta bg="var(--green-l)">Media share vs. sector greenhouse gas (GHG) share · 2024</SectionMeta>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
               <div className="flex items-center gap-3">
                 <svg width={14} height={14}><circle cx={7} cy={7} r={5} fill="var(--red)" /></svg>
@@ -976,6 +977,18 @@ export default function OverviewPage() {
             </div>
           </>
         )}
+
+        {/* footer */}
+        <div style={{ marginTop: 80 }}>
+          <div style={{ borderTop: "1px solid var(--border)", marginBottom: 16 }} />
+          <div style={{
+            display: "flex", justifyContent: "space-between",
+            fontFamily: F.plex, fontSize: 15, lineHeight: "25px", color: "var(--t2)",
+          }}>
+            <span>The Climate Narrative Review · Dashboard</span>
+            <span>Edition I</span>
+          </div>
+        </div>
 
         <div className="pb-12" />
 

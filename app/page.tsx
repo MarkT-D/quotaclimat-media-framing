@@ -127,7 +127,7 @@ const EDITIONS: Edition[] = [
     number: "01",
     title: "Dashboard",
     italic: true,
-    desc: "Sector coverage vs. GHG proportionality across 74 outlets.",
+    desc: "Sector coverage vs. greenhouse gas (GHG) proportionality across 74 outlets.",
     cta: "Open dashboard",
     href: "/overview",
     accent: "var(--red)",

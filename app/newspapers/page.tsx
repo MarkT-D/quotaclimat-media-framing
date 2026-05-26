@@ -385,20 +385,34 @@ function DblRule() {
 }
 
 // ── HexPicker ──────────────────────────────────────────────────────────────
-function HexPicker({ metricA, metricB, pendingA, compatibleIds, onNodeClick }: {
+function nodeFilterTag(metricId: string, p: MetricParam): string | null {
+  const raw =
+    metricId === "frame"   ? p.frameFilter :
+    metricId === "angle"   ? p.angleFilter :
+    metricId === "sector"  ? p.sectorFilter :
+    metricId === "country" ? p.countryFilter :
+    undefined;
+  if (!raw) return null;
+  const word = raw.split(" ")[0];
+  return word.length > 9 ? word.slice(0, 8) + "…" : word;
+}
+
+function HexPicker({ metricA, metricB, pendingA, compatibleIds, onNodeClick, metricAParam, metricBParam }: {
   metricA:       string;
   metricB:       string;
   pendingA:      string | null;
   compatibleIds: Set<string>;
   onNodeClick:   (id: string) => void;
+  metricAParam:  MetricParam;
+  metricBParam:  MetricParam;
 }) {
   const nodeA = HEX_NODES.find(n => n.metricId === metricA)!;
   const nodeB = HEX_NODES.find(n => n.metricId === metricB)!;
   const mA    = METRICS.find(m => m.id === metricA)!;
   const mB    = METRICS.find(m => m.id === metricB)!;
 
-  const CIRC_R = 34;
-  const DIAM_H = 24;
+  const CIRC_R = 38;
+  const DIAM_H = 27;
   const SPRING = "cubic-bezier(0.34,1.56,0.64,1)";
 
   const pendingNode = pendingA ? HEX_NODES.find(n => n.metricId === pendingA) : null;
@@ -461,6 +475,15 @@ function HexPicker({ metricA, metricB, pendingA, compatibleIds, onNodeClick }: {
         const showDiamond = isA && !pendingA || isPendingA;
         const showCircle  = isB && !pendingA;
 
+        const filterTag = !pendingA && isA ? nodeFilterTag(node.metricId, metricAParam)
+                        : !pendingA && isB ? nodeFilterTag(node.metricId, metricBParam)
+                        : null;
+
+        // Vertically center text block: 2-line when no filter, 3-line when filter active
+        const textY1 = filterTag ? node.cy - 7 : node.cy - 2;
+        const textY2 = filterTag ? node.cy + 4 : node.cy + 9;
+        const textY3 = node.cy + 14;
+
         return (
           <g key={node.metricId} onClick={() => onNodeClick(node.metricId)}
             style={{ cursor: isIncompat ? "not-allowed" : "pointer", opacity: isIncompat ? 0.25 : 1, transition: "opacity 0.2s" }}>
@@ -496,18 +519,33 @@ function HexPicker({ metricA, metricB, pendingA, compatibleIds, onNodeClick }: {
                 }} />
             </g>
 
-            <text x={node.cx} y={node.cy + 4} textAnchor="middle"
+            <text x={node.cx} y={textY1} textAnchor="middle"
               fontFamily={PDK} fontSize={10} fontWeight="600"
-              fill={showDiamond ? "#fff" : showCircle ? "var(--t1)" : "var(--t2)"}
-              style={{ pointerEvents: "none", transition: "fill 0.3s ease", userSelect: "none" }}>
+              fill={showDiamond || showCircle ? "rgba(255,255,255,0.9)" : "var(--t2)"}
+              style={{ pointerEvents: "none", transition: "fill 0.3s, y 0.25s", userSelect: "none" }}>
               {metric.short}
             </text>
-            <text x={node.cx} y={node.cy + 15} textAnchor="middle"
+            <text x={node.cx} y={textY2} textAnchor="middle"
               fontFamily={QTC} fontSize={7} letterSpacing="0.5"
-              fill={showDiamond ? "rgba(255,255,255,0.65)" : "var(--t2)"}
-              style={{ pointerEvents: "none", userSelect: "none", transition: "fill 0.3s ease" }}>
+              fill={showDiamond || showCircle ? "rgba(255,255,255,0.65)" : "var(--t2)"}
+              style={{ pointerEvents: "none", userSelect: "none", transition: "fill 0.3s, y 0.25s" }}>
               {metric.unit.toUpperCase()}
             </text>
+
+            {filterTag && (
+              <>
+                <circle cx={node.cx + 27} cy={node.cy - 27} r={4.5}
+                  fill={isA ? SALMON : LIME}
+                  stroke="var(--bg)" strokeWidth={1.5}
+                  style={{ pointerEvents: "none" }} />
+                <text x={node.cx} y={textY3} textAnchor="middle"
+                  fontFamily={QTC} fontSize={6} letterSpacing="0.4"
+                  fill={showDiamond || isB ? "rgba(255,255,255,0.85)" : "var(--t2)"}
+                  style={{ pointerEvents: "none", userSelect: "none" }}>
+                  {filterTag.toUpperCase()}
+                </text>
+              </>
+            )}
           </g>
         );
       })}
@@ -537,38 +575,73 @@ function OutletCard({ outlet, mA, mB, vA, vB }: {
   vB:     number;
 }) {
   const total = outlet.articleCount || 1;
+  const [hovFrame, setHovFrame] = useState<string | null>(null);
+  const [hovStage, setHovStage] = useState<string | null>(null);
+
+  const framePcts = FRAME_COLORS.map(({ frame, color }) => ({
+    frame, color, pct: Math.round((outlet.frameDist[frame] ?? 0) / total * 100),
+  })).filter(f => f.pct > 0);
+
+  const stagePcts = STAGE_COLORS.map(({ stage, color }) => ({
+    stage, color, pct: Math.round((outlet.stageDist[stage] ?? 0) / total * 100),
+  })).filter(s => s.pct > 0);
+
   return (
     <div style={{ background: "var(--bg)", padding: "20px 16px" }}>
       <p style={{ fontFamily: PFSC, fontSize: 11, lineHeight: "15px", color: "var(--t1)", marginBottom: 8, wordBreak: "break-word", letterSpacing: "0.02em" }}>
         {outlet.name}
       </p>
-      <p style={{ fontFamily: PF, fontSize: 32, lineHeight: "36px", color: "var(--t1)", marginBottom: 2 }}>
-        {outlet.articleCount}
-      </p>
-      <p style={{ fontFamily: QTC, fontSize: 8, letterSpacing: "1.2", textTransform: "uppercase", color: "var(--t2)", marginBottom: 18 }}>
-        articles
-      </p>
+      <div style={{ margin: "0 0 14px" }}>
+        <span style={{ fontFamily: PF, fontSize: 32, lineHeight: "36px", color: "var(--t1)" }}>{outlet.articleCount}</span>
+        <span style={{ fontFamily: QTC, fontSize: 8, letterSpacing: "1.2", textTransform: "uppercase", color: "var(--t2)", marginLeft: 6 }}>articles</span>
+      </div>
 
       <p style={{ fontFamily: QTC, fontSize: 8, letterSpacing: "1", textTransform: "uppercase", color: "var(--t2)", marginBottom: 5 }}>Frames</p>
-      <div style={{ display: "flex", height: 6, marginBottom: 14 }}>
-        {FRAME_COLORS.map(({ frame, color }) => {
-          const pct = (outlet.frameDist[frame] ?? 0) / total * 100;
-          return pct > 0 ? (
-            <div key={frame} title={`${frame}: ${outlet.frameDist[frame]}`}
-              style={{ width: `${pct}%`, background: color, minWidth: 2 }} />
-          ) : null;
-        })}
+      <div style={{ display: "flex", height: 8, marginBottom: 2, overflow: "hidden" }}>
+        {framePcts.map(({ frame, color, pct }) => (
+          <div key={frame}
+            style={{
+              flexGrow: pct, flexShrink: pct, flexBasis: 0,
+              minWidth: hovFrame === frame ? 22 : 0,
+              height: "100%", background: color, cursor: "default",
+              opacity: hovFrame && hovFrame !== frame ? 0.3 : 1,
+              transition: "min-width 0.15s ease, opacity 0.1s",
+            }}
+            onMouseEnter={() => setHovFrame(frame)}
+            onMouseLeave={() => setHovFrame(null)}
+            title={`${frame}: ${pct}%`}
+          />
+        ))}
+      </div>
+      <div style={{ height: 16, marginBottom: 12 }}>
+        {hovFrame && (() => {
+          const f = framePcts.find(x => x.frame === hovFrame);
+          return f ? <span style={{ fontFamily: SANS, fontSize: 10, color: f.color, fontWeight: 600 }}>{f.frame} · {f.pct}%</span> : null;
+        })()}
       </div>
 
       <p style={{ fontFamily: QTC, fontSize: 8, letterSpacing: "1", textTransform: "uppercase", color: "var(--t2)", marginBottom: 5 }}>Stages</p>
-      <div style={{ display: "flex", height: 4, marginBottom: 20 }}>
-        {STAGE_COLORS.map(({ stage, color }) => {
-          const pct = (outlet.stageDist[stage] ?? 0) / total * 100;
-          return pct > 0 ? (
-            <div key={stage} title={`${stage}: ${outlet.stageDist[stage]}`}
-              style={{ width: `${pct}%`, background: color }} />
-          ) : null;
-        })}
+      <div style={{ display: "flex", height: 6, marginBottom: 2, overflow: "hidden" }}>
+        {stagePcts.map(({ stage, color, pct }) => (
+          <div key={stage}
+            style={{
+              flexGrow: pct, flexShrink: pct, flexBasis: 0,
+              minWidth: hovStage === stage ? 22 : 0,
+              height: "100%", background: color, cursor: "default",
+              opacity: hovStage && hovStage !== stage ? 0.3 : 1,
+              transition: "min-width 0.15s ease, opacity 0.1s",
+            }}
+            onMouseEnter={() => setHovStage(stage)}
+            onMouseLeave={() => setHovStage(null)}
+            title={`${stage}: ${pct}%`}
+          />
+        ))}
+      </div>
+      <div style={{ height: 16, marginBottom: 14 }}>
+        {hovStage && (() => {
+          const s = stagePcts.find(x => x.stage === hovStage);
+          return s ? <span style={{ fontFamily: SANS, fontSize: 10, color: s.color, fontWeight: 600 }}>{s.stage} · {s.pct}%</span> : null;
+        })()}
       </div>
 
       {[
@@ -1563,12 +1636,12 @@ function RankedPanelChart({ articles, mA, mB, filterMode, stats }: {
   type Group = { key: string; label: string; arts: Article[] };
 
   const groups: Group[] = filterMode === "outlet"
-    ? stats.slice(0, 5).map(o => ({
+    ? stats.slice(0, 4).map(o => ({
         key: o.id, label: o.name,
         arts: articles.filter(a => a.outlet === o.id),
       }))
     : [...new Set(articles.map(a => a.language).filter((l): l is string => l !== null))]
-        .slice(0, 5)
+        .slice(0, 4)
         .map(lang => ({
           key: lang, label: lang,
           arts: articles.filter(a => a.language === lang),
@@ -1615,32 +1688,32 @@ function RankedPanelChart({ articles, mA, mB, filterMode, stats }: {
       </p>
       <div style={{ display: "flex", gap: 20, overflowX: "auto" }}>
         {groups.map(g => (
-          <div key={g.key} style={{ minWidth: 148, flex: "1 1 148px" }}>
+          <div key={g.key} style={{ minWidth: 180, flex: "1 1 180px" }}>
             <p style={{
-              fontFamily: PFSC, fontSize: 10, color: "var(--t1)", marginBottom: 12,
+              fontFamily: PFSC, fontSize: 14, color: "var(--t1)", marginBottom: 14,
               letterSpacing: "0.02em", wordBreak: "break-word",
             }}>
-              {g.label.length > 22 ? g.label.slice(0, 20) + "…" : g.label}
+              {g.label.length > 28 ? g.label.slice(0, 26) + "…" : g.label}
             </p>
             {metricsToRender.map(m => {
               const cats = getCats(m, g.arts);
               const maxPct = Math.max(...cats.map(c => c.pct), 1);
               return (
-                <div key={m.id} style={{ marginBottom: 16 }}>
-                  <p style={{ fontFamily: QTC, fontSize: 7, letterSpacing: "0.8", textTransform: "uppercase", color: "var(--t2)", marginBottom: 6 }}>
+                <div key={m.id} style={{ marginBottom: 18 }}>
+                  <p style={{ fontFamily: QTC, fontSize: 10, letterSpacing: "0.8", textTransform: "uppercase", color: "var(--t2)", marginBottom: 8 }}>
                     {m.short}
                   </p>
                   {cats.slice(0, 5).map(cat => (
-                    <div key={cat.label} style={{ marginBottom: 5 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
-                        <span style={{ fontFamily: SANS, fontSize: 8, color: "var(--t2)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {cat.label.length > 14 ? cat.label.slice(0, 12) + "…" : cat.label}
+                    <div key={cat.label} style={{ marginBottom: 7 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
+                        <span style={{ fontFamily: SANS, fontSize: 12, color: "var(--t2)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {cat.label.length > 16 ? cat.label.slice(0, 14) + "…" : cat.label}
                         </span>
-                        <span style={{ fontFamily: QTC, fontSize: 8, color: "var(--t1)", flexShrink: 0 }}>
+                        <span style={{ fontFamily: QTC, fontSize: 12, color: "var(--t1)", flexShrink: 0 }}>
                           {cat.pct}%
                         </span>
                       </div>
-                      <div style={{ height: 4, background: "var(--bg2)" }}>
+                      <div style={{ height: 5, background: "var(--bg2)" }}>
                         <div style={{ height: "100%", width: `${cat.pct / maxPct * 100}%`, background: cat.color }} />
                       </div>
                     </div>
@@ -2562,6 +2635,8 @@ export default function DiscrepancyDesk() {
               pendingA={pendingA}
               compatibleIds={compatibleIds}
               onNodeClick={handleHexClick}
+              metricAParam={metricAParam}
+              metricBParam={metricBParam}
             />
           </div>
 
@@ -2800,7 +2875,7 @@ export default function DiscrepancyDesk() {
             fontFamily: PDK, fontSize: 15, lineHeight: "25px", color: "var(--t2)",
           }}>
             <span>The Climate Narrative Review · Discrepancy Desk</span>
-            <span>Edition II</span>
+            <span>Edition III</span>
           </div>
         </div>
 

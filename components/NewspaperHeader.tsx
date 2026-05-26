@@ -61,12 +61,13 @@ export default function NewspaperHeader() {
         }}>
           <div className="relative flex items-start justify-between pt-12 pb-6">
             <div style={{ fontFamily: "var(--font-plex-sans)", fontSize: 13, lineHeight: "17px", color: "var(--t2)" }}>
-              Tuesday, May 5, 2026 Vol. I &mdash; No. 17
+              {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })} Vol. I &mdash; No. {Math.floor((Date.now() - new Date("2026-01-01").getTime()) / (7 * 86400000))}
             </div>
 
-            <div
-              className="absolute left-1/2 -translate-x-1/2 text-center pointer-events-none"
-              style={{ top: 20 }}
+            <Link
+              href="/"
+              className="absolute left-1/2 -translate-x-1/2 text-center"
+              style={{ top: 20, textDecoration: "none" }}
             >
               <div style={{
                 fontFamily: "var(--font-playfair-sc)",
@@ -88,11 +89,9 @@ export default function NewspaperHeader() {
               }}>
                 &ldquo;Frame analysis for those who shape coverage.&rdquo;
               </div>
-            </div>
+            </Link>
 
-            <div className="text-right" style={{ fontFamily: "var(--font-plex-sans)", fontSize: 13, lineHeight: "20px", color: "var(--t2)" }}>
-              <div>Climate Desk</div>
-            </div>
+            <div />
           </div>
 
           <div className="border-t border-[var(--t2)]" />
@@ -112,6 +111,8 @@ export default function NewspaperHeader() {
                     fontSize: 13,
                     lineHeight: "14px",
                     color: active ? "var(--t1)" : "var(--t2)",
+                    borderBottom: active ? "1.5px solid var(--t1)" : "1.5px solid transparent",
+                    paddingBottom: 2,
                   }}
                 >
                   {link.label}
