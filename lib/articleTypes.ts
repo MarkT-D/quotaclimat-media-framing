@@ -44,13 +44,14 @@ export interface Article {
   language: string | null;
   country: string | null;                    // ISO-2 from DB (FR, BE, …)
   sector: Sector | null;                    // null when no sector flag set
-  crisisDomain: CrisisDomain | null;
-  stage: Stage | null;
-  primaryFrame: Frame | null;
-  frameScores: Partial<Record<Frame, number>>;  // only non-null scores
+  crisisDomains: CrisisDomain[];            // all true domain flags
+  stages: Stage[];                          // all true stage flags
+  frames: Frame[];                          // all true frame flags
+  primaryFrame: Frame | null;               // first/highest frame (for single-label compat)
+  frameScores: Partial<Record<Frame, number>>;
   primaryAngle: Angle | null;
   angleScores: Partial<Record<Angle, number>>;
-  misinformationScore?: number;             // not in DB yet
+  misinformationScore?: number;
   wordCount: number;
   excerpt: string;
   url?: string;
@@ -72,7 +73,7 @@ export function getOutletStats(articles: Article[]) {
 
     const stageDist = {} as Record<Stage, number>;
     STAGES.forEach((s) => (stageDist[s] = 0));
-    oa.forEach((a) => { if (a.stage != null) stageDist[a.stage]++; });
+    oa.forEach((a) => { a.stages.forEach((s) => stageDist[s]++); });
 
     const frameDist = {} as Record<Frame, number>;
     FRAMES.forEach((f) => (frameDist[f] = 0));

@@ -40,11 +40,8 @@ export interface DbRow {
   ln_subject: string | null;
 }
 
-function firstTrue<T>(pairs: [boolean | null | undefined, T][]): T | null {
-  for (const [flag, value] of pairs) {
-    if (flag === true) return value;
-  }
-  return null;
+function collectTrue<T>(pairs: [boolean | null | undefined, T][]): T[] {
+  return pairs.filter(([flag]) => flag === true).map(([, value]) => value);
 }
 
 function argmax(scores: Partial<Record<string, number>>): string | null {
@@ -60,7 +57,7 @@ function argmax(scores: Partial<Record<string, number>>): string | null {
 }
 
 export function mapDbRowToArticle(row: DbRow): Article {
-  const sector = firstTrue<Sector>([
+  const sector = collectTrue<Sector>([
     [row.sector_energy, "Energy"],
     [row.sector_transport, "Transport"],
     [row.sector_agriculture, "Agriculture"],
@@ -69,19 +66,27 @@ export function mapDbRowToArticle(row: DbRow): Article {
     [row.sector_water, "Water"],
     [row.sector_ecosystem, "Ecosystem"],
     [row.sector_resource_economy, "Resource Economy"],
-  ]);
+  ])[0] ?? null;
 
-  const stage = firstTrue<Stage>([
+  const stages = collectTrue<Stage>([
     [row.stage_general_concepts, "General Concepts"],
     [row.stage_causes, "Causes"],
     [row.stage_consequences, "Consequences"],
     [row.stage_solutions, "Solutions"],
   ]);
 
-  const crisisDomain = firstTrue<CrisisDomain>([
+  const crisisDomains = collectTrue<CrisisDomain>([
     [row.domain_climate, "Climate"],
     [row.domain_biodiversity, "Biodiversity"],
     [row.domain_resources, "Resources"],
+  ]);
+
+  const frames = collectTrue<Frame>([
+    [row.frame_attribution != null,    "Attribution of Responsibility"],
+    [row.frame_human_interest != null, "Human Interest"],
+    [row.frame_conflict != null,       "Conflict"],
+    [row.frame_morality != null,       "Morality"],
+    [row.frame_economic != null,       "Economic Consequences"],
   ]);
 
   const frameScores: Partial<Record<Frame, number>> = {};
@@ -124,8 +129,9 @@ export function mapDbRowToArticle(row: DbRow): Article {
     language: row.language,
     country: row.country,
     sector,
-    crisisDomain,
-    stage,
+    crisisDomains,
+    stages,
+    frames,
     primaryFrame,
     frameScores,
     primaryAngle,

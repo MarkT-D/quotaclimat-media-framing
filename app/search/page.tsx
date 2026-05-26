@@ -327,7 +327,7 @@ function NewsItem({ article, index }: { article: Article; index: number }) {
 
         {/* Tag line */}
         <p style={{ fontFamily: F.plex, fontSize: 10, color: "var(--t2)" }}>
-          {[article.sector ?? "—", article.primaryAngle, article.stage, article.crisisDomain].filter(Boolean).join(" · ")}
+          {[article.sector ?? "—", article.primaryAngle, article.stages[0], article.crisisDomains[0]].filter(Boolean).join(" · ")}
         </p>
 
       </article>
@@ -381,8 +381,8 @@ function SearchPageInner() {
     return (
       (!q       || a.title.toLowerCase().includes(q) || a.excerpt.toLowerCase().includes(q) || a.keywords.some((k) => k.includes(q))) &&
       (!sector  || a.sector === sector) &&
-      (!domain  || a.crisisDomain === domain) &&
-      (!stage   || a.stage === stage) &&
+      (!domain  || a.crisisDomains.includes(domain)) &&
+      (!stage   || a.stages.includes(stage)) &&
       (!angle   || a.primaryAngle === angle) &&
       (!frame   || a.primaryFrame === frame) &&
       (!lang    || getLanguageCode(a.language) === lang) &&

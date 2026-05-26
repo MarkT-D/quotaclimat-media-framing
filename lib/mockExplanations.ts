@@ -128,8 +128,8 @@ const FRAME_PARAGRAPHS: Partial<Record<Frame, (a: Article) => string>> = {
 
 function generateBodyText(article: Article): string {
   const sector = article.sector ?? "environmental";
-  const crisisDomain = article.crisisDomain ?? "climate";
-  const stage = article.stage ?? "general";
+  const crisisDomain = article.crisisDomains[0] ?? "climate";
+  const stage = article.stages[0] ?? "general";
   const { keywords, title } = article;
   const kw0 = keywords[0] ?? "emissions";
   const kw1 = keywords[1] ?? "policy";

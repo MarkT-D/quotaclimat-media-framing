@@ -76,13 +76,13 @@ function frameStatsFrom(arts: Article[]) {
 
 function stageCountsFrom(arts: Article[]) {
   const counts = Object.fromEntries(STAGES.map((s) => [s, 0])) as Record<Stage, number>;
-  arts.forEach((a) => { if (a.stage != null) counts[a.stage]++; });
+  arts.forEach((a) => { a.stages.forEach((s) => counts[s]++); });
   return STAGES.map((s) => ({ stage: s, count: counts[s] }));
 }
 
 function domainCountsFrom(arts: Article[]) {
   const counts = Object.fromEntries(CRISIS_DOMAINS.map((d) => [d, 0])) as Record<CrisisDomain, number>;
-  arts.forEach((a) => { if (a.crisisDomain != null) counts[a.crisisDomain]++; });
+  arts.forEach((a) => { a.crisisDomains.forEach((d) => counts[d]++); });
   return CRISIS_DOMAINS.map((d) => ({ domain: d, count: counts[d] }));
 }
 
@@ -494,7 +494,7 @@ export default function OverviewPage() {
   const outletCount = new Set(arts.map((a) => a.outlet)).size;
   const topSector   = [...sectorData].sort((a, b) => b.count - a.count)[0];
   const solutionPct = totalArts
-    ? Math.round(arts.filter((a) => a.stage === "Solutions").length / totalArts * 100) : 0;
+    ? Math.round(arts.filter((a) => a.stages.includes("Solutions")).length / totalArts * 100) : 0;
 
   const totalDomain = domainData.reduce((s, d) => s + d.count, 0);
   const totalStage  = stageData.reduce((s, d) => s + d.count, 0);

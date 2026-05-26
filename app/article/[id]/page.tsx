@@ -249,9 +249,9 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
           <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)" }}>
             {article.wordCount.toLocaleString()} words
           </span>
-          {article.crisisDomain && (
+          {article.crisisDomains.length > 0 && (
             <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)" }}>
-              {article.crisisDomain}
+              {article.crisisDomains.join(", ")}
             </span>
           )}
           {article.url && (

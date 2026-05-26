@@ -33,7 +33,7 @@ export default function ArticleCard({ article }: Props) {
 
         <div className="flex flex-wrap gap-1.5 mb-3">
           {article.sector && <Badge label={article.sector} size="sm" />}
-          {article.stage && <Badge label={article.stage} size="sm" />}
+          {article.stages[0] && <Badge label={article.stages[0]} size="sm" />}
         </div>
 
         {/* Misinfo bar — only when score available */}
