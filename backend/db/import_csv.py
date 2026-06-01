@@ -126,8 +126,8 @@ COLUMN_MAP: dict[str, tuple[str, object]] = {
     # v3 direct columns
     "outlet":                 ("outlet",                 _text),
     "published_at":           ("published_at",           _date),
-    # angle columns (angles_health → angle_health rename)
-    "angles_health":          ("angle_health",           _real),
+    # angle columns
+    "angle_health":           ("angle_health",           _real),
     "angle_economics":        ("angle_economics",        _real),
     "angle_jobs":             ("angle_jobs",             _real),
     "angle_politics":         ("angle_politics",         _real),
@@ -151,6 +151,15 @@ COLUMN_MAP: dict[str, tuple[str, object]] = {
     "frame_human_interest":   ("frame_human_interest",   _real),
     "frame_morality":         ("frame_morality",         _real),
     "frame_attribution":      ("frame_attribution",      _real),
+    # stage booleans (CSV names → DB names)
+    "stage_concept":          ("stage_general_concepts", _bool),
+    "stage_cause":            ("stage_causes",           _bool),
+    "stage_consequence":      ("stage_consequences",     _bool),
+    "stage_solution":         ("stage_solutions",        _bool),
+    # domain booleans (domain_ressources → domain_resources)
+    "domain_climate":         ("domain_climate",         _bool),
+    "domain_biodiversity":    ("domain_biodiversity",    _bool),
+    "domain_ressources":      ("domain_resources",       _bool),
     # LexisNexis metadata tags (renamed)
     "subject":                ("ln_subject",             _text),
     "industry":               ("ln_industry",            _text),
@@ -169,6 +178,8 @@ INSERT INTO articles (
     sector_transport, sector_water,
     frame_conflict, frame_economic, frame_human_interest,
     frame_morality, frame_attribution,
+    stage_general_concepts, stage_causes, stage_consequences, stage_solutions,
+    domain_climate, domain_biodiversity, domain_resources,
     ln_subject, ln_industry, ln_geographic
 ) VALUES (
     %(source_id)s, %(title)s, %(body)s, %(outlet)s, %(published_at)s, %(language)s, %(country)s,
@@ -181,6 +192,8 @@ INSERT INTO articles (
     %(sector_transport)s, %(sector_water)s,
     %(frame_conflict)s, %(frame_economic)s, %(frame_human_interest)s,
     %(frame_morality)s, %(frame_attribution)s,
+    %(stage_general_concepts)s, %(stage_causes)s, %(stage_consequences)s, %(stage_solutions)s,
+    %(domain_climate)s, %(domain_biodiversity)s, %(domain_resources)s,
     %(ln_subject)s, %(ln_industry)s, %(ln_geographic)s
 )
 ON CONFLICT (source_id) DO UPDATE SET
@@ -214,6 +227,13 @@ ON CONFLICT (source_id) DO UPDATE SET
     frame_human_interest    = EXCLUDED.frame_human_interest,
     frame_morality          = EXCLUDED.frame_morality,
     frame_attribution       = EXCLUDED.frame_attribution,
+    stage_general_concepts  = EXCLUDED.stage_general_concepts,
+    stage_causes            = EXCLUDED.stage_causes,
+    stage_consequences      = EXCLUDED.stage_consequences,
+    stage_solutions         = EXCLUDED.stage_solutions,
+    domain_climate          = EXCLUDED.domain_climate,
+    domain_biodiversity     = EXCLUDED.domain_biodiversity,
+    domain_resources        = EXCLUDED.domain_resources,
     ln_subject              = EXCLUDED.ln_subject,
     ln_industry             = EXCLUDED.ln_industry,
     ln_geographic           = EXCLUDED.ln_geographic;
@@ -276,7 +296,7 @@ def _flush(conn: "psycopg2.connection", batch: list[dict]) -> int:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--csv",       default="backend/db/merged_articles_1705_v5.csv")
+    parser.add_argument("--csv",       default="v9.csv")
     parser.add_argument("--jsonl-dir", default="backend/scraper/output")
     parser.add_argument("--dsn",       default=os.getenv("DATABASE_URL", "postgresql://localhost/quota_climate"))
     parser.add_argument("--dry-run",   action="store_true")

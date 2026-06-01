@@ -750,10 +750,14 @@ export default function OverviewPage() {
             <div style={{ display: "flex", height: 32, marginBottom: 6 }}>
               {angleBars.map((b, i) => (
                 <div key={b.angle}
-                  style={{ width: `${b.pct}%`, height: "100%", background: ANGLE_COLORS[i % ANGLE_COLORS.length],
+                  style={{
+                    flexGrow: b.pct, flexShrink: b.pct, flexBasis: 0,
+                    minWidth: hoveredAngleBar === b.angle ? 28 : 0,
+                    height: "100%", background: ANGLE_COLORS[i % ANGLE_COLORS.length],
                     cursor: "pointer",
                     opacity: hoveredAngleBar && hoveredAngleBar !== b.angle ? 0.35 : 1,
-                    transition: "opacity 0.12s" }}
+                    transition: "min-width 0.15s ease, opacity 0.12s",
+                  }}
                   onMouseEnter={() => setHoveredAngleBar(b.angle)}
                   onMouseLeave={() => setHoveredAngleBar(null)}
                   onClick={() => router.push(toSearch({ angle: b.angle }, country))}
@@ -769,8 +773,8 @@ export default function OverviewPage() {
               })() : (
                 <div style={{ display: "flex" }}>
                   {angleBars.map((b, i) => (
-                    <div key={b.angle} style={{ width: `${b.pct}%`, overflow: "hidden", paddingRight: 2 }}>
-                      <span style={{ fontFamily: F.playfair, fontSize: 14, lineHeight: 1, color: ANGLE_COLORS[i % ANGLE_COLORS.length] }}>{b.pct}%</span>
+                    <div key={b.angle} style={{ flexGrow: b.pct, flexShrink: b.pct, flexBasis: 0, overflow: "hidden", paddingRight: 2 }}>
+                      {b.pct >= 8 && <span style={{ fontFamily: F.playfair, fontSize: 14, lineHeight: 1, color: ANGLE_COLORS[i % ANGLE_COLORS.length] }}>{b.pct}%</span>}
                     </div>
                   ))}
                 </div>
