@@ -1,12 +1,12 @@
 # Quota Climate
 
-A Next.js web application for climate quota research and analysis.
+Climate journalism analysis dashboard — tracks how news coverage reflects environmental crises across sectors, frames, and angles.
 
 ## Prerequisites
 
 - Node.js 18+
 - Docker Desktop (for the database)
-- Python 3.11+ (for the scraper and classifier)
+- Python 3.11+ (for the classifier backend)
 
 ## Quick start
 
@@ -20,11 +20,13 @@ cp .env.example .env
 # 3. Start the database
 docker compose up -d
 
-# 4. Start the dev server
-npm run dev
+# 4. Start dev servers (Next.js + Python backend)
+npm run dev:full
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to view the app.
+
+> `npm run dev` starts only the Next.js frontend. Use `npm run dev:full` to also start the FastAPI classifier backend on port 8000.
 
 ## Database
 
@@ -32,7 +34,7 @@ PostgreSQL 16 runs in Docker. Data is persisted in the `pgdata` Docker volume.
 
 ```bash
 docker compose up -d    # start
-docker compose stop     # stop (data kept)
+docker compose down     # stop (data kept)
 docker compose down -v  # stop and delete all data
 ```
 
@@ -42,6 +44,18 @@ postgresql://quota:<password>@localhost:5432/quota_climate
 ```
 
 Schema is defined in `backend/db/schema.sql` and applied automatically on first start.
+
+## Python backend
+
+FastAPI server for frame classification and article upload.
+
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload   # port 8000
+```
+
+The frame classifier requires a model checkpoint at `backend/analysis/checkpoint-*/` (not included in the repo). Without it the `/classify` endpoint returns an error but the rest of the app works normally.
 
 ## Scraper
 
@@ -60,8 +74,9 @@ python -m scraper.scraper --query-file scraper/queries/transport_query.txt --lan
 ## Frontend commands
 
 ```bash
-npm run dev      # dev server at http://localhost:3000
-npm run build    # production build
-npm start        # run production build
-npm run lint     # ESLint
+npm run dev        # Next.js dev server at http://localhost:3000
+npm run dev:full   # Next.js + Python backend together
+npm run build      # production build
+npm start          # run production build
+npm run lint       # ESLint
 ```

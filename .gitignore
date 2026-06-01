@@ -58,3 +58,8 @@ backend/db/*.csv
 *.pth
 *.bin
 backend/analysis/checkpoint-*/
+
+# Test artifacts
+articles_test.json
+*.pdf
+*.PDF

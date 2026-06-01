@@ -7,10 +7,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev      # dev server at http://localhost:3000
-npm run build    # production build
-npm start        # run production build
-npm run lint     # ESLint (flat config, eslint 9)
+npm run dev        # Next.js dev server at http://localhost:3000
+npm run dev:full   # Next.js + Python backend together (recommended)
+npm run build      # production build
+npm start          # run production build
+npm run lint       # ESLint (flat config, eslint 9)
 ```
 
 No test runner is configured yet.
@@ -55,41 +56,56 @@ POSTGRES_PASSWORD=changeme
 DATABASE_URL=postgresql://quota:changeme@localhost:5432/quota_climate
 ```
 
+## Python backend
+
+FastAPI server that handles frame classification and article upload.
+
+```bash
+cd backend && pip install -r requirements.txt
+uvicorn main:app --reload   # port 8000
+```
+
+Endpoints: `POST /classify`, `POST /upload`, `GET /health`.
+The frame classifier loads from `backend/analysis/checkpoint-*/` (model weights not included in repo).
+
 ## Architecture
 
 **Stack:** Next.js 16 (App Router), React 19, Tailwind CSS v4 (PostCSS engine), Recharts, Lucide icons, TypeScript strict mode. Path alias `@/*` maps to the project root.
 
-### Data layer — `lib/mockData.ts`
+### Data layer
 
-All article data is generated deterministically via a seeded PRNG (mulberry32) — no backend or API calls yet. This file is the single source of truth for:
+Article data is stored in PostgreSQL 16 (Docker) and served via Next.js API routes.
 
-- Core types: `Article` interface, and enums `SECTORS`, `CRISIS_DOMAINS`, `STAGES`, `FRAMES`, `OUTLETS`
-- Aggregation helpers: `getSectorCounts()`, `getDomainCounts()`, `getOutletStats()`, `getFrameBySector()`, `getTimeSeriesData()`, etc.
-
-Real data + BERT classification from a Python backend will replace this layer later.
+- `lib/db.ts` — PostgreSQL connection (via `postgres` driver)
+- `lib/articleTypes.ts` — Core types: `Article` interface; enums `SECTORS`, `CRISIS_DOMAINS`, `STAGES`, `FRAMES`, `ANGLES`, `OUTLETS`. Also exports `getOutletStats()` and related helpers.
+- `lib/articleMapper.ts` — Maps DB rows to the client `Article` type
+- `lib/useArticles.ts` — React hook that fetches `/api/articles` with client-side caching
 
 ### Routing (App Router)
 
 | Route | File | Purpose |
 |---|---|---|
-| `/` | `app/page.tsx` | Redirects to `/overview` |
-| `/overview` | `app/overview/page.tsx` | Main dashboard — sector vs GHG charts, stage/frame breakdowns |
+| `/` | `app/page.tsx` | Home page |
+| `/overview` | `app/overview/page.tsx` | Main dashboard — sector vs GHG charts, frame/angle breakdowns |
 | `/search` | `app/search/page.tsx` | Filterable article list with pagination |
-| `/newspapers` | `app/newspapers/page.tsx` | Per-outlet statistics |
+| `/newspapers` | `app/newspapers/page.tsx` | Per-outlet statistics (Discrepancy Desk) |
 | `/article/[id]` | `app/article/[id]/page.tsx` | Article detail |
-| `/upload` | `app/upload/page.tsx` | Article analysis upload UI |
 | `/about` | `app/about/page.tsx` | Mission/methodology |
 
-Root layout (`app/layout.tsx`) renders the `<Nav>` sidebar and wraps all pages.
+Root layout (`app/layout.tsx`) renders `<NewspaperHeader>` and wraps all pages.
 
 ### Components (`components/`)
 
-- `Nav.tsx` — fixed left sidebar navigation
-- `StatCard.tsx` — stat display card
-- `ArticleCard.tsx` — article preview for search results
+- `NewspaperHeader.tsx` — fixed top header + navigation
+- `UploadPanel.tsx` — article upload and classification UI
+- `ExplainPanel.tsx` — word-level frame/angle explanation highlights
+- `ArticleCard.tsx` — article preview card for search results
+- `StatCard.tsx` — KPI stat card
 - `Badge.tsx` — tag/label badge
-- `MisinfoBar.tsx` — misinformation score indicator
+- `Logo.tsx` — SVG brand mark
+- `TypingGreeting.tsx` — animated home page greeting
+- `ScrollReveal.tsx` — scroll animation helper
 
 ### Styling
 
-Tailwind v4 via `@tailwindcss/postcss`. CSS custom properties for theming are in `app/globals.css`.
+Tailwind v4 via `@tailwindcss/postcss`. CSS custom properties for theming are in `app/globals.css`. Design system documented in `DESIGN.md`.
