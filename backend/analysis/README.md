@@ -194,6 +194,31 @@ Model checkpoints (`checkpoint-*/`) are not committed to the repo. Store them ou
 
 ---
 
+## Classifying the full database
+
+`backend/classify_db.py` runs the frame classifier against every article in PostgreSQL and writes the probabilities back to the frame columns.
+
+```bash
+# From backend/
+python classify_db.py                   # all unclassified articles
+python classify_db.py --limit 500       # first 500 (useful for testing)
+python classify_db.py --force           # re-run already-classified rows
+python classify_db.py --batch-size 16   # reduce if GPU memory is tight
+python classify_db.py --dry-run         # report row count only, no writes
+```
+
+Set `FRAME_MODEL_PATH` to override the default checkpoint location:
+
+```bash
+FRAME_MODEL_PATH=/path/to/checkpoint python classify_db.py
+```
+
+Columns written per article: `frame_attribution`, `frame_human_interest`, `frame_conflict`, `frame_morality`, `frame_economic`, `explanation_frames`, `classified_at`.
+
+Angle classification (`angle_*`, `explanation_angles`) will be added to this script once the angle model is trained — see the `TODO` comments in `classify_db.py`.
+
+---
+
 ## Inter-coder reliability
 
 `icr/pre_icr.py` and `icr/post_icr.py` compute agreement statistics (Krippendorff's α, Cohen's κ) across human annotators before and after adjudication sessions. Run them against your annotation export CSV:
