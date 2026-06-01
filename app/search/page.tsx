@@ -2,7 +2,7 @@
 import { useState, useMemo, useRef, useEffect, Suspense } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   SECTORS, CRISIS_DOMAINS, STAGES, FRAMES,
   type Sector, type CrisisDomain, type Stage, type Frame, type Article,
@@ -60,6 +60,47 @@ function countryLabel(code: string): string {
   } catch {
     return code;
   }
+}
+
+// ── Upload helpers ─────────────────────────────────────────────────────────
+
+type UploadMeta = { title: string; outlet: string; date: string; language: string };
+type ClassifyResult = { frameScores: Record<string, number>; explanation: {word: string; score?: number}[] };
+
+const FR_STOPS = new Set(["le","la","les","de","du","des","un","une","et","en","à","au","aux","est","il","elle","ils","elles","nous","vous","que","qui","pour","par","sur","avec","dans"]);
+
+function extractMetaFromText(text: string, filename: string): UploadMeta {
+  const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+  const stem  = filename.replace(/\.[^.]+$/, "");
+
+  const title = lines[0]?.slice(0, 200) || stem;
+
+  const outletRe = /^(?:source|from|outlet|by|par|auteur)[:\s]+(.+)$/i;
+  const outlet   = lines.slice(1, 5).map(l => outletRe.exec(l)?.[1]?.trim()).find(Boolean) ?? "";
+
+  const dateRe = /\b(\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{4}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]* \d{1,2},? \d{4})\b/i;
+  const rawDate = lines.slice(0, 6).map(l => dateRe.exec(l)?.[1]).find(Boolean);
+  const date    = rawDate
+    ? (() => { try { return new Date(rawDate).toISOString().slice(0, 10); } catch { return new Date().toISOString().slice(0, 10); } })()
+    : new Date().toISOString().slice(0, 10);
+
+  const words   = text.toLowerCase().split(/\s+/).slice(0, 200);
+  const frCount = words.filter(w => FR_STOPS.has(w)).length;
+  const language = filename.includes("_fr") || frCount / words.length > 0.06 ? "french" : "english";
+
+  return { title, outlet, date, language };
+}
+
+async function extractTextFromFile(file: File): Promise<{ text: string; suggestedTitle: string }> {
+  if (file.name.toLowerCase().endsWith(".txt")) {
+    const text = await file.text();
+    return { text, suggestedTitle: "" };
+  }
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch("/api/extract-text", { method: "POST", body: form });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json() as Promise<{ text: string; suggestedTitle: string }>;
 }
 
 function Rule({ color = "var(--border)", thick = false }: { color?: string; thick?: boolean }) {
@@ -340,6 +381,7 @@ function NewsItem({ article, index }: { article: Article; index: number }) {
 function SearchPageInner() {
   const { articles: allArticles } = useArticles();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const cycleText = useTypingCycle(SEARCH_PHRASES);
 
   const countryOptions = useMemo(() => {
@@ -370,11 +412,74 @@ function SearchPageInner() {
   const [dateTo,     setDateTo]     = useState<string>(searchParams.get("dateTo")   ?? "");
   const [page,       setPage]       = useState(0);
   const [perPage,    setPerPage]    = useState(9);
-  const [filtersOpen, setFiltersOpen] = useState(true);
-  const [uploadFile,  setUploadFile]  = useState<File | null>(null);
+  const [filtersOpen,      setFiltersOpen]      = useState(true);
+  const [uploadFile,       setUploadFile]       = useState<File | null>(null);
+  const [uploadText,       setUploadText]       = useState<string | null>(null);
+  const [uploadMeta,       setUploadMeta]       = useState<UploadMeta | null>(null);
+  const [uploadExtracting, setUploadExtracting] = useState(false);
+  const [uploadSaving,     setUploadSaving]     = useState(false);
+  const [classifyPromise,  setClassifyPromise]  = useState<Promise<ClassifyResult | null> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const bump = () => setPage(0);
+
+  async function handleFileSelected(file: File) {
+    setUploadFile(file);
+    setUploadText(null);
+    setUploadMeta(null);
+    setUploadExtracting(true);
+    try {
+      const { text, suggestedTitle } = await extractTextFromFile(file);
+      const meta = extractMetaFromText(text, file.name);
+      if (suggestedTitle && !meta.title) meta.title = suggestedTitle;
+      setUploadText(text);
+      setUploadMeta(meta);
+      const p: Promise<ClassifyResult | null> = fetch("/api/classify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: meta.title + " " + text }),
+      }).then(r => r.ok ? r.json() as Promise<ClassifyResult> : null).catch(() => null);
+      setClassifyPromise(p);
+    } finally {
+      setUploadExtracting(false);
+    }
+  }
+
+  function resetUpload() {
+    setUploadFile(null);
+    setUploadText(null);
+    setUploadMeta(null);
+    setClassifyPromise(null);
+    setUploadSaving(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  async function handleUploadSave() {
+    if (!uploadText || !uploadMeta) return;
+    setUploadSaving(true);
+    const classifyResult = classifyPromise ? await classifyPromise : null;
+    const wordCount = uploadText.trim().split(/\s+/).length;
+    try {
+      const res = await fetch("/api/articles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title:       uploadMeta.title,
+          outlet:      uploadMeta.outlet || "Unknown",
+          publishedAt: uploadMeta.date,
+          language:    uploadMeta.language,
+          body:        uploadText,
+          wordCount,
+          frameScores: classifyResult?.frameScores ?? {},
+          explanation: classifyResult?.explanation ?? [],
+        }),
+      });
+      const { id } = await res.json() as { id: number };
+      router.push(`/article/art-${id}`);
+    } catch {
+      setUploadSaving(false);
+    }
+  }
 
   const results = useMemo(() => allArticles.filter((a) => {
     const q = query.toLowerCase();
@@ -502,9 +607,9 @@ function SearchPageInner() {
               type="file"
               accept=".txt,.pdf,.doc,.docx"
               style={{ display: "none" }}
-              onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)}
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileSelected(f); }}
             />
-            {uploadFile
+            {uploadExtracting ? "Reading…" : uploadFile
               ? (uploadFile.name.length > 22 ? uploadFile.name.slice(0, 22) + "…" : uploadFile.name)
               : "Upload article"}
           </label>
@@ -573,6 +678,53 @@ function SearchPageInner() {
           </div>
         </div>
       </div>
+
+      {/* Upload panel */}
+      {uploadText !== null && uploadMeta !== null && (
+        <div style={{ borderTop: "2px solid var(--t1)", padding: "18px 0 22px", marginTop: 8 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 16 }}>
+            <span style={{ fontFamily: F.playfair, fontSize: 20, color: "var(--t1)" }}>Analyse &amp; save</span>
+            <button onClick={resetUpload} style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)", background: "none", border: "none", cursor: "pointer" }}>× dismiss</button>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "0 24px", marginBottom: 18 }}>
+            {([
+              { label: "Title",    key: "title"    as const, type: "text" },
+              { label: "Outlet",   key: "outlet"   as const, type: "text" },
+              { label: "Date",     key: "date"     as const, type: "date" },
+              { label: "Language", key: "language" as const, type: "text" },
+            ] as const).map(({ label, key, type }) => (
+              <div key={key}>
+                <div style={{ fontFamily: F.qtc, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--t2)", marginBottom: 4 }}>{label}</div>
+                <input
+                  type={type}
+                  value={uploadMeta[key]}
+                  onChange={e => setUploadMeta(m => m ? { ...m, [key]: e.target.value } : m)}
+                  style={{
+                    width: "100%", fontFamily: F.plex, fontSize: 13, color: "var(--t1)",
+                    background: "transparent", border: "none",
+                    borderBottom: "1px solid var(--border)", outline: "none", padding: "3px 0",
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={handleUploadSave}
+            disabled={uploadSaving || !uploadMeta.outlet.trim()}
+            style={{
+              fontFamily: F.plex, fontSize: 12,
+              background: uploadSaving ? "var(--t2)" : "var(--t1)", color: "var(--bg)",
+              padding: "7px 22px", cursor: uploadSaving ? "default" : "pointer",
+              border: "none", opacity: !uploadMeta.outlet.trim() ? 0.5 : 1,
+            }}
+          >
+            {uploadSaving ? "Saving…" : "Save & View →"}
+          </button>
+          <span style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)", marginLeft: 12 }}>
+            {classifyPromise ? "Classifier running in background…" : ""}
+          </span>
+        </div>
+      )}
 
       {/* Search input — below filters, typing effect as background text */}
       <div style={{ position: "relative", marginTop: 20, marginBottom: 4 }}>

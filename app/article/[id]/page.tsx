@@ -9,6 +9,21 @@ import { ArrowLeft, ExternalLink } from "lucide-react";
 import { FRAMES, ANGLES } from "@/lib/articleTypes";
 import type { Article, Angle } from "@/lib/articleTypes";
 import { getArticleExplanation, type Token } from "@/lib/mockExplanations";
+
+function explanationToTokens(
+  explanation: { word: string; score?: number }[],
+  body: string,
+): Token[] {
+  const maxScore = Math.max(...explanation.map(w => w.score ?? 0), 1);
+  const weightMap = new Map(
+    explanation.filter(w => w.score).map(w => [w.word.toLowerCase(), w.score! / maxScore]),
+  );
+  return body.split(/(\s+)/).filter(Boolean).map(part => {
+    const isWs = /^\s+$/.test(part);
+    const w    = isWs ? 0 : (weightMap.get(part.toLowerCase()) ?? 0);
+    return { text: part, misinfoWeight: 0, framingWeight: w, angleWeight: w, isWhitespace: isWs };
+  });
+}
 import { exportToCsv, articleToCsvRow } from "@/lib/exportCsv";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -82,11 +97,13 @@ function DevTooltip({ active, payload }: {
 
 export default function ArticlePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const [article, setArticle]           = useState<Article | null>(null);
+  const [article, setArticle]             = useState<Article | null>(null);
   const [notFoundError, setNotFoundError] = useState(false);
-  const [tokens, setTokens]             = useState<Token[] | null>(null);
-  const [bodyExpanded, setBodyExpanded]  = useState(false);
-  const [showAllKw, setShowAllKw]        = useState(false);
+  const [tokens, setTokens]               = useState<Token[] | null>(null);
+  const [liveTokens, setLiveTokens]       = useState<Token[] | null>(null);
+  const [classifyDone, setClassifyDone]   = useState(false);
+  const [bodyExpanded, setBodyExpanded]   = useState(false);
+  const [showAllKw, setShowAllKw]         = useState(false);
   const [highlightMode, setHighlightMode] = useState<"frame" | "angle">("frame");
 
   useEffect(() => {
@@ -100,6 +117,25 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
     if (!article) return;
     const { tokens: t } = getArticleExplanation(article);
     setTokens(t);
+  }, [article]);
+
+  useEffect(() => {
+    if (!article) return;
+    setClassifyDone(false);
+    setLiveTokens(null);
+    fetch("/api/classify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: article.title + " " + article.excerpt }),
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then((data: { explanation?: { word: string; score?: number }[] } | null) => {
+        if (data?.explanation?.length) {
+          setLiveTokens(explanationToTokens(data.explanation, article.excerpt));
+        }
+      })
+      .catch(() => null)
+      .finally(() => setClassifyDone(true));
   }, [article]);
 
   if (notFoundError) notFound();
@@ -142,8 +178,9 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
   const visibleKw = showAllKw ? article.keywords : article.keywords.slice(0, KW_LIMIT);
   const hiddenKw  = article.keywords.length - KW_LIMIT;
 
-  // Body text paragraphs
-  const paragraphs = tokens ? groupIntoParagraphs(tokens) : [];
+  // Body text paragraphs — prefer live classifier tokens, fall back to mock
+  const activeTokens = liveTokens ?? tokens;
+  const paragraphs = activeTokens ? groupIntoParagraphs(activeTokens) : [];
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: "28px 48px 48px" }}>
@@ -270,6 +307,8 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
           <p style={{ fontFamily: F.qtc, fontSize: 9, letterSpacing: "1.2px", textTransform: "uppercase", color: "var(--t2)", margin: 0 }}>
             Article text · {highlightMode === "frame" ? "framing" : "angle"} signals highlighted
+            {!classifyDone && <span style={{ marginLeft: 10, opacity: 0.6 }}>· analysing…</span>}
+            {classifyDone && liveTokens && <span style={{ marginLeft: 10, color: "var(--green)" }}>· live</span>}
           </p>
           <div style={{ display: "flex", gap: 4 }}>
             {(["frame", "angle"] as const).map(m => (
@@ -286,7 +325,7 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
           </div>
         </div>
 
-        {tokens === null ? (
+        {activeTokens === null ? (
           <div>
             {[88, 96, 74].map((w, i) => (
               <div key={i} style={{
