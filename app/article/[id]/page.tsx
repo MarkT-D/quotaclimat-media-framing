@@ -8,9 +8,26 @@ import {
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { FRAMES, ANGLES } from "@/lib/articleTypes";
 import type { Article, Angle } from "@/lib/articleTypes";
-import { getArticleExplanation, type Token } from "@/lib/mockExplanations";
+import type { Token } from "@/lib/mockExplanations";
+import { countryName } from "@/lib/countryName";
 
-function explanationToTokens(
+// Build tokens from stored {wordIndex: score} explanation.
+// Indices were computed on (title + " " + body) so offset body by title word count.
+// Normalises against the max score so the top word always gets weight 1.0.
+function storedExplanationToTokens(title: string, body: string, explanation: Record<string, number>): Token[] {
+  const titleWordCount = title.trim().split(/\s+/).filter(Boolean).length;
+  const maxScore = Math.max(...Object.values(explanation), 1e-6);
+  let wordIdx = titleWordCount;
+  return body.split(/(\s+)/).filter(Boolean).map(part => {
+    const isWs = /^\s+$/.test(part);
+    if (isWs) return { text: part, misinfoWeight: 0, framingWeight: 0, angleWeight: 0, isWhitespace: true };
+    const score = (explanation[String(wordIdx++)] ?? 0) / maxScore;
+    return { text: part, misinfoWeight: 0, framingWeight: score, angleWeight: 0, isWhitespace: false };
+  });
+}
+
+// Fallback: build tokens from live classify response (old word-match format)
+function liveExplanationToTokens(
   explanation: { word: string; score?: number }[],
   body: string,
 ): Token[] {
@@ -21,7 +38,7 @@ function explanationToTokens(
   return body.split(/(\s+)/).filter(Boolean).map(part => {
     const isWs = /^\s+$/.test(part);
     const w    = isWs ? 0 : (weightMap.get(part.toLowerCase()) ?? 0);
-    return { text: part, misinfoWeight: 0, framingWeight: w, angleWeight: w, isWhitespace: isWs };
+    return { text: part, misinfoWeight: 0, framingWeight: w, angleWeight: 0, isWhitespace: isWs };
   });
 }
 import { exportToCsv, articleToCsvRow } from "@/lib/exportCsv";
@@ -40,11 +57,6 @@ const ANGLE_COLORS = ["var(--red)", "#EF9F27", "var(--green)", "var(--red-m)", "
 
 const KW_LIMIT = 8;
 
-const COUNTRY_NAMES: Record<string, string> = {
-  FR: "France", BE: "Belgium", DE: "Germany", GB: "United Kingdom",
-  US: "United States", ES: "Spain", IT: "Italy", NL: "Netherlands",
-  CH: "Switzerland", AT: "Austria", PL: "Poland", PT: "Portugal",
-};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -115,23 +127,27 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
 
   useEffect(() => {
     if (!article) return;
-    const { tokens: t } = getArticleExplanation(article);
-    setTokens(t);
-  }, [article]);
+    const body = article.body ?? article.excerpt;
 
-  useEffect(() => {
-    if (!article) return;
+    // Use stored explanation if available
+    if (article.explanationFrames && Object.keys(article.explanationFrames).length > 0) {
+      setTokens(storedExplanationToTokens(article.title, body, article.explanationFrames));
+      setClassifyDone(true);
+      return;
+    }
+
+    // Fallback: live classify for articles without stored explanation
     setClassifyDone(false);
     setLiveTokens(null);
     fetch("/api/classify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: article.title + " " + article.excerpt }),
+      body: JSON.stringify({ text: article.title + " " + body }),
     })
       .then(r => r.ok ? r.json() : null)
       .then((data: { explanation?: { word: string; score?: number }[] } | null) => {
         if (data?.explanation?.length) {
-          setLiveTokens(explanationToTokens(data.explanation, article.excerpt));
+          setLiveTokens(liveExplanationToTokens(data.explanation, body));
         }
       })
       .catch(() => null)
@@ -232,7 +248,7 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
           {[
             { label: "Sector",  value: article.sector ?? "—" },
             { label: "Angle",   value: article.primaryAngle ?? "—" },
-            { label: "Country", value: article.country ? (COUNTRY_NAMES[article.country] ?? article.country) : "—" },
+            { label: "Country", value: countryName(article.country) },
           ].map(({ label, value }, i) => (
             <div key={label} style={{
               padding: "12px 16px",
@@ -308,7 +324,8 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
           <p style={{ fontFamily: F.qtc, fontSize: 9, letterSpacing: "1.2px", textTransform: "uppercase", color: "var(--t2)", margin: 0 }}>
             Article text · {highlightMode === "frame" ? "framing" : "angle"} signals highlighted
             {!classifyDone && <span style={{ marginLeft: 10, opacity: 0.6 }}>· analysing…</span>}
-            {classifyDone && liveTokens && <span style={{ marginLeft: 10, color: "var(--green)" }}>· live</span>}
+            {classifyDone && article.explanationFrames && <span style={{ marginLeft: 10, color: "var(--green)" }}>· stored</span>}
+            {classifyDone && !article.explanationFrames && liveTokens && <span style={{ marginLeft: 10, color: "var(--green)" }}>· live</span>}
           </p>
           <div style={{ display: "flex", gap: 4 }}>
             {(["frame", "angle"] as const).map(m => (

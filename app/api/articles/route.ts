@@ -2,14 +2,29 @@ import { NextResponse } from "next/server";
 import sql from "@/lib/db";
 import { mapDbRowToArticle, type DbRow } from "@/lib/articleMapper";
 
+const SECTOR_COL: Record<string, string> = {
+  "Energy":           "sector_energy",
+  "Transport":        "sector_transport",
+  "Agriculture":      "sector_agriculture",
+  "Industry":         "sector_industry",
+  "Buildings":        "sector_buildings",
+  "Water":            "sector_water",
+  "Ecosystem":        "sector_ecosystem",
+  "Resource Economy": "sector_resource_economy",
+};
+
 type UploadPayload = {
   title: string;
   outlet: string;
   publishedAt: string;
   language?: string;
+  country?: string;
+  sector?: string;
   body: string;
   wordCount: number;
   frameScores: Record<string, number>;
+  explanationFrames?: Record<string, number>;
+  explanationAngles?: Record<string, number>;
 };
 
 export async function POST(req: Request) {
@@ -22,15 +37,36 @@ export async function POST(req: Request) {
   const fm  = p.frameScores["Morality"]                      ?? null;
   const fe  = p.frameScores["Economic Consequences"]         ?? null;
 
+  const expFrames = p.explanationFrames && Object.keys(p.explanationFrames).length > 0
+    ? p.explanationFrames : null;
+  const expAngles = p.explanationAngles && Object.keys(p.explanationAngles).length > 0
+    ? p.explanationAngles : null;
+
+  const sectorCol = p.sector ? SECTOR_COL[p.sector] ?? null : null;
+
   const rows = await sql<{ id: number }[]>`
     INSERT INTO articles (
-      source_id, title, body, outlet, published_at, language,
+      source_id, title, body, outlet, published_at, language, country,
       word_count, ingested_at,
-      frame_attribution, frame_human_interest, frame_conflict, frame_morality, frame_economic
+      frame_attribution, frame_human_interest, frame_conflict, frame_morality, frame_economic,
+      explanation_frames, explanation_angles,
+      sector_energy, sector_transport, sector_agriculture, sector_industry,
+      sector_buildings, sector_water, sector_ecosystem, sector_resource_economy
     ) VALUES (
       ${sourceId}, ${p.title}, ${p.body}, ${p.outlet}, ${p.publishedAt},
-      ${p.language ?? null}, ${p.wordCount}, NOW(),
-      ${fa}, ${fhi}, ${fc}, ${fm}, ${fe}
+      ${p.language ?? null}, ${p.country ?? null},
+      ${p.wordCount}, NOW(),
+      ${fa}, ${fhi}, ${fc}, ${fm}, ${fe},
+      ${expFrames ? sql.json(expFrames) : null},
+      ${expAngles ? sql.json(expAngles) : null},
+      ${sectorCol === "sector_energy"},
+      ${sectorCol === "sector_transport"},
+      ${sectorCol === "sector_agriculture"},
+      ${sectorCol === "sector_industry"},
+      ${sectorCol === "sector_buildings"},
+      ${sectorCol === "sector_water"},
+      ${sectorCol === "sector_ecosystem"},
+      ${sectorCol === "sector_resource_economy"}
     )
     RETURNING id
   `;
@@ -50,7 +86,8 @@ export async function GET() {
       domain_climate, domain_biodiversity, domain_resources,
       ln_subject,
       frame_attribution, frame_human_interest, frame_conflict, frame_morality, frame_economic,
-      angle_health, angle_economics, angle_jobs, angle_politics, angle_geopolitics, angle_purchasing_power
+      angle_health, angle_economics, angle_jobs, angle_politics, angle_geopolitics, angle_purchasing_power,
+      explanation_frames, explanation_angles
     FROM articles
     ORDER BY published_at DESC
   `;

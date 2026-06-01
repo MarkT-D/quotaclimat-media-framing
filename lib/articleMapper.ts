@@ -38,6 +38,8 @@ export interface DbRow {
   angle_geopolitics: number | null;
   angle_purchasing_power: number | null;
   ln_subject: string | null;
+  explanation_frames: Record<string, number> | null;
+  explanation_angles: Record<string, number> | null;
 }
 
 function collectTrue<T>(pairs: [boolean | null | undefined, T][]): T[] {
@@ -137,8 +139,11 @@ export function mapDbRowToArticle(row: DbRow): Article {
     primaryAngle,
     angleScores,
     wordCount: row.word_count ?? 0,
+    body: row.body || undefined,
     excerpt,
     url: row.url ?? undefined,
     keywords,
+    explanationFrames: row.explanation_frames ?? null,
+    explanationAngles: row.explanation_angles ?? null,
   };
 }

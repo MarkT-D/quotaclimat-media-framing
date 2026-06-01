@@ -14,6 +14,8 @@ import { useArticles } from "@/lib/useArticles";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
+const PRIORITY_COUNTRIES = ["GB", "FR", "NL"];
+
 const F = {
   playfair: "var(--font-playfair)",
   serif:    "var(--font-source-serif)",
@@ -415,7 +417,14 @@ export default function OverviewPage() {
     allArticles.forEach((a) => { if (a.country) counts.set(a.country, (counts.get(a.country) ?? 0) + 1); });
     return [...counts.entries()]
       .filter(([, n]) => n >= 100)
-      .sort((a, b) => b[1] - a[1])
+      .sort(([ac, an], [bc, bn]) => {
+        const pa = PRIORITY_COUNTRIES.indexOf(ac);
+        const pb = PRIORITY_COUNTRIES.indexOf(bc);
+        if (pa !== -1 && pb !== -1) return pa - pb;
+        if (pa !== -1) return -1;
+        if (pb !== -1) return 1;
+        return bn - an;
+      })
       .map(([code]) => code);
   }, [allArticles]);
 

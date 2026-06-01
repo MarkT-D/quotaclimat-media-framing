@@ -51,3 +51,10 @@ next-env.d.ts
 *.sql
 *.zip
 backend/db/*.csv
+
+# ML model checkpoints — keep outside the project directory
+*.safetensors
+*.pt
+*.pth
+*.bin
+backend/analysis/checkpoint-*/

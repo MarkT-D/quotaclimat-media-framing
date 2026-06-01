@@ -1,15 +1,20 @@
 import json
 import logging
 import os
+import re
 import sys
+import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-logger = logging.getLogger(__name__)
+load_dotenv(Path(__file__).parent.parent / ".env")
+
+logger = logging.getLogger("uvicorn.error")  # shares uvicorn's handler so output is visible
 
 CALIBRATIONS = {
     "Conflict":              {"W": 1.0098, "b": -0.1047},
@@ -21,21 +26,38 @@ CALIBRATIONS = {
 
 LABEL_MAP = {"Responsibility": "Attribution of Responsibility"}
 
-predictor = None
+_predictor = None
+_load_lock = threading.Lock()
+_checkpoint: str = ""
+
+
+def _get_predictor():
+    global _predictor
+    if _predictor is not None:
+        return _predictor
+    with _load_lock:
+        if _predictor is not None:
+            return _predictor
+        if not _checkpoint or not Path(_checkpoint).is_dir():
+            return None
+        sys.path.insert(0, str(Path(__file__).parent / "analysis"))
+        from deployment_1 import Predictor  # type: ignore
+        logger.info("Loading frame classifier from %s …", _checkpoint)
+        _predictor = Predictor(checkpoint_path=_checkpoint, calibrations=CALIBRATIONS)
+        logger.info("Model ready.")
+        return _predictor
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global predictor
-    checkpoint = os.getenv("FRAME_MODEL_PATH", "")
-    if checkpoint and Path(checkpoint).is_dir():
-        sys.path.insert(0, str(Path(__file__).parent / "analysis"))
-        from deployment_1 import Predictor  # type: ignore
-        logger.info("Loading frame classifier from %s …", checkpoint)
-        predictor = Predictor(checkpoint_path=checkpoint, calibrations=CALIBRATIONS)
-        logger.info("Model ready.")
+    global _checkpoint
+    default = str(Path(__file__).parent / "analysis" / "checkpoint-2970")
+    _checkpoint = os.getenv("FRAME_MODEL_PATH", default)
+    if not Path(_checkpoint).is_dir():
+        logger.warning("Checkpoint not found at %s — /classify will return 503", _checkpoint)
     else:
-        logger.warning("FRAME_MODEL_PATH not set or not found — /classify will return 503")
+        logger.info("Checkpoint found — loading model in background…")
+        threading.Thread(target=_get_predictor, daemon=True).start()
     yield
 
 
@@ -51,7 +73,7 @@ app.add_middleware(
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "model_loaded": predictor is not None}
+    return {"status": "ok", "model_loaded": _predictor is not None, "checkpoint": _checkpoint}
 
 
 class ClassifyRequest(BaseModel):
@@ -60,8 +82,9 @@ class ClassifyRequest(BaseModel):
 
 @app.post("/classify")
 def classify(req: ClassifyRequest):
+    predictor = _get_predictor()
     if predictor is None:
-        raise HTTPException(status_code=503, detail="Model not loaded — set FRAME_MODEL_PATH env var")
+        raise HTTPException(status_code=503, detail="Checkpoint not found — set FRAME_MODEL_PATH env var")
 
     results = predictor.predict([req.text], batch_size=1, explain=True)
     r = results[0]
@@ -69,7 +92,22 @@ def classify(req: ClassifyRequest):
 
     frame_scores = {LABEL_MAP.get(k, k): v for k, v in raw_probs.items()}
     primary_frame = max(frame_scores, key=lambda k: frame_scores[k])
-    explanation = json.loads(r.get("explanation", "[]"))
+    explanation: dict = json.loads(r.get("explanation", "{}"))
+
+    logger.info("── Classification ──────────────────────────")
+    for label, score in sorted(frame_scores.items(), key=lambda x: x[1], reverse=True):
+        bar = "█" * int(score * 20)
+        logger.info("  %-30s %.3f  %s", label, score, bar)
+    logger.info("  → primary: %s", primary_frame)
+
+    if explanation:
+        words = req.text.split()
+        top = sorted(explanation.items(), key=lambda x: x[1], reverse=True)[:15]
+        logger.info("── Attention (top %d tokens) ─────────────", len(top))
+        for idx, score in top:
+            word = words[int(idx)] if int(idx) < len(words) else "?"
+            bar = "█" * int(score * 40)
+            logger.info("  [%4s] %-20s %.4f  %s", idx, word, score, bar)
 
     return {
         "frameScores": frame_scores,
@@ -78,31 +116,57 @@ def classify(req: ClassifyRequest):
     }
 
 
+def _extract_pdf_text(reader) -> tuple[str, str]:
+    """
+    Returns (body_text, suggested_title).
+    Handles LexisNexis PDFs (Body/Classification markers) and generic PDFs.
+    """
+    pages = [p.extract_text() or "" for p in reader.pages]
+    full  = "\n".join(pages)
+
+    # ── LexisNexis format detection ──────────────────────────────────────────
+    if "LexisNexis" in full:
+        # Page 0 is search-metadata header; article starts on page 1
+        article_text = "\n".join(pages[1:])
+
+        # Body is explicitly delimited
+        body_m = re.search(
+            r'\bBody\n(.+?)(?:\nLink naar|\nClassification\b|\nLanguage\s*:|\Z)',
+            article_text, re.DOTALL | re.IGNORECASE,
+        )
+        body = body_m.group(1).strip() if body_m else article_text
+
+        # Title is the first real line after "Page 1 of N"
+        title_m = re.search(r'Page 1 of \d+\n(.+?)(?:\n|$)', article_text)
+        title   = title_m.group(1).strip() if title_m else ""
+
+        return body, title
+
+    # ── Generic PDF ──────────────────────────────────────────────────────────
+    return full.strip(), ""
+
+
 @app.post("/extract-text")
 async def extract_text(file: UploadFile = File(...)):
-    content = await file.read()
+    import io
+    content  = await file.read()
     filename = file.filename or ""
+    hint_title = ""
 
     if filename.lower().endswith(".txt"):
         text = content.decode("utf-8", errors="replace")
 
     elif filename.lower().endswith(".pdf"):
         try:
-            import io
             from pypdf import PdfReader
-            reader = PdfReader(io.BytesIO(content))
-            text = "\n\n".join(
-                (page.extract_text() or "").strip()
-                for page in reader.pages
-            )
+            text, hint_title = _extract_pdf_text(PdfReader(io.BytesIO(content)))
         except Exception as e:
             raise HTTPException(status_code=422, detail=f"PDF extraction failed: {e}")
 
     elif filename.lower().endswith((".docx", ".doc")):
         try:
-            import io
             from docx import Document
-            doc = Document(io.BytesIO(content))
+            doc  = Document(io.BytesIO(content))
             text = "\n\n".join(p.text for p in doc.paragraphs if p.text.strip())
         except Exception as e:
             raise HTTPException(status_code=422, detail=f"DOCX extraction failed: {e}")
@@ -111,7 +175,7 @@ async def extract_text(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Unsupported file type. Use .txt, .pdf, or .docx")
 
     lines = [l.strip() for l in text.splitlines() if l.strip()]
-    stem = Path(filename).stem
-    suggested_title = (lines[0][:200] if lines else stem) or stem
+    stem  = Path(filename).stem
+    suggested_title = hint_title or (lines[0][:200] if lines else stem) or stem
 
     return {"text": text, "suggestedTitle": suggested_title}

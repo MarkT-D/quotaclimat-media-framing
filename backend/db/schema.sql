@@ -63,6 +63,11 @@ CREATE TABLE articles (
     angle_geopolitics       REAL,
     angle_purchasing_power  REAL,
 
+    -- Attention explanations: {word_index: score} dicts, above-threshold tokens only
+    -- word_index is the 0-based position in body.split(/\s+/)
+    explanation_frames      JSONB,
+    explanation_angles      JSONB,
+
     classified_at   TIMESTAMPTZ
 );
 

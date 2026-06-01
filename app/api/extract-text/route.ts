@@ -7,14 +7,24 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
+    const file = formData.get("file") as File | null;
+    if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
+
+    // Materialise bytes before sending — File from req.formData() is a lazy
+    // stream that hangs if passed directly to another fetch body
+    const bytes = await file.arrayBuffer();
+    const outForm = new FormData();
+    outForm.append("file", new Blob([bytes], { type: file.type || "application/octet-stream" }), file.name);
+
     const res = await fetch(`${BACKEND}/extract-text`, {
       method: "POST",
-      body: formData,
+      body: outForm,
       signal: AbortSignal.timeout(30_000),
     });
     const data = await res.json();
     return NextResponse.json(data, { status: res.status });
-  } catch {
-    return NextResponse.json({ error: "Text extraction unavailable" }, { status: 503 });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Text extraction unavailable";
+    return NextResponse.json({ error: msg }, { status: 503 });
   }
 }

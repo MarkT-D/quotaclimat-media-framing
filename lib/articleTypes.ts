@@ -53,9 +53,12 @@ export interface Article {
   angleScores: Partial<Record<Angle, number>>;
   misinformationScore?: number;
   wordCount: number;
+  body?: string;
   excerpt: string;
   url?: string;
   keywords: string[];
+  explanationFrames: Record<string, number> | null;  // {wordIndex: score} from frame classifier
+  explanationAngles: Record<string, number> | null;  // {wordIndex: score} from angle classifier
 }
 
 // --- Outlet stats (used by newspapers page) ----------------------------------
