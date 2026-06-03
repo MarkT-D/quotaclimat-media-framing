@@ -49,6 +49,7 @@ postgresql://quota:<password>@localhost:5432/quota_climate
 Schema is defined in `backend/db/schema.sql` and applied automatically on first start.
 
 **Restore from a dump:**
+Most recent dump is in backend/analysis/datasets/quota_climate_dump.sql, which is created by running backend/import_csv.py on analysis/datasets/database_input.csv, which is created in the Data Analysis.ipynb.
 
 ```bash
 # 1. Start Postgres
