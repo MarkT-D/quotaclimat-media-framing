@@ -2799,20 +2799,14 @@ export default function DiscrepancyDesk() {
               fontSize: "clamp(26px, 2.6vw, 43px)",
               lineHeight: 1.05, color: "var(--t1)", marginBottom: 8,
             }}>
-              The same coverage,{" "}
-              {displayStats.length > 1 ? `${displayStats.length} ways` : "one outlet"}
-              : where framing diverges
+              How climate reporting differs across outlets
             </h2>
             <p style={{
-              fontFamily: PF, fontStyle: "italic",
+              fontFamily: PF,
               fontSize: 18, lineHeight: "24px",
               color: "var(--t2)", marginBottom: 32,
             }}>
-              Each card shows{" "}
-              <span style={{ background: SALMON, color: "#fff", padding: "0 4px" }}>A</span>
-              {" "}{mALabel} and{" "}
-              <span style={{ background: LIME, color: "var(--t1)", padding: "0 4px" }}>B</span>
-              {" "}{mBLabel}, alongside each outlet&rsquo;s frame and stage profile.
+              Compare publication volume, framing patterns, and stage distributions across outlets.
             </p>
 
             <div style={{
