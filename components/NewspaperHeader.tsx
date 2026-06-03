@@ -87,7 +87,7 @@ export default function NewspaperHeader() {
                 color: "var(--t2)",
                 marginTop: 8,
               }}>
-                Frame analysis for those who shape coverage
+                frame analysis for those who shape coverage
               </div>
             </Link>
 

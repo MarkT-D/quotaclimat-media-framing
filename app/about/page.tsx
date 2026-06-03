@@ -8,12 +8,12 @@ const F = {
 };
 
 const TEAM = [
-  { name: "Gabriella Beckley",  role: "Stakeholder engagement and data analysis" },
-  { name: "Emma-Rose Blacher",  role: "Project manager, literature review lead, and UX design" },
-  { name: "Elnara Ibrahimli",   role: "Internal comms and design lead" },
-  { name: "Maximilian Koch",    role: "NLP and ML pipeline" },
-  { name: "David Liebmann",     role: "Ethics and academic writing" },
-  { name: "Mark Temchenko",     role: "Data pipeline and engineering" },
+  { name: "Gabriella Beckley",  role: "Stakeholder engagement and data analysis", image: "/team/gabriella.png", zoom: 1.2 },
+  { name: "Emma-Rose Blacher",  role: "Project manager, literature review lead, and UX design", image: "/team/emma-rose.png", zoom: 1.02 },
+  { name: "Elnara Ibrahimli",   role: "Internal comms and design lead", image: "/team/elnara.png", zoom: 1.2 },
+  { name: "Maximilian Koch",    role: "NLP and ML pipeline", image: "/team/max.png", zoom: 1.2 },
+  { name: "David Liebmann",     role: "Ethics and academic writing", image: "/team/david.png", zoom: 1.2 },
+  { name: "Mark Temchenko",     role: "Data pipeline and engineering", image: "/team/mark.png", zoom: 1.2 },
 ];
 
 const FRAMES_LIST = [
@@ -132,30 +132,30 @@ function ClassificationPipelineSVG() {
       <text x={x1+nw/2} y={cy-4}  textAnchor="middle" style={t1}>Partner data</text>
       <text x={x1+nw/2} y={cy+10} textAnchor="middle" style={t2}>+ other sources</text>
 
-      <line x1={x1+nw} y1={cy} x2={x2-4} y2={cy} style={line} />
+      <line x1={x1+nw} y1={cy} x2={x2-8} y2={cy} style={line} />
       <polygon points={`${x2-8},${cy-4} ${x2},${cy} ${x2-8},${cy+4}`} style={{ fill: "var(--border)" }} />
 
       <rect x={x2} y={cy-18} width={nw} height="36" style={box} />
       <text x={x2+nw/2} y={cy-4}  textAnchor="middle" style={t1}>LLM labels</text>
       <text x={x2+nw/2} y={cy+10} textAnchor="middle" style={t2}>auto-generated</text>
 
-      <line x1={x2+nw} y1={cy} x2={x3-4} y2={cy} style={line} />
+      <line x1={x2+nw} y1={cy} x2={x3-8} y2={cy} style={line} />
       <polygon points={`${x3-8},${cy-4} ${x3},${cy} ${x3-8},${cy+4}`} style={{ fill: "var(--border)" }} />
 
       <rect x={x3} y={cy-18} width={nw} height="36" style={box} />
       <text x={x3+nw/2} y={cy-4}  textAnchor="middle" style={t1}>Human review</text>
       <text x={x3+nw/2} y={cy+10} textAnchor="middle" style={t2}>Two annotators</text>
 
-      <line x1={x3+nw} y1={cy} x2={x4-4} y2={cy} style={line} />
+      <line x1={x3+nw} y1={cy} x2={x4-8} y2={cy} style={line} />
       <polygon points={`${x4-8},${cy-4} ${x4},${cy} ${x4-8},${cy+4}`} style={{ fill: "var(--border)" }} />
 
       <rect x={x4} y={cy-18} width={nw} height="36" style={box} />
       <text x={x4+nw/2} y={cy-4}  textAnchor="middle" style={t1}>RoBERTa</text>
       <text x={x4+nw/2} y={cy+10} textAnchor="middle" style={t2}>multilingual fine-tune</text>
 
-      <line x1={x4+nw} y1={cy} x2={forkX-4} y2={frameCY} style={{ ...line, stroke: "var(--red)" }} />
+      <line x1={x4+nw} y1={cy} x2={forkX-8} y2={frameCY} style={{ ...line, stroke: "var(--red)" }} />
       <polygon points={`${forkX-8},${frameCY-4} ${forkX},${frameCY} ${forkX-8},${frameCY+4}`} style={{ fill: "var(--red)" }} />
-      <line x1={x4+nw} y1={cy} x2={forkX-4} y2={angleCY} style={{ ...line, stroke: "var(--green)" }} />
+      <line x1={x4+nw} y1={cy} x2={forkX-8} y2={angleCY} style={{ ...line, stroke: "var(--green)" }} />
       <polygon points={`${forkX-8},${angleCY-4} ${forkX},${angleCY} ${forkX-8},${angleCY+4}`} style={{ fill: "var(--green)" }} />
 
       <rect x={forkX} y={frameCY-14} width={outW} height="28" style={{ ...box, stroke: "var(--red)" }} />
@@ -173,51 +173,37 @@ function ClassificationPipelineSVG() {
 
 function ClassificationGrid() {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "var(--border)", marginTop: 24 }}>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0, marginTop: 24, width: "100%" }}>
       {/* Frames */}
-      <div style={{ background: "var(--bg)", padding: "20px 20px 16px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-          <span style={{ fontFamily: F.plex, fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", color: "var(--t1)" }}>Frames</span>
-          <span style={{ fontFamily: F.plex, fontSize: 9, color: "var(--t2)", marginLeft: 2 }}>
+      <div style={{ background: "var(--bg)", padding: "26px 12px 22px", minHeight: 330 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+          <span style={{ fontFamily: F.plex, fontSize: 14, fontWeight: 700, letterSpacing: "0.04em", color: "var(--t1)" }}>Frames</span>
+          <span style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t2)", marginLeft: 2 }}>
             Semetko &amp; Valkenburg (2000)
           </span>
         </div>
         {FRAMES_LIST.map(f => (
-          <div key={f} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
-            <div style={{ width: 6, height: 6, background: "var(--red)", flexShrink: 0 }} />
-            <span style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t1)" }}>{f}</span>
+          <div key={f} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            <div style={{ width: 10, height: 10, background: "var(--red)", flexShrink: 0 }} />
+            <span style={{ fontFamily: F.plex, fontSize: 36 / 3, color: "var(--t1)" }}>{f}</span>
           </div>
         ))}
-        <p style={{
-          fontFamily: F.serif, fontStyle: "italic",
-          fontSize: 11, lineHeight: "16px", color: "var(--t2)",
-          borderTop: "1px solid var(--border)", paddingTop: 10, marginTop: 10,
-        }}>
-          Describes <em>how</em> a story is told — which problem is foregrounded and who bears responsibility.
-        </p>
       </div>
 
       {/* Angles */}
-      <div style={{ background: "var(--bg)", padding: "20px 20px 16px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-          <span style={{ fontFamily: F.plex, fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", color: "var(--t1)" }}>Angles</span>
-          <span style={{ fontFamily: F.plex, fontSize: 9, color: "var(--t2)", marginLeft: 2 }}>
+      <div style={{ background: "var(--bg)", padding: "26px 12px 22px", minHeight: 330 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+          <span style={{ fontFamily: F.plex, fontSize: 14, fontWeight: 700, letterSpacing: "0.04em", color: "var(--t1)" }}>Angles</span>
+          <span style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t2)", marginLeft: 2 }}>
             QuotaClimat taxonomy
           </span>
         </div>
         {ANGLES_LIST.map(a => (
-          <div key={a} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
-            <div style={{ width: 6, height: 6, background: "var(--green)", flexShrink: 0 }} />
-            <span style={{ fontFamily: F.plex, fontSize: 12, color: "var(--t1)" }}>{a}</span>
+          <div key={a} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            <div style={{ width: 10, height: 10, background: "var(--green)", flexShrink: 0 }} />
+            <span style={{ fontFamily: F.plex, fontSize: 36 / 3, color: "var(--t1)" }}>{a}</span>
           </div>
         ))}
-        <p style={{
-          fontFamily: F.serif, fontStyle: "italic",
-          fontSize: 11, lineHeight: "16px", color: "var(--t2)",
-          borderTop: "1px solid var(--border)", paddingTop: 10, marginTop: 10,
-        }}>
-          Describes <em>who</em> the story speaks to — which societal concern the framing addresses.
-        </p>
       </div>
     </div>
   );
@@ -236,25 +222,25 @@ export default function AboutPage() {
     <div style={{ maxWidth: 1440, margin: "0 auto", padding: "0 44px 64px" }}>
 
       {/* ── Two-column hero ── */}
-      <div style={{ display: "flex", borderBottom: "1px solid var(--border)" }}>
+      <div style={{ borderBottom: "1px solid var(--border)" }}>
+        {/* Edition bar */}
+        <div style={{
+          background: "var(--t1)",
+          display: "flex", justifyContent: "space-between", alignItems: "center",
+          height: 34, padding: "0 8px",
+        }}>
+          <span style={{ fontFamily: F.qtc, fontSize: 13, letterSpacing: "0.01em", textTransform: "uppercase", color: "var(--bg)" }}>
+            From the Editors
+          </span>
+          <span style={{ fontFamily: F.qtc, fontSize: 13, letterSpacing: "0.01em", textTransform: "uppercase", color: "var(--bg)" }}>
+            Amsterdam, the Netherlands
+          </span>
+        </div>
+
+        <div style={{ display: "flex" }}>
 
         {/* Left: About + accountability chain */}
         <div style={{ flex: "0 0 59%", paddingRight: 44, paddingBottom: 44 }}>
-
-          {/* Edition bar */}
-          <div style={{
-            background: "var(--t1)",
-            display: "flex", justifyContent: "space-between", alignItems: "center",
-            height: 34, padding: "0 8px",
-            marginRight: -44,
-          }}>
-            <span style={{ fontFamily: F.qtc, fontSize: 13, letterSpacing: "0.01em", textTransform: "uppercase", color: "var(--bg)" }}>
-              From the Editors
-            </span>
-            <span style={{ fontFamily: F.qtc, fontSize: 13, letterSpacing: "0.01em", textTransform: "uppercase", color: "var(--bg)" }}>
-              Amsterdam, the Netherlands
-            </span>
-          </div>
 
           <h1 style={{
             fontFamily: F.playfair, fontWeight: 800,
@@ -297,11 +283,11 @@ export default function AboutPage() {
           </h2>
 
           <p style={{ fontFamily: F.serif, fontSize: 15, lineHeight: "20px", color: "var(--t1)" }}>
-            Each article is analysed along two independent dimensions, drawing on established
-            media studies research and QuotaClimat&rsquo;s domain expertise.
+            Each article is classified using two locally-run, multillingual transformer models into frames and angles
           </p>
 
           <ClassificationGrid />
+        </div>
         </div>
       </div>
 
@@ -318,18 +304,11 @@ export default function AboutPage() {
 
         <p style={{ fontFamily: F.playfair, fontStyle: "italic", fontSize: 20, lineHeight: "24px", color: "var(--t2)", marginBottom: 20 }}>
           In 2000, Holli A. Semetko and Patti M. Valkenburg analysed European news coverage and
-          proposed five recurring frames.
+          deduced five recurring frames
         </p>
 
         <p style={{ fontFamily: F.serif, fontSize: 15, lineHeight: "20px", color: "var(--t1)", marginBottom: 36 }}>
-          Our analytical framework is based on the framing taxonomy developed by Semetko &amp;
-          Valkenburg, one of the most influential models in communication and journalism research.
-          Their taxonomy identifies five recurring frames commonly found in news reporting: conflict,
-          human interest, responsibility, economic consequences, and morality. Rather than treating
-          news as neutral information, frame analysis examines the narrative structures through which
-          issues are presented to the public. These frames influence how readers interpret urgency,
-          blame, emotion, and possible solutions — particularly in climate reporting, where media
-          narratives play a major role in shaping political and social discourse.
+          Semetko and Valkenburg (2000) derived their five frames deductively from a review of existing framing literature, then validated them empirically through a pri…Semetko and Valkenburg (2000) derived their five frames deductively from a review of existing framing literature, then validated them empirically through a principal component analysis of 20 indicator questions across 4,123 Dutch news stories, confirming that attribution of responsibility, conflict, human interest, economic consequences, and morality cluster into statistically distinct dimensions. Because the frames were constructed to be generic rather than issue-specific, they are designed to travel across topics, outlets, and national contexts without modification. This project applies them as a pre-defined classification target
         </p>
 
         {/* Classification pipeline SVG in place of dashboard screenshot */}
@@ -339,7 +318,7 @@ export default function AboutPage() {
           marginBottom: 36,
           background: "var(--bg)",
         }}>
-          <div style={{ fontFamily: F.plex, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--t2)", marginBottom: 12 }}>
+          <div style={{ fontFamily: F.plex, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--t2)", marginBottom: 12 }}>
             Training pipeline
           </div>
           <ClassificationPipelineSVG />
@@ -394,7 +373,7 @@ export default function AboutPage() {
         {/* Multilabel note */}
         <div style={{ background: "var(--bg2)", border: "1px solid #000", padding: "20px 40px", marginTop: 29 }}>
           <p style={{ fontFamily: F.playfair, fontWeight: 800, fontSize: 16, lineHeight: "25px", color: "var(--t1)", margin: 0 }}>
-            Note on multilabel scoring.{" "}
+            Note on multilabel scoring:{" "}
             <span style={{ fontWeight: 400 }}>
               The framing classifier scores each of the five frames independently, so a single
               article can carry strong Human Interest and Economic Consequences signals at once.
@@ -410,48 +389,75 @@ export default function AboutPage() {
         <HRule thick color="var(--t1)" />
 
         <h2 style={{ fontFamily: F.playfair, fontWeight: 700, fontSize: 36, lineHeight: "40px", color: "var(--t1)", marginTop: 28, marginBottom: 10 }}>
-          Meet the Team
+          The Climate Narrative Lab Team
         </h2>
 
         <p style={{ fontFamily: F.playfair, fontSize: 20, lineHeight: "24px", color: "var(--t2)", marginBottom: 20 }}>
           How do recurring media narratives shape collective understanding of climate change?
         </p>
 
-        <p style={{ fontFamily: F.serif, fontSize: 15, lineHeight: "20px", color: "var(--t1)", maxWidth: 882, marginBottom: 40 }}>
+        <p style={{ fontFamily: F.serif, fontSize: 15, lineHeight: "20px", color: "var(--t1)", marginBottom: 40 }}>
           The Climate Narrative Lab is a student-led initiative exploring how climate change is
           framed across digital news media. Developed as part of the Computational Social Science
           programme at the University of Amsterdam in collaboration with QuotaClimat, the project
-          combines computational methods, media theory, and interactive design to investigate how
-          journalistic narratives influence public perception of environmental crises.
+          combines computational methods, media theory, and interactive design.
         </p>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)" }}>
-          {TEAM.map((member, i) => {
-            const lastInRow = (i + 1) % 3 === 0;
-            const lastRow   = i >= TEAM.length - 3;
+          {TEAM.map((member) => {
             return (
               <div key={member.name} style={{
                 display: "flex", flexDirection: "column", alignItems: "center",
                 padding: "0 24px 32px",
-                borderRight:  lastInRow ? "none" : "1px solid var(--border)",
-                borderBottom: lastRow   ? "none" : "1px solid var(--border)",
               }}>
-                <div style={{ width: "100%", aspectRatio: "3/2", background: "var(--bg2)", border: "1px solid var(--border)", marginBottom: 16 }} />
+                {member.image ? (
+                  <div
+                    style={{
+                      width: 190,
+                      height: 190,
+                      borderRadius: "50%",
+                      overflow: "hidden",
+                      marginBottom: 16,
+                    }}
+                  >
+                    <img
+                      src={member.image}
+                      alt={member.name}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        objectPosition: "center",
+                        transform: `scale(${member.zoom ?? 1})`,
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div style={{
+                    width: 190,
+                    height: 190,
+                    borderRadius: "50%",
+                    background: "var(--bg2)",
+                    border: "1px solid var(--border)",
+                    marginBottom: 16,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontFamily: F.playfair,
+                    fontSize: 34,
+                    color: "var(--t2)",
+                  }}>
+                    {member.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
+                  </div>
+                )}
                 <div style={{ fontFamily: F.plex, fontSize: 17, fontWeight: 500, color: "var(--t1)", textAlign: "center" }}>
                   {member.name}
-                </div>
-                <div style={{ fontFamily: F.serif, fontStyle: "italic", fontSize: 14, lineHeight: "20px", color: "var(--t2)", textAlign: "center", marginTop: 6 }}>
-                  {member.role}
                 </div>
               </div>
             );
           })}
         </div>
 
-        <p style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)", fontStyle: "italic", marginTop: 16 }}>
-          Supervised by Reshmi Pillai &middot; Faculty of Social and Behavioural Science,
-          University of Amsterdam &middot; 2025–2026
-        </p>
       </div>
 
       {/* ── Page footer ── */}
