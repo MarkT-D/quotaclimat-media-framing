@@ -181,6 +181,8 @@ The Playfair Display sizes above sit on **two parallel tracks**, not one merged 
 
 A heading is a structural label that introduces a region of the page (the publication, the page topic, a sub-section). Headings descend strictly: every step down the hierarchy is visibly smaller than the one above it.
 
+Heading text uses **Title Case** across the product (page titles, section heads, and editorial strip labels). Avoid sentence case for headings.
+
 **Track B — Display typography (own register):**
 
 | Role | Size |
