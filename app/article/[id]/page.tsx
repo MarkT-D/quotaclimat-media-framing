@@ -14,17 +14,29 @@ import { countryName } from "@/lib/countryName";
 // Build tokens from stored {wordIndex: score} explanation.
 // Indices were computed on (title + " " + body) so offset body by title word count.
 // Normalises against the max score so the top word always gets weight 1.0.
+function normalizeBody(text: string): string {
+  return text
+    .replace(/\r\n/g, "\n").replace(/\r/g, "\n")
+    .replace(/\n{2,}/g, "\x00")                       // protect explicit blank lines
+    .replace(/([.!?»"')\]"])\n/g, "$1\x00")           // sentence-end \n → paragraph break
+    .replace(/\n/g, " ")                               // remaining \n are line wraps → space
+    .replace(/\x00/g, "\n\n")                          // restore paragraph breaks
+    .replace(/ {2,}/g, " ")
+    .trim();
+}
+
 function storedExplanationToTokens(
   title: string,
   body: string,
   frameExplanation: Record<string, number>,
   angleExplanation?: Record<string, number> | null,
 ): Token[] {
+  const normalized = normalizeBody(body);
   const titleWordCount = title.trim().split(/\s+/).filter(Boolean).length;
   const frameMax = Math.max(...Object.values(frameExplanation), 1e-6);
   const angleMax = angleExplanation ? Math.max(...Object.values(angleExplanation), 1e-6) : 1;
   let wordIdx = titleWordCount;
-  return body.split(/(\s+)/).filter(Boolean).map(part => {
+  return normalized.split(/(\s+)/).filter(Boolean).map(part => {
     const isWs = /^\s+$/.test(part);
     if (isWs) return { text: part, misinfoWeight: 0, framingWeight: 0, angleWeight: 0, isWhitespace: true };
     const idx = String(wordIdx++);
@@ -43,7 +55,7 @@ function liveExplanationToTokens(
   const weightMap = new Map(
     explanation.filter(w => w.score).map(w => [w.word.toLowerCase(), w.score! / maxScore]),
   );
-  return body.split(/(\s+)/).filter(Boolean).map(part => {
+  return normalizeBody(body).split(/(\s+)/).filter(Boolean).map(part => {
     const isWs = /^\s+$/.test(part);
     const w    = isWs ? 0 : (weightMap.get(part.toLowerCase()) ?? 0);
     return { text: part, misinfoWeight: 0, framingWeight: w, angleWeight: 0, isWhitespace: isWs };

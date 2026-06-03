@@ -157,6 +157,17 @@ def classify(req: ClassifyRequest):
     }
 
 
+def _normalize_body(text: str) -> str:
+    PARA = "\x01"
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    text = re.sub(r'\n{2,}', PARA, text)
+    text = re.sub(r'([.!?»"\')\]"])\n', lambda m: m.group(1) + PARA, text)
+    text = re.sub(r'\n', ' ', text)
+    text = text.replace(PARA, '\n\n')
+    text = re.sub(r' {2,}', ' ', text)
+    return text.strip()
+
+
 def _extract_pdf_text(reader) -> tuple[str, str]:
     """
     Returns (body_text, suggested_title).
@@ -181,10 +192,10 @@ def _extract_pdf_text(reader) -> tuple[str, str]:
         title_m = re.search(r'Page 1 of \d+\n(.+?)(?:\n|$)', article_text)
         title   = title_m.group(1).strip() if title_m else ""
 
-        return body, title
+        return _normalize_body(body), title
 
     # ── Generic PDF ──────────────────────────────────────────────────────────
-    return full.strip(), ""
+    return _normalize_body(full), ""
 
 
 @app.post("/extract-text")
