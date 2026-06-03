@@ -1,12 +1,15 @@
-# Quota Climate
+# Quota Climat: Climate journalism analysis dashboard
 
-Climate journalism analysis dashboard — tracks how news coverage reflects environmental crises across sectors, frames, and angles.
+This tracks how news coverage reflects environmental crises across sectors, frames, and angles.
 
 ## Prerequisites
 
 - Node.js 18+
 - Docker Desktop (for the database)
 - Python 3.11+ (for the classifier backend)
+
+## Analysis
+All the data analysis and dataset (pre)processing is under /backend/analysis. This includes a README.md with more details as well.
 
 ## Quick start
 
