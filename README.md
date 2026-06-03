@@ -45,6 +45,19 @@ postgresql://quota:<password>@localhost:5432/quota_climate
 
 Schema is defined in `backend/db/schema.sql` and applied automatically on first start.
 
+**Restore from a dump:**
+
+```bash
+# 1. Start Postgres
+docker compose up -d
+
+# 2. Restore (Mac/Linux)
+docker compose exec -T db psql -U quota quota_climate < quota_climate_dump.sql
+
+# 2. Restore (Windows PowerShell)
+Get-Content quota_climate_dump.sql | docker compose exec -T db psql -U quota quota_climate
+```
+
 ## Python backend
 
 FastAPI server for frame classification and article upload.
