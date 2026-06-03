@@ -84,3 +84,38 @@ body {
 .scroll-hint:hover { color: var(--t1); }
 
 .recharts-tooltip-wrapper { outline: none; }
+
+/* ── Print / PDF export ─────────────────────────────────────────────────── */
+
+.print-only { display: none; }
+
+@page {
+  size: A4 landscape;
+  margin: 12mm 14mm;
+}
+
+@media print {
+  .no-print   { display: none !important; }
+  .print-only { display: block !important; }
+
+  /* Force backgrounds and colors to print — must be on every element */
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide site nav */
+  header { display: none !important; }
+
+  .print-section { break-inside: avoid; page-break-inside: avoid; }
+  .print-chart-sm {
+    transform: scale(0.72);
+    transform-origin: bottom left;
+  }
+  .print-page-break { break-before: page !important; page-break-before: always !important; }
+
+  /* Compact lede so charts fit on page 1 */
+  .print-lede { padding-top: 12px !important; padding-bottom: 12px !important; }
+  .print-lede p { display: none !important; }
+  .print-kpi { margin-top: 8px !important; }
+}

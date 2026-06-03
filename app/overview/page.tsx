@@ -544,6 +544,33 @@ export default function OverviewPage() {
     <div>
       <div className="max-w-[1440px] mx-auto px-11">
 
+        {/* Print-only report header */}
+        <div className="print-only" style={{ paddingTop: 24, paddingBottom: 16, borderBottom: "2px solid var(--t1)", marginBottom: 24, background: "var(--bg)" }}>
+          <div style={{ fontFamily: F.playfair, fontSize: 22, color: "var(--t1)" }}>
+            Climate Narrative Review — {countryDisplayLabel} · {dataYear}
+          </div>
+          <div style={{ fontFamily: F.plex, fontSize: 11, color: "var(--t2)", marginTop: 4 }}>
+            Overview of media framing, editorial angles, and sector coverage
+          </div>
+        </div>
+
+        {/* Export button — hidden on print */}
+        <div className="no-print" style={{ display: "flex", justifyContent: "flex-end", paddingTop: 16, paddingBottom: 4 }}>
+          <button
+            onClick={() => window.print()}
+            style={{
+              fontFamily: F.plex, fontSize: 10, letterSpacing: "0.08em",
+              textTransform: "uppercase", color: "var(--t2)",
+              background: "none", border: "1px solid var(--border)",
+              padding: "5px 14px", cursor: "pointer",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--t1)"; e.currentTarget.style.color = "var(--t1)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--t2)"; }}
+          >
+            ↓ Export PDF
+          </button>
+        </div>
+
         {/* Lede + 2×2 KPI quadrant — page-anchor block.
             55/45 split: H1 + subhead carry editorial weight on the left; the
             KPI quadrant pairs the data summary with the headline on the right.
@@ -553,7 +580,7 @@ export default function OverviewPage() {
             stat row. Cells in the 2×2 use soft-rule dividers (vertical between
             the two columns, horizontal between the two rows) — same pattern as
             the prior four-up strip, extended into a grid. */}
-        <div className="flex flex-col lg:flex-row" style={{ paddingTop: 40, paddingBottom: 28 }}>
+        <div className="flex flex-col lg:flex-row print-lede" style={{ paddingTop: 40, paddingBottom: 28 }}>
           <div className="w-full lg:w-[55%] lg:pr-8">
             <div style={{ fontFamily: F.playfair, fontWeight: 400, fontSize: 36, lineHeight: "40px", color: "var(--t1)", maxWidth: 780 }}>
               The Gap Between<br />Ink and Environment
@@ -563,7 +590,7 @@ export default function OverviewPage() {
             </p>
           </div>
 
-          <div className="w-full lg:w-[45%] mt-6 lg:mt-0">
+          <div className="w-full lg:w-[45%] mt-6 lg:mt-0 print-kpi">
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
               {STATS.map((stat, i) => (
                 <div key={stat.label} style={{
@@ -585,7 +612,7 @@ export default function OverviewPage() {
         </div>
 
         {countryOptions.length > 0 && (
-          <div className="flex items-center justify-center gap-2" style={{ paddingBottom: 32 }}>
+          <div className="no-print flex items-center justify-center gap-2" style={{ paddingBottom: 32 }}>
             {([null, ...topCountries] as (string | null)[]).map((c) => {
               const active = country === c;
               const label  = c ? countryLabel(c) : "All";
@@ -663,7 +690,7 @@ export default function OverviewPage() {
         )}
 
         {/* Coverage over time + Frame distribution — no enclosing border; soft-rule column divider between cells. */}
-        <div className="grid grid-cols-2 mt-6">
+        <div className="grid grid-cols-2 mt-6 print-section">
 
           <div style={{ padding: "22px 26px 24px", borderRight: "1px solid var(--border)" }}>
             {/* Deliberate breathing room between section head and chart — matches
@@ -672,7 +699,7 @@ export default function OverviewPage() {
             <div style={{ marginBottom: 20 }}>
               <SectionHead>Coverage Over Time</SectionHead>
             </div>
-            <div style={{ cursor: "pointer" }} title="Click a month to browse its articles">
+            <div className="print-chart-sm" style={{ cursor: "pointer" }} title="Click a month to browse its articles">
               <ResponsiveContainer width="100%" height={240}>
                 <AreaChart
                   data={timeData}
@@ -756,7 +783,7 @@ export default function OverviewPage() {
         <div style={{ borderTop: "1px solid var(--border)" }} />
 
         {/* Editorial angles + Sectors — no enclosing border; soft-rule column divider between cells. */}
-        <div className="grid grid-cols-2">
+        <div className="grid grid-cols-2 print-section">
 
           <div style={{ padding: "22px 26px 24px", borderRight: "1px solid var(--border)" }}>
             <SectionHead>Editorial Angles</SectionHead>
@@ -858,7 +885,7 @@ export default function OverviewPage() {
         <div style={{ borderTop: "1px solid var(--border)" }} />
 
         {/* Outlet small multiples — no enclosing border, no header-band rule. */}
-        <div className="mt-6">
+        <div className="mt-6 print-page-break">
           <div style={{ paddingBottom: 14 }}>
             <SectionHead>Outlet Breakdown</SectionHead>
             <SectionMeta bg="var(--bg2)">
@@ -885,7 +912,7 @@ export default function OverviewPage() {
             axis ticks, gap labels) provides enough visual separation from the
             meta column; an additional vertical rule was reading as chrome. */}
         <div className="mt-6" style={{ display: "flex" }}>
-          <div style={{ width: "36%", padding: "22px 24px 24px 0", flexShrink: 0 }}>
+          <div style={{ width: "36%", padding: "22px 24px 24px 0", flexShrink: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <SectionHead>Coverage Vs. Emissions</SectionHead>
             <SectionMeta bg="var(--green-l)">Media share vs. sector greenhouse gas (GHG) share · 2024</SectionMeta>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
