@@ -1,0 +1,51 @@
+{
+    "type": "json_schema",
+    "json_schema": {
+        "name": "classification_angles",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "eval_health": {
+                    "type": "string",
+                    "description": "Justify (YES/NO): Does the article focus on how environmental issues or solutions directly affect human physical or mental well-being, disease prevalence, or public healthcare systems?"
+                },
+                "eval_economics": {
+                    "type": "string",
+                    "description": "Justify (YES/NO): Does the article focus on broad macroeconomic impacts, corporate performance, industry shifts, or market trends (excluding individual household finances)?"
+                },
+                "eval_jobs": {
+                    "type": "string",
+                    "description": "Justify (YES/NO): Does the article focus specifically on the labor market, including job creation, job losses, worker transitions, and employment rates?"
+                },
+                "eval_politics": {
+                    "type": "string",
+                    "description": "Justify (YES/NO): Does the article focus on domestic governance, including national/local legislation, elections, partisan debates, lobbying, and the actions or campaigns of domestic politicians?"
+                },
+                "eval_geopolitics": {
+                    "type": "string",
+                    "description": "Justify (YES/NO): Does the article focus on international relations, cross-border disputes, global treaties, climate migration, or resource competition between sovereign nations?"
+                },
+                "eval_purchasing_power": {
+                    "type": "string",
+                    "description": "Justify (YES/NO): Does the article focus on the microeconomic impact on everyday citizens, such as the cost of living, household energy bills, food prices, inflation, or consumer subsidies/taxes?"
+                },
+                "angles": {
+                    "type": "array",
+                    "items": {"type": "string", "enum": [labels]},
+                    "description": "List ONLY the angles marked YES."
+                }
+            },
+            "required": [
+                "eval_health",
+                "eval_economics",
+                "eval_jobs",
+                "eval_politics",
+                "eval_geopolitics",
+                "eval_purchasing_power",
+                "angles"
+            ],
+            "additionalProperties": false
+        },
+        "strict": true
+    }
+}

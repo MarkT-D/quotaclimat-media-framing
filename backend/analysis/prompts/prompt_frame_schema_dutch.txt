@@ -1,0 +1,46 @@
+{
+    "type": "json_schema",
+    "json_schema": {
+        "name": "classification_semetko",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "eval_verantwoordelijkheid": {
+                    "type": "string",
+                    "description": "Motiveer (JA/NEE): Suggereert het verhaal dat een actor (overheid, instelling, groep of individu) verantwoordelijk is voor de oorzaak van een probleem, OF dat zij de macht en plicht hebben om een oplossing te bieden?"
+                },
+                "eval_menselijke_interesse": {
+                    "type": "string",
+                    "description": "Motiveer (JA/NEE): Illustreert het artikel het onderwerp met een 'menselijk gezicht', gericht op persoonlijke ervaringen, emoties of de directe impact op het dagelijks leven van individuen?"
+                },
+                "eval_conflict": {
+                    "type": "string",
+                    "description": "Motiveer (JA/NEE): Benadrukt de tekst meningsverschillen, verdeeldheid, wederzijdse verwijten of oppositie tussen verschillende kampen, actoren of ideeën?"
+                },
+                "eval_economische_consequenties": {
+                    "type": "string",
+                    "description": "Motiveer (JA/NEE): Wordt het onderwerp benaderd vanuit het perspectief van economische gevolgen (kosten, financiële winsten, verliezen, budget) gekoppeld aan actie of inactie? (NEE als het slechts een geïsoleerd cijfer is)."
+                },
+                "eval_moraliteit": {
+                    "type": "string",
+                    "description": "Motiveer (JA/NEE): Spreken de tekst of de actoren een ethisch oordeel uit, een moreel voorschrift over de 'juiste' of 'eerlijke' manier van handelen, of een religieuze boodschap?"
+                },
+                "frames": {
+                    "type": "array",
+                    "items": {"type": "string", "enum": [labels]},
+                    "description": "Lijst ALLEEN de frames op die met JA zijn gemarkeerd. Een artikel heeft zelden meer dan 2 frames."
+                }
+            },
+            "required": [
+                "eval_verantwoordelijkheid", 
+                "eval_menselijke_interesse", 
+                "eval_conflict", 
+                "eval_economische_consequenties", 
+                "eval_moraliteit", 
+                "frames"
+            ],
+            "additionalProperties": false
+        },
+        "strict": true
+    }
+}

@@ -1,0 +1,46 @@
+{
+    "type": "json_schema",
+    "json_schema": {
+        "name": "classification_semetko",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "eval_responsibility": {
+                    "type": "string",
+                    "description": "Justify (YES/NO): Does the narrative suggest that an actor (government, institution, group, or individual) is responsible for the cause of a problem, OR that they have the power and the duty to provide a solution?"
+                },
+                "eval_human_interest": {
+                    "type": "string",
+                    "description": "Justify (YES/NO): Does the article illustrate the subject with a 'human face', focusing on personal experience, emotions, or the direct psychological impact on individuals' daily lives?"
+                },
+                "eval_conflict": {
+                    "type": "string",
+                    "description": "Justify (YES/NO): Does the text highlight disagreements, differences of opinion, mutual recriminations, or opposition between different camps, actors, or ideas?"
+                },
+                "eval_economic_consequences": {
+                    "type": "string",
+                    "description": "Justify (YES/NO): Is the subject addressed from the perspective of its economic consequences (costs, financial gains, losses, budget) linked to an action or inaction? (NO if it is just an isolated figure)."
+                },
+                "eval_morality": {
+                    "type": "string",
+                    "description": "Justify (YES/NO): Do the text or its actors express an ethical judgment, a moral prescription on the 'right' or 'just' way to act, or a religious message?"
+                },
+                "frames": {
+                    "type": "array",
+                    "items": {"type": "string", "enum": [labels]},
+                    "description": "List ONLY the frames marked YES. An article rarely has more than 2 frames."
+                }
+            },
+            "required": [
+                "eval_responsibility", 
+                "eval_human_interest", 
+                "eval_conflict", 
+                "eval_economic_consequences", 
+                "eval_morality", 
+                "frames"
+            ],
+            "additionalProperties": false
+        },
+        "strict": true
+    }
+}

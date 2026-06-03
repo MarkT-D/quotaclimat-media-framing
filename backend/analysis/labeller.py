@@ -1,120 +1,127 @@
 import os
-import re
 import json
+import time
+import argparse
 import pandas as pd
-from vllm import LLM, SamplingParams
-from vllm.sampling_params import GuidedDecodingParams
-from transformers import AutoTokenizer
-from tqdm import tqdm
+from openai import OpenAI
 
-#needed for competability between transformers and vLLM
-try:
-    from transformers.tokenization_utils_fast import TokenizersBackend
-    if not hasattr(TokenizersBackend, 'all_special_tokens_extended'):
-        TokenizersBackend.all_special_tokens_extended = property(lambda self: [])
-except ImportError:
-    pass
+#load prompt, json schema, and how the term title/body is called in that language from context.json
+def load_resources(language, context_file, stream="frame"):
+    with open(context_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
 
-#generates prompts for a chunk
-def generate_prompts(chunk, system_prompt, tokenizer):
-    prompts = []
-    for i, row in chunk.iterrows():
-        body_text = str(row['body'])
-        messages = [{"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"Title: {row['title']}\nBody: {body_text}"}]
-        prompts.append(tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True))
+    labels = data[stream+"s"][language]
+    prefix_data = data["prefix"][language]
+    prefixes = {"title": prefix_data["title"], "body": prefix_data["body"]}
+    
+    with open(f"prompts/prompt_{stream}_{language}.txt", "r", encoding="utf-8") as f:
+        system_prompt = f.read()
+        
+    with open(f"prompts/prompt_{stream}_schema_{language}.txt", "r", encoding="utf-8") as f:
+        schema_str = f.read()
+        
+    schema_str = schema_str.replace("[labels]", json.dumps(labels))
+    schema_dict = json.loads(schema_str)
+    return system_prompt, labels, prefixes, schema_dict
 
-    return prompts
-
-def main():
-    num_gpus = len(os.environ["CUDA_VISIBLE_DEVICES"].split(","))
-    input_csv = os.environ["INPUT_CSV"]
-    output_csv = os.environ["OUTPUT_CSV"]
-    model_id = os.environ["MODEL_ID"]
-    language = os.environ["LANGUAGE"]
-    max_chars = float(os.environ["MAX_CHARS"])
-    max_tokens = int(os.environ["MAX_TOKENS"])
-
-    chunk_size = 100
-
-    #load frames and prompts for specific languages
-    with open("context.json", "r", encoding="utf-8") as f:
-        context = json.load(f)
-    frames_list = context["frames"][language]
-    frames_english = context["frames"]["english"]
-    translate_map = dict(zip(frames_list, frames_english))
-    frames_str = ", ".join(frames_list)
-    system_prompt = context["prompts"][language].replace('[CAT]', frames_str)
-
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
-    dynamic_max_tokens = len(tokenizer(frames_str)["input_ids"]) + 30 #minimise output tokens
-
-    #schema for output
-    json_schema = {
-        "type": "object",
-        "properties": {
-            "frames": {
-                "type": "array",
-                "items": {"type": "string", "enum": frames_list},
-                "uniqueItems": True 
+#batch requests to be uploaded to the API
+def create_jsonl_chunk(df, filename, system_prompt, schema, model, prefixes):
+    with open(filename, "w", encoding="utf-8") as f:
+        for _, row in df.iterrows():
+            content = f"{prefixes['title']}: {row['title']}\n{prefixes['body']}: {row['body']}"
+            req = {
+                "custom_id": str(row['an']),
+                "method": "POST",
+                "url": "/v1/chat/completions",
+                "body": {
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": content}
+                    ],
+                    "response_format": schema
+                }
             }
-        },
-        "required": ["frames"],
-        "additionalProperties": False}
+            f.write(json.dumps(req) + "\n")
 
-    guided_params = GuidedDecodingParams(json=json_schema)
-    sampling_params = SamplingParams(temperature=0.0, max_tokens=dynamic_max_tokens, guided_decoding=guided_params)
-
-    df = pd.read_csv(input_csv, nrows=4000) #TODO
-    df = df.sort_values('char_length')
-
-    #find existing checkpoint to resume
+#store response
+def process_completed_batch(client, batch_id, output_csv, stream):
+    stream += 's' #plural
+    job = client.batches.retrieve(batch_id)
+    file_response = client.files.content(job.output_file_id)
+    results = []
+    
+    for line in file_response.text.strip().split('\n'):
+        if not line: continue
+        res = json.loads(line)
+        an = res['custom_id']
+                    
+        content_str = res['response']['body']['choices'][0]['message']['content']
+        data = json.loads(content_str)
+        
+        analyse_text = " | ".join([f"{k}: {v}" for k, v in data.items() if k.startswith("eval_")])
+        results.append({'an': an, 'analyse': analyse_text, stream: json.dumps(data[stream])})
+        
+    res_df = pd.DataFrame(results)
+    
     if os.path.exists(output_csv):
-        processed_titles = set(pd.read_csv(output_csv, usecols=['title'])['title'])
-        df = df[~df['title'].isin(processed_titles)]
-        print(f"Resuming: {len(df)} articles remaining.")
+        res_df.to_csv(output_csv, mode='a', header=False, index=False)
     else:
-        print(f"Starting fresh run with {len(df)} articles.")
+        res_df.to_csv(output_csv, index=False)
 
+def run_automated_pipeline(client, args):
+    system_prompt, labels, prefixes, schema = load_resources(args.language, args.context_file, args.stream)
+    
+    df = pd.read_csv(args.input)
+    
+    if os.path.exists(args.output):
+        done_df = pd.read_csv(args.output)
+        done_ids = set(done_df['an'].astype(str))
+        df = df[~df['an'].astype(str).isin(done_ids)]
+        print("adding on to existing file. Remaining articles: ",len(df))
+    
     if df.empty:
-        print("Finished. All data processed.")
+        print("all done")
         return
 
-    bucket_df = df[df['char_length'] <= max_chars].copy()
-    
-    if not bucket_df.empty:
-        print(f"--- Bucket (Max Chars: {max_chars}, Model Len: {max_tokens}) | Articles: {len(bucket_df)} ---")
+    total_chunks = (len(df) // args.chunk_size) + 1
+    for i in range(total_chunks):
+        chunk_df = df.iloc[i * args.chunk_size : (i + 1) * args.chunk_size]
+        if chunk_df.empty: break
+        print(f"running chunk {i+1} out of {total_chunks}")
+        jsonl_file = f"temp_chunk_{i+1}.jsonl"
+        create_jsonl_chunk(chunk_df, jsonl_file, system_prompt, schema, args.model, prefixes)
         
-        llm = LLM(model=model_id, tensor_parallel_size=num_gpus, 
-            dtype="bfloat16", max_model_len=max_tokens, 
-            enforce_eager=True, #needed for this cluster / no CUDA graphs
-            trust_remote_code=True, 
-            enable_prefix_caching=True, enable_chunked_prefill=True)
+        with open(jsonl_file, "rb") as f:
+            batch_input = client.files.create(file=f, purpose="batch")
+        batch_job = client.batches.create(input_file_id=batch_input.id, endpoint="/v1/chat/completions", completion_window="24h")
+        print("submitted batch. waiting...")
+        
+        while True:
+            status = client.batches.retrieve(batch_job.id).status
+            if status == "completed":
+                print("Batch completed.")
+                process_completed_batch(client, batch_job.id, args.output, args.stream)
+                os.remove(jsonl_file) 
+                break
+            
+            print(".", end="", flush=True)
+            time.sleep(120)
 
-        for i in tqdm(range(0, len(bucket_df), chunk_size), desc=f"Processing Bucket {max_chars}"):
-            chunk = bucket_df.iloc[i : i + chunk_size].copy()
-            
-            prompts = generate_prompts(chunk, system_prompt, tokenizer)
-            outputs = llm.generate(prompts, sampling_params, use_tqdm=False)
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input", default="datasets/raw/dutch.csv")
+    parser.add_argument("--output", default="datasets/llm_labelled/dutch_frames.csv")
+    parser.add_argument("--language", default="dutch")
+    parser.add_argument("--context_file", default="context.json")
+    parser.add_argument("--model", default="gpt-5-mini") 
+    parser.add_argument("--chunk_size", type=int, default=1000)
+    parser.add_argument("--stream", type=str, default="frame") #or angle
+    
+    args = parser.parse_args()
+    client = OpenAI(api_key="secret ;-)")
+    run_automated_pipeline(client, args)
 
-            parsed_frames = []
-            for out in outputs:
-                raw_text = out.outputs[0].text.strip()
-                try:
-                    data = json.loads(raw_text)
-                    #remove duplicates
-                    parsed_frames.append(list(dict.fromkeys(data.get("frames", []))))
-                except (json.JSONDecodeError, AttributeError):
-                    #in case of nans
-                    parsed_frames.append([])
-                    
-            chunk[f"frame_{language}"] = parsed_frames
-            chunk["frame_english"] = chunk[f"frame_{language}"].apply(
-                lambda frames: [translate_map[f] for f in frames])
-            
-            write_header = not os.path.exists(output_csv) #header only for new file
-            chunk.drop(columns=['char_length']).to_csv(output_csv, mode='a', index=False, header=write_header)
-            
 
 if __name__ == "__main__":
     main()

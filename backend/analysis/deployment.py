@@ -1,15 +1,16 @@
 import torch
 import pandas as pd
 from pathlib import Path
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, set_seed
 import json
 from tqdm import tqdm
 
 class Predictor:
     def __init__(self, checkpoint_path, device=None, calibrations=None):
+        set_seed(0)
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.tokenizer = AutoTokenizer.from_pretrained(checkpoint_path)
-        self.model = AutoModelForSequenceClassification.from_pretrained(checkpoint_path,attn_implementation="eager")
+        self.model = AutoModelForSequenceClassification.from_pretrained(checkpoint_path, attn_implementation="eager")
         self.model.to(self.device)
         self.model.eval()
         self.id2label = self.model.config.id2label
@@ -39,7 +40,7 @@ class Predictor:
                 outputs = self.model(**inputs, output_attentions=explain)
                 logits = outputs.logits
                 
-                if return_logits: #extraction for Platt scaling
+                if return_logits: #extracting logits only, needed for Platt scaling
                     for batch_idx in range(logits.shape[0]):
                         logit_dict = {self.id2label[idx]: float(logits[batch_idx][idx]) for idx in range(self.num_labels)}
                         all_results.append(logit_dict)
@@ -48,23 +49,22 @@ class Predictor:
                 if self.is_calibrated:
                     scaled_logits = (logits * self.W_tensor) + self.b_tensor
                     probs = torch.sigmoid(scaled_logits)
-                else:
+                else: #angle model
                     probs = torch.sigmoid(logits)
                 
                 for batch_idx in range(probs.shape[0]):
                     # Return the exact calibrated floating-point values
-                    result_dict = {
-                        "probabilities": {self.id2label[idx]: float(probs[batch_idx][idx]) for idx in range(self.num_labels)}
-                    }
+                    result_dict = {"probabilities": {self.id2label[idx]: float(probs[batch_idx][idx]) for idx in range(self.num_labels)}}
 
                     if explain:
+                        #only using CLS attention since it's the fastest and gives minimal explainability
                         last_layer_attention = outputs.attentions[-1]
                         cls_attention = last_layer_attention[batch_idx, :, 0, :].mean(dim=0)
                         
                         input_ids = inputs["input_ids"][batch_idx]
                         tokens = self.tokenizer.convert_ids_to_tokens(input_ids)
                         
-                        # Calculate threshold (ignoring padding)
+                        #check average+std of attention, so to not attribute a score to every word
                         valid_scores = [cls_attention[i].item() for i, t in enumerate(tokens) 
                                         if t not in [self.tokenizer.cls_token, self.tokenizer.eos_token, self.tokenizer.pad_token]]
                         if valid_scores:
@@ -74,8 +74,7 @@ class Predictor:
                         else:
                             attention_threshold = 1.0
 
-                        # Build {word_index: score} — only above-threshold words, scores in 0-1
-                        scored_words: dict[str, float] = {}
+                        scored_words = {}
                         word_idx = 0
                         current_word = ""
                         current_score = 0.0
@@ -85,7 +84,7 @@ class Predictor:
                                 continue
 
                             score = cls_attention[idx].item()
-
+                            #fix byte-pair encoding of RoBERTa and put together scores if word is split up
                             if token.startswith('Ġ') or token.startswith('▁'):
                                 if current_word:
                                     if current_score > attention_threshold:
@@ -97,6 +96,7 @@ class Predictor:
                                 current_word += token.replace('▁', '')
                                 current_score = max(current_score, score)
 
+                        #indeces to access which word in the frontend to highlight
                         if current_word:
                             if current_score > attention_threshold:
                                 scored_words[str(word_idx)] = round(current_score, 4)
@@ -107,25 +107,28 @@ class Predictor:
                     all_results.append(result_dict)
 
         return all_results
+
 if __name__ == "__main__":
-    CHECKPOINT_DIR = str(Path(__file__).parent / "checkpoint-2970")
+    CHECKPOINT_DIR = "/models/frame_classifier/" #"/models/angle_classifier/"
     
+    #output from last cell in Data Analysis notebook
     deployment_calibrations = {
-        'Conflict': {'W': 1.0098, 'b': -0.1047},
-        'Economic Consequences': {'W': 0.6491, 'b': -1.2076},
-        'Human Interest': {'W': 0.6111, 'b': -0.2337},
-        'Morality': {'W': 1.0935, 'b': 1.7397},
-        'Responsibility': {'W': 0.5278, 'b': -0.6062}}
+    'Conflict': {'W': 1.1204, 'b': -0.2250},
+    'Economic Consequences': {'W': 0.7453, 'b': -1.7384},
+    'Human Interest': {'W': 0.6387, 'b': -0.5708},
+    'Morality': {'W': 1.4947, 'b': 2.1579},
+    'Responsibility': {'W': 0.4394, 'b': -0.2494}}
 
-    predictor = Predictor(checkpoint_path=CHECKPOINT_DIR, calibrations=deployment_calibrations, device="cuda")
+    #use deployment_calibrations = None for angle model!
 
-    df = pd.read_csv("qc_dataset.csv")
+    predictor = Predictor(checkpoint_path=CHECKPOINT_DIR, calibrations=None, device="cpu")
+
+    df = pd.read_csv("french_filtered.csv")
     df["text"] = df["title"]+df["body"]
     texts = df["text"].tolist()
 
     import pickle
 
-    results = predictor.predict(texts, batch_size=32, return_logits=False, explain=True)
-    
-    with open("results_prediction.pkl","wb") as f:
+    results = predictor.predict(texts, batch_size=2, return_logits=False, explain=True)
+    with open("datasets/attention/attention_frames.pkl","wb") as f:
         pickle.dump(results,f)

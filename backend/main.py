@@ -17,12 +17,11 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 logger = logging.getLogger("uvicorn.error")  # shares uvicorn's handler so output is visible
 
 CALIBRATIONS = {
-    "Conflict":              {"W": 1.0098, "b": -0.1047},
-    "Economic Consequences": {"W": 0.6491, "b": -1.2076},
-    "Human Interest":        {"W": 0.6111, "b": -0.2337},
-    "Morality":              {"W": 1.0935, "b":  1.7397},
-    "Responsibility":        {"W": 0.5278, "b": -0.6062},
-}
+    'Conflict': {'W': 1.1204, 'b': -0.2250},
+    'Economic Consequences': {'W': 0.7453, 'b': -1.7384},
+    'Human Interest': {'W': 0.6387, 'b': -0.5708},
+    'Morality': {'W': 1.4947, 'b': 2.1579},
+    'Responsibility': {'W': 0.4394, 'b': -0.2494}}
 
 LABEL_MAP = {"Responsibility": "Attribution of Responsibility"}
 
@@ -44,7 +43,7 @@ def _get_predictor():
         if not _checkpoint or not Path(_checkpoint).is_dir():
             return None
         sys.path.insert(0, str(Path(__file__).parent / "analysis"))
-        from deployment_1 import Predictor  # type: ignore
+        from deployment import Predictor  # type: ignore
         logger.info("Loading frame classifier from %s …", _checkpoint)
         _predictor = Predictor(checkpoint_path=_checkpoint, calibrations=CALIBRATIONS)
         logger.info("Frame model ready.")
@@ -61,7 +60,7 @@ def _get_angle_predictor():
         if not _angle_checkpoint or not Path(_angle_checkpoint).is_dir():
             return None
         sys.path.insert(0, str(Path(__file__).parent / "analysis"))
-        from deployment_1 import Predictor  # type: ignore
+        from deployment import Predictor  # type: ignore
         logger.info("Loading angle classifier from %s …", _angle_checkpoint)
         _angle_predictor = Predictor(checkpoint_path=_angle_checkpoint, calibrations=None)
         logger.info("Angle model ready.")

@@ -1,0 +1,39 @@
+{
+    "type": "json_schema",
+    "json_schema": {
+        "name": "classification_semetko",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "eval_responsabilite": {
+                    "type": "string",
+                    "description": "Justifiez (OUI/NON) : Le récit suggère-t-il qu'un acteur (gouvernement, institution, groupe ou individu) est responsable de la cause du problème, OU qu'il a le pouvoir et le devoir d'y apporter une solution ?"
+                },
+                "eval_interet_humain": {
+                    "type": "string",
+                    "description": "Justifiez (OUI/NON) : L'article illustre-t-il le sujet par un 'visage humain', en se concentrant sur le vécu personnel, les émotions ou l'impact direct sur la vie quotidienne d'individus ?"
+                },
+                "eval_conflit": {
+                    "type": "string",
+                    "description": "Justifiez (OUI/NON) : Le texte met-il en évidence des désaccords, des divergences d'opinions, des reproches mutuels ou une opposition entre différents camps, acteurs ou idées ?"
+                },
+                "eval_economie": {
+                    "type": "string",
+                    "description": "Justifiez (OUI/NON) : Le sujet est-il abordé sous l'angle de ses conséquences économiques (coûts, gains financiers, pertes, budget) liées à une action ou une inaction ? (NON s'il s'agit d'un simple chiffre isolé)."
+                },
+                "eval_moralite": {
+                    "type": "string",
+                    "description": "Justifiez (OUI/NON) : Le texte ou ses acteurs formulent-ils un jugement éthique, une prescription morale sur la 'bonne' ou 'juste' façon d'agir, ou un message religieux ?"
+                },
+                "frames": {
+                    "type": "array",
+                    "items": {"type": "string", "enum": [labels]},
+                    "description": "Listez UNIQUEMENT les cadres marqués OUI. Un article a rarement plus de 2 cadres."
+                }
+            },
+            "required": ["eval_responsabilite", "eval_interet_humain", "eval_conflit", "eval_economie", "eval_moralite", "frames"],
+            "additionalProperties": false
+        },
+        "strict": true
+    }
+}

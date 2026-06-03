@@ -31,12 +31,11 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 # ── label/column mappings ──────────────────────────────────────────────────
 
 FRAME_CALIBRATIONS = {
-    "Conflict":              {"W": 1.0098, "b": -0.1047},
-    "Economic Consequences": {"W": 0.6491, "b": -1.2076},
-    "Human Interest":        {"W": 0.6111, "b": -0.2337},
-    "Morality":              {"W": 1.0935, "b":  1.7397},
-    "Responsibility":        {"W": 0.5278, "b": -0.6062},
-}
+    'Conflict': {'W': 1.1204, 'b': -0.2250},
+    'Economic Consequences': {'W': 0.7453, 'b': -1.7384},
+    'Human Interest': {'W': 0.6387, 'b': -0.5708},
+    'Morality': {'W': 1.4947, 'b': 2.1579},
+    'Responsibility': {'W': 0.4394, 'b': -0.2494}}
 
 FRAME_LABEL_MAP = {"Responsibility": "Attribution of Responsibility"}
 
@@ -129,7 +128,7 @@ def main():
         sys.exit(f"Angle checkpoint not found: {angle_checkpoint}\nSet ANGLE_MODEL_PATH to override.")
 
     sys.path.insert(0, str(Path(__file__).parent / "analysis"))
-    from deployment_1 import Predictor  # type: ignore
+    from deployment import Predictor  # type: ignore
 
     print(f"Loading frame model from {frame_checkpoint} …")
     frame_predictor = Predictor(checkpoint_path=frame_checkpoint, calibrations=FRAME_CALIBRATIONS)

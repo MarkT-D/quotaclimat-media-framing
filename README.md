@@ -14,16 +14,23 @@ All the data analysis and dataset (pre)processing is under /backend/analysis. Th
 ## Quick start
 
 ```bash
-# 1. Install frontend dependencies
+# Install frontend dependencies
 npm install
 
-# 2. Copy env file and set your password
-cp .env.example .env
+# Copy env file
+cp .env.example .env #copy on Windows
 
-# 3. Start the database
+# Start the database
 docker compose up -d
 
-# 4. Start dev servers (Next.js + Python backend)
+#Load database on Mac/Linux, IF not loaded before:
+docker compose exec -T db psql -U quota quota_climate < backend/analysis/datasets/quota_climate_dump.sql
+
+#Load database on Windows in PowerShell, IF not loaded before: 
+#if this throws an error, check instructions further below
+Get-Content backend/analysis/datasets/quota_climate_dump.sql | docker compose exec -T db psql -U quota quota_climate
+
+# Start dev servers (Next.js + Python backend)
 npm run dev:full
 ```
 
@@ -62,6 +69,17 @@ docker compose exec -T db psql -U quota quota_climate < quota_climate_dump.sql
 Get-Content quota_climate_dump.sql | docker compose exec -T db psql -U quota quota_climate
 ```
 
+In case of Windows error about backslash/encoding, run this in PowerShell:
+```bash
+$in = "$PWD\backend\analysis\datasets\quota_climate_dump.sql"
+$out = "$PWD\backend\analysis\datasets\quota_climate_utf8.sql"
+[System.IO.File]::WriteAllLines($out, [System.IO.File]::ReadLines($in), [System.Text.Encoding]::UTF8)
+docker compose cp "$out" db:/tmp/dump_utf8.sql
+docker compose exec db sh -c "tr -d '\r' < /tmp/dump_utf8.sql > /tmp/dump_final.sql && psql -v ON_ERROR_STOP=1 -U quota -d quota_climate -f /tmp/dump_final.sql"
+Remove-Item -Path "$out" -ErrorAction SilentlyContinue
+docker compose exec db sh -c "rm -f /tmp/dump_utf8.sql /tmp/dump_final.sql"
+```
+
 ## Python backend
 
 FastAPI server for frame classification and article upload.
@@ -72,6 +90,8 @@ pip install -r requirements.txt
 uvicorn main:app --reload   # port 8000
 ```
 The frame/angle classifier models need to be stored outside of this repository, because else npm cashes the model and causes every request to be very slow.
+
+Set the paths for the model in .env
 
 
 ## Scraper

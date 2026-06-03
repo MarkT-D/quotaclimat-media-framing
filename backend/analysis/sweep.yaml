@@ -1,26 +1,24 @@
 program: classifier.py
 method: bayes
 metric:
-  name: eval/f1_macro
+  name: eval_overall_f1_macro
   goal: maximize
 parameters:
-  #variables
   learning_rate:
     distribution: log_uniform_values
     min: 1e-5
-    max: 5e-5
+    max: 8e-5
   weight_decay:
-    values: [0.0, 0.01, 0.1]
+    values: [0.01, 0.05, 0.1]
   warmup_ratio:
-    values: [0.0, 0.05, 0.1]
+    values: [0.05, 0.1]
   lr_scheduler_type:
-    values: ["linear", "cosine", "polynomial"]
+    values: ["linear", "cosine"]
   per_device_train_batch_size:
     values: [8, 16]
   gradient_accumulation_steps:
-    values: [1, 2, 4]
+    values: [1, 2]
 
-  #constants
   num_train_epochs:
     value: 5
   per_device_eval_batch_size:
@@ -34,11 +32,15 @@ parameters:
   bf16:
     value: true
   save_strategy:
-    value: "no"
+    value: "epoch"
   load_best_model_at_end:
-    value: false
+    value: true
   report_to:
     value: "wandb"
+  greater_is_better:
+    value: true
+  metric_for_best_model:
+    value: eval_overall_f1_macro
 
 command:
   - torchrun

@@ -1,0 +1,51 @@
+{
+    "type": "json_schema",
+    "json_schema": {
+        "name": "classification_angles",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "eval_gezondheid": {
+                    "type": "string",
+                    "description": "Onderbouw (JA/NEE): Richt het artikel zich op hoe milieuproblemen of oplossingen de fysieke of mentale gezondheid van mensen, de prevalentie van ziekten of de openbare gezondheidszorg direct beïnvloeden?"
+                },
+                "eval_economie": {
+                    "type": "string",
+                    "description": "Onderbouw (JA/NEE): Richt het artikel zich op brede macro-economische effecten, bedrijfsprestaties, verschuivingen in de sector of markttrends (exclusief de financiën van individuele huishoudens)?"
+                },
+                "eval_werkgelegenheid": {
+                    "type": "string",
+                    "description": "Onderbouw (JA/NEE): Richt het artikel zich specifiek op de arbeidsmarkt, inclusief het creëren van banen, banenverlies, de transitie van werknemers en werkgelegenheidscijfers?"
+                },
+                "eval_politiek": {
+                    "type": "string",
+                    "description": "Onderbouw (JA/NEE): Richt het artikel zich op binnenlands bestuur, inclusief nationale/lokale wetgeving, verkiezingen, partijpolitieke debatten, lobbyen en de acties of campagnes van binnenlandse politici?"
+                },
+                "eval_geopolitiek": {
+                    "type": "string",
+                    "description": "Onderbouw (JA/NEE): Richt het artikel zich op internationale betrekkingen, grensoverschrijdende geschillen, wereldwijde verdragen, klimaatmigratie of de concurrentie om hulpbronnen tussen soevereine staten?"
+                },
+                "eval_koopkracht": {
+                    "type": "string",
+                    "description": "Onderbouw (JA/NEE): Richt het artikel zich op de micro-economische impact op de gewone burger, zoals de kosten van levensonderhoud, energierekeningen van huishoudens, voedselprijzen, inflatie of consumentensubsidies/-belastingen?"
+                },
+                "angles": {
+                    "type": "array",
+                    "items": {"type": "string", "enum": [labels]},
+                    "description": "Lijst UITSLUITEND de invalshoeken gemarkeerd met JA op."
+                }
+            },
+            "required": [
+                "eval_gezondheid",
+                "eval_economie",
+                "eval_werkgelegenheid",
+                "eval_politiek",
+                "eval_geopolitiek",
+                "eval_koopkracht",
+                "angles"
+            ],
+            "additionalProperties": false
+        },
+        "strict": true
+    }
+}

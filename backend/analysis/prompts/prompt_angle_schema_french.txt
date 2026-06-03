@@ -1,0 +1,51 @@
+{
+    "type": "json_schema",
+    "json_schema": {
+        "name": "classification_angles",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "eval_sante": {
+                    "type": "string",
+                    "description": "Justifiez (OUI/NON) : L'article se concentre-t-il sur la façon dont les problèmes ou solutions environnementaux affectent directement le bien-être physique ou mental humain, la prévalence des maladies ou les systèmes de santé publique ?"
+                },
+                "eval_economie": {
+                    "type": "string",
+                    "description": "Justifiez (OUI/NON) : L'article se concentre-t-il sur les vastes impacts macroéconomiques, la performance des entreprises, les mutations industrielles ou les tendances du marché (à l'exclusion des finances individuelles des ménages) ?"
+                },
+                "eval_emplois": {
+                    "type": "string",
+                    "description": "Justifiez (OUI/NON) : L'article se concentre-t-il spécifiquement sur le marché du travail, y compris la création d'emplois, les pertes d'emplois, les transitions professionnelles et les taux d'emploi ?"
+                },
+                "eval_politique": {
+                    "type": "string",
+                    "description": "Justifiez (OUI/NON) : L'article se concentre-t-il sur la gouvernance nationale ou locale, y compris la législation, les élections, les débats partisans, le lobbying et les actions ou campagnes des politiciens nationaux ?"
+                },
+                "eval_geopolitique": {
+                    "type": "string",
+                    "description": "Justifiez (OUI/NON) : L'article se concentre-t-il sur les relations internationales, les conflits transfrontaliers, les traités mondiaux, la migration climatique ou la compétition pour les ressources entre nations souveraines ?"
+                },
+                "eval_pouvoir_achat": {
+                    "type": "string",
+                    "description": "Justifiez (OUI/NON) : L'article se concentre-t-il sur l'impact microéconomique pour les citoyens ordinaires, tel que le coût de la vie, les factures d'énergie des ménages, les prix des denrées alimentaires, l'inflation ou les subventions/taxes à la consommation ?"
+                },
+                "angles": {
+                    "type": "array",
+                    "items": {"type": "string", "enum": [labels]},
+                    "description": "Listez UNIQUEMENT les angles marqués OUI."
+                }
+            },
+            "required": [
+                "eval_sante",
+                "eval_economie",
+                "eval_emplois",
+                "eval_politique",
+                "eval_geopolitique",
+                "eval_pouvoir_achat",
+                "angles"
+            ],
+            "additionalProperties": false
+        },
+        "strict": true
+    }
+}
