@@ -300,7 +300,7 @@ export default async function HomePage() {
   const EDITIONS: Edition[] = [
     {
       label: "Edition I", number: "01", title: "Dashboard", italic: true,
-      desc: "Sector coverage vs. greenhouse gas (GHG) proportionality across 74 outlets.",
+      desc: "Explore what receives media attention, how it is framed, and how coverage compares to sector emissions.",
       cta: "Open dashboard", href: "/overview", accent: "var(--red)",
       Teaser: () => <TeaserDashboard sectors={sectorData} />,
     },
@@ -312,7 +312,7 @@ export default async function HomePage() {
     },
     {
       label: "Edition III", number: "03", title: "Discrepancy Desk", italic: true,
-      desc: "Per-outlet framing patterns and publication statistics.",
+      desc: "Explore how climate narratives differ across the media landscape.",
       cta: "Open desk", href: "/newspapers", accent: "var(--t1)",
       Teaser: () => <TeaserDiscrepancy outlets={fallbackOutlets} />,
     },
@@ -327,10 +327,10 @@ export default async function HomePage() {
           </div>
           <div className="shrink-0 self-start" style={{ width: 491 }}>
             <p style={{ fontFamily: F.serif, fontWeight: 400, fontSize: 24, lineHeight: "33px", color: "var(--t1)", marginBottom: 28 }}>
-              Climate journalism shapes how the public understands the crisis. But who shapes climate journalism?
+              Climate narratives shape public understanding. Explore how those narratives are constructed.
             </p>
             <p style={{ fontFamily: F.serif, fontWeight: 300, fontSize: 17, lineHeight: "23px", color: "var(--t1)" }}>
-              The Climate Narrative Review tracks how 74 French and Belgian outlets frame the crisis &mdash; which sectors they cover, which they overlook, and whether reporting reflects actual emissions.
+              The Climate Narrative Review helps users understand how climate issues are discussed across European news outlets, revealing what receives attention, how stories are framed, and where gaps in coverage may exist.
             </p>
           </div>
           <div style={{ position: "absolute", bottom: 20, left: "50%", transform: "translateX(-50%)" }}>
