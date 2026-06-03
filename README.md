@@ -70,8 +70,8 @@ cd backend
 pip install -r requirements.txt
 uvicorn main:app --reload   # port 8000
 ```
+The frame/angle classifier models need to be stored outside of this repository, because else npm cashes the model and causes every request to be very slow.
 
-The frame classifier requires a model checkpoint at `backend/analysis/checkpoint-*/` (not included in the repo). Without it the `/classify` endpoint returns an error but the rest of the app works normally.
 
 ## Scraper
 
@@ -91,7 +91,7 @@ python -m scraper.scraper --query-file scraper/queries/transport_query.txt --lan
 
 ```bash
 npm run dev        # Next.js dev server at http://localhost:3000
-npm run dev:full   # Next.js + Python backend together
+npm run dev:full   # Next.js + Python backend together (model has to be outside of repo!!)
 npm run build      # production build
 npm start          # run production build
 npm run lint       # ESLint
