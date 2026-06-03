@@ -94,6 +94,7 @@ python -m scraper.scraper --query-file scraper/queries/transport_query.txt --lan
 npm run dev        # Next.js dev server at http://localhost:3000
 npm run dev:full   # Next.js + Python backend together (model has to be outside of repo!!)
 npm run build      # production build
-npm start          # run production build
+npm run prod:full  # production Next.js + Python backend (no dev widget, run after build)
+npm start          # run production build (Next.js only)
 npm run lint       # ESLint
 ```

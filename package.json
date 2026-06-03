@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "dev:full": "concurrently -n next,api -c cyan,green \"next dev --turbopack\" \"cd backend && python -m uvicorn main:app --reload\"",
+    "prod:full": "concurrently -n next,api -c cyan,green \"next start\" \"cd backend && python -m uvicorn main:app\"",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
