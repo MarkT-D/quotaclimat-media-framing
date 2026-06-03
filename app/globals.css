@@ -98,7 +98,11 @@ body {
   .no-print   { display: none !important; }
   .print-only { display: block !important; }
 
-  /* Force backgrounds and colors to print — must be on every element */
+  /* Force backgrounds and colors — explicit on html/body for Safari */
+  html, body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
   *, *::before, *::after {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -108,9 +112,16 @@ body {
   header { display: none !important; }
 
   .print-section { break-inside: avoid; page-break-inside: avoid; }
+
+  /* Scale chart down and collapse the space it occupied so it stays in bounds */
   .print-chart-sm {
+    height: 175px !important;
+    overflow: hidden !important;
+  }
+  .print-chart-sm .recharts-responsive-container {
     transform: scale(0.72);
-    transform-origin: bottom left;
+    transform-origin: top left;
+    width: calc(100% / 0.72) !important;
   }
   .print-page-break { break-before: page !important; page-break-before: always !important; }
 
