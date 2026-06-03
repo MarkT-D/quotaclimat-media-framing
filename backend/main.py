@@ -27,8 +27,11 @@ CALIBRATIONS = {
 LABEL_MAP = {"Responsibility": "Attribution of Responsibility"}
 
 _predictor = None
+_angle_predictor = None
 _load_lock = threading.Lock()
+_angle_load_lock = threading.Lock()
 _checkpoint: str = ""
+_angle_checkpoint: str = ""
 
 
 def _get_predictor():
@@ -44,20 +47,43 @@ def _get_predictor():
         from deployment_1 import Predictor  # type: ignore
         logger.info("Loading frame classifier from %s …", _checkpoint)
         _predictor = Predictor(checkpoint_path=_checkpoint, calibrations=CALIBRATIONS)
-        logger.info("Model ready.")
+        logger.info("Frame model ready.")
         return _predictor
+
+
+def _get_angle_predictor():
+    global _angle_predictor
+    if _angle_predictor is not None:
+        return _angle_predictor
+    with _angle_load_lock:
+        if _angle_predictor is not None:
+            return _angle_predictor
+        if not _angle_checkpoint or not Path(_angle_checkpoint).is_dir():
+            return None
+        sys.path.insert(0, str(Path(__file__).parent / "analysis"))
+        from deployment_1 import Predictor  # type: ignore
+        logger.info("Loading angle classifier from %s …", _angle_checkpoint)
+        _angle_predictor = Predictor(checkpoint_path=_angle_checkpoint, calibrations=None)
+        logger.info("Angle model ready.")
+        return _angle_predictor
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global _checkpoint
-    default = str(Path(__file__).parent / "analysis" / "checkpoint-2970")
-    _checkpoint = os.getenv("FRAME_MODEL_PATH", default)
+    global _checkpoint, _angle_checkpoint
+    _models_root = Path(__file__).parent.parent.parent / "models"
+    _checkpoint = os.getenv("FRAME_MODEL_PATH", str(_models_root / "finalmodel"))
+    _angle_checkpoint = os.getenv("ANGLE_MODEL_PATH", str(_models_root / "finalangle"))
     if not Path(_checkpoint).is_dir():
-        logger.warning("Checkpoint not found at %s — /classify will return 503", _checkpoint)
+        logger.warning("Frame checkpoint not found at %s — /classify will return 503", _checkpoint)
     else:
-        logger.info("Checkpoint found — loading model in background…")
+        logger.info("Frame checkpoint found — loading in background…")
         threading.Thread(target=_get_predictor, daemon=True).start()
+    if not Path(_angle_checkpoint).is_dir():
+        logger.warning("Angle checkpoint not found at %s — angle scores will be empty", _angle_checkpoint)
+    else:
+        logger.info("Angle checkpoint found — loading in background…")
+        threading.Thread(target=_get_angle_predictor, daemon=True).start()
     yield
 
 
@@ -109,10 +135,25 @@ def classify(req: ClassifyRequest):
             bar = "█" * int(score * 40)
             logger.info("  [%4s] %-20s %.4f  %s", idx, word, score, bar)
 
+    angle_scores: dict = {}
+    angle_explanation: dict = {}
+    angle_predictor = _get_angle_predictor()
+    if angle_predictor:
+        angle_results = angle_predictor.predict([req.text], batch_size=1, explain=True)
+        ar = angle_results[0]
+        angle_scores = ar["probabilities"]
+        angle_explanation = json.loads(ar.get("explanation", "{}"))
+        primary_angle = max(angle_scores, key=lambda k: angle_scores[k]) if angle_scores else None
+    else:
+        primary_angle = None
+
     return {
-        "frameScores": frame_scores,
-        "primaryFrame": primary_frame,
-        "explanation": explanation,
+        "frameScores":       frame_scores,
+        "primaryFrame":      primary_frame,
+        "explanation":       explanation,
+        "angleScores":       angle_scores,
+        "primaryAngle":      primary_angle,
+        "explanationAngles": angle_explanation,
     }
 
 

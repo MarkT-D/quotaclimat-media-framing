@@ -14,15 +14,23 @@ import { countryName } from "@/lib/countryName";
 // Build tokens from stored {wordIndex: score} explanation.
 // Indices were computed on (title + " " + body) so offset body by title word count.
 // Normalises against the max score so the top word always gets weight 1.0.
-function storedExplanationToTokens(title: string, body: string, explanation: Record<string, number>): Token[] {
+function storedExplanationToTokens(
+  title: string,
+  body: string,
+  frameExplanation: Record<string, number>,
+  angleExplanation?: Record<string, number> | null,
+): Token[] {
   const titleWordCount = title.trim().split(/\s+/).filter(Boolean).length;
-  const maxScore = Math.max(...Object.values(explanation), 1e-6);
+  const frameMax = Math.max(...Object.values(frameExplanation), 1e-6);
+  const angleMax = angleExplanation ? Math.max(...Object.values(angleExplanation), 1e-6) : 1;
   let wordIdx = titleWordCount;
   return body.split(/(\s+)/).filter(Boolean).map(part => {
     const isWs = /^\s+$/.test(part);
     if (isWs) return { text: part, misinfoWeight: 0, framingWeight: 0, angleWeight: 0, isWhitespace: true };
-    const score = (explanation[String(wordIdx++)] ?? 0) / maxScore;
-    return { text: part, misinfoWeight: 0, framingWeight: score, angleWeight: 0, isWhitespace: false };
+    const idx = String(wordIdx++);
+    const frameScore = (frameExplanation[idx] ?? 0) / frameMax;
+    const angleScore = angleExplanation ? (angleExplanation[idx] ?? 0) / angleMax : 0;
+    return { text: part, misinfoWeight: 0, framingWeight: frameScore, angleWeight: angleScore, isWhitespace: false };
   });
 }
 
@@ -131,7 +139,7 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
 
     // Use stored explanation if available
     if (article.explanationFrames && Object.keys(article.explanationFrames).length > 0) {
-      setTokens(storedExplanationToTokens(article.title, body, article.explanationFrames));
+      setTokens(storedExplanationToTokens(article.title, body, article.explanationFrames, article.explanationAngles));
       setClassifyDone(true);
       return;
     }

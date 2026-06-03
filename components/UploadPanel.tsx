@@ -15,7 +15,12 @@ type UploadMeta = {
   title: string; outlet: string; date: string;
   language: string; country: string; sector: string;
 };
-type ClassifyResult = { frameScores: Record<string, number>; explanation: Record<string, number> };
+type ClassifyResult = {
+  frameScores: Record<string, number>;
+  explanation: Record<string, number>;
+  angleScores?: Record<string, number>;
+  explanationAngles?: Record<string, number>;
+};
 type Suggestions = { outlets: string[]; languages: string[]; countries: string[]; sectors: string[] };
 
 // ── Country name ↔ ISO-2 ───────────────────────────────────────────────────────
@@ -281,7 +286,8 @@ export default function UploadPanel({ onSaved }: { onSaved: (id: number) => void
           wordCount,
           frameScores:       result?.frameScores ?? {},
           explanationFrames: result?.explanation ?? {},
-          explanationAngles: {},
+          angleScores:       result?.angleScores ?? {},
+          explanationAngles: result?.explanationAngles ?? {},
         }),
       });
       const { id } = await res.json() as { id: number };

@@ -23,6 +23,7 @@ type UploadPayload = {
   body: string;
   wordCount: number;
   frameScores: Record<string, number>;
+  angleScores?: Record<string, number>;
   explanationFrames?: Record<string, number>;
   explanationAngles?: Record<string, number>;
 };
@@ -37,19 +38,29 @@ export async function POST(req: Request) {
   const fm  = p.frameScores["Morality"]                      ?? null;
   const fe  = p.frameScores["Economic Consequences"]         ?? null;
 
+  const ah  = p.angleScores?.["Health"]          ?? null;
+  const ae  = p.angleScores?.["Economics"]        ?? null;
+  const aj  = p.angleScores?.["Jobs"]             ?? null;
+  const ap  = p.angleScores?.["Politics"]         ?? null;
+  const ag  = p.angleScores?.["Geopolitics"]      ?? null;
+  const app = p.angleScores?.["Purchasing Power"] ?? null;
+
   const expFrames = p.explanationFrames && Object.keys(p.explanationFrames).length > 0
     ? p.explanationFrames : null;
   const expAngles = p.explanationAngles && Object.keys(p.explanationAngles).length > 0
     ? p.explanationAngles : null;
 
   const sectorCol = p.sector ? SECTOR_COL[p.sector] ?? null : null;
+  const hasClassification = fa !== null || ah !== null;
 
   const rows = await sql<{ id: number }[]>`
     INSERT INTO articles (
       source_id, title, body, outlet, published_at, language, country,
       word_count, ingested_at,
       frame_attribution, frame_human_interest, frame_conflict, frame_morality, frame_economic,
+      angle_health, angle_economics, angle_jobs, angle_politics, angle_geopolitics, angle_purchasing_power,
       explanation_frames, explanation_angles,
+      classified_at,
       sector_energy, sector_transport, sector_agriculture, sector_industry,
       sector_buildings, sector_water, sector_ecosystem, sector_resource_economy
     ) VALUES (
@@ -57,8 +68,10 @@ export async function POST(req: Request) {
       ${p.language ?? null}, ${p.country ?? null},
       ${p.wordCount}, NOW(),
       ${fa}, ${fhi}, ${fc}, ${fm}, ${fe},
+      ${ah}, ${ae}, ${aj}, ${ap}, ${ag}, ${app},
       ${expFrames ? sql.json(expFrames) : null},
       ${expAngles ? sql.json(expAngles) : null},
+      ${hasClassification ? sql`NOW()` : null},
       ${sectorCol === "sector_energy"},
       ${sectorCol === "sector_transport"},
       ${sectorCol === "sector_agriculture"},
