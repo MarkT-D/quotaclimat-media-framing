@@ -2394,7 +2394,6 @@ export default function DiscrepancyDesk() {
     });
   };
 
-  const today = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
   const pendingM    = pendingA ? METRICS.find(m => m.id === pendingA) : null;
   const isLeftNode  = pendingA === "wordcount" || pendingA === "sector";
@@ -2574,21 +2573,8 @@ export default function DiscrepancyDesk() {
     <div style={{ background: "var(--bg)" }}>
       <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 44px 80px" }}>
 
-        {/* sub-strip */}
-        <div style={{
-          display: "flex", justifyContent: "space-between", alignItems: "center",
-          padding: "14px 0 10px",
-          fontFamily: QTC, fontSize: 13, letterSpacing: "1.2",
-          textTransform: "uppercase", color: "var(--t2)",
-        }}>
-          <span>Edition II · Discrepancy Desk</span>
-          <span>Updated {today}</span>
-        </div>
-        <DblRule />
-        <div style={{ height: 40 }} />
-
         {/* headline */}
-        <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center", marginBottom: 20 }}>
+        <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center", marginTop: 24, marginBottom: 20 }}>
           <div style={{
             fontFamily: PF,
             fontSize: "clamp(20px, 2.2vw, 34px)",

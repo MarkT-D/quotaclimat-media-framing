@@ -559,7 +559,7 @@ export default function OverviewPage() {
               The Gap Between<br />Ink and Environment
             </div>
             <p style={{ fontFamily: F.serif, fontWeight: 300, fontSize: 18, lineHeight: "26px", color: "var(--t2)", marginTop: 16, maxWidth: 560 }}>
-              Tracking how news coverage reflects environmental crises — across climate, biodiversity, and natural resources — and how that attention aligns with scientific urgency.
+              Analysing how agenda-setting, framing and news angles are present in environmental news coverage, and how coverage aligns with emissions per sector.
             </p>
           </div>
 
@@ -670,7 +670,7 @@ export default function OverviewPage() {
                 the optical density of cells that carry a SectionMeta chip below
                 the head (Frame Distribution, Coverage vs. Emissions, etc.). */}
             <div style={{ marginBottom: 20 }}>
-              <SectionHead>Coverage over time</SectionHead>
+              <SectionHead>Coverage Over Time</SectionHead>
             </div>
             <div style={{ cursor: "pointer" }} title="Click a month to browse its articles">
               <ResponsiveContainer width="100%" height={240}>
@@ -753,11 +753,13 @@ export default function OverviewPage() {
           </div>
         </div>
 
+        <div style={{ borderTop: "1px solid var(--border)" }} />
+
         {/* Editorial angles + Sectors — no enclosing border; soft-rule column divider between cells. */}
-        <div className="grid grid-cols-2 mt-6">
+        <div className="grid grid-cols-2">
 
           <div style={{ padding: "22px 26px 24px", borderRight: "1px solid var(--border)" }}>
-            <SectionHead>Editorial angles</SectionHead>
+            <SectionHead>Editorial Angles</SectionHead>
             <div style={{ display: "flex", height: 32, marginBottom: 6 }}>
               {angleBars.map((b, i) => (
                 <div key={b.angle}
@@ -853,10 +855,12 @@ export default function OverviewPage() {
           </div>
         </div>
 
+        <div style={{ borderTop: "1px solid var(--border)" }} />
+
         {/* Outlet small multiples — no enclosing border, no header-band rule. */}
         <div className="mt-6">
           <div style={{ paddingBottom: 14 }}>
-            <SectionHead>Outlet breakdown</SectionHead>
+            <SectionHead>Outlet Breakdown</SectionHead>
             <SectionMeta bg="var(--bg2)">
               {outletData.length} outlet{outletData.length !== 1 ? "s" : ""} in scope
             </SectionMeta>
@@ -882,7 +886,7 @@ export default function OverviewPage() {
             meta column; an additional vertical rule was reading as chrome. */}
         <div className="mt-6" style={{ display: "flex" }}>
           <div style={{ width: "36%", padding: "22px 24px 24px 0", flexShrink: 0 }}>
-            <SectionHead>Coverage vs. Emissions</SectionHead>
+            <SectionHead>Coverage Vs. Emissions</SectionHead>
             <SectionMeta bg="var(--green-l)">Media share vs. sector greenhouse gas (GHG) share · 2024</SectionMeta>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
               <div className="flex items-center gap-3">
@@ -895,7 +899,7 @@ export default function OverviewPage() {
               </div>
             </div>
             <EditorialNote>
-              Transport receives roughly double its emissions share in coverage. Energy — responsible for 34% of GHG — remains systematically under-reported across all monitored outlets.
+              Transport receives roughly double its emissions share in coverage. Energy, responsible for 34% of GHG, remains systematically under-reported across all monitored outlets.
             </EditorialNote>
           </div>
           <div style={{ flex: 1, padding: "22px 0 24px 0", overflowX: "auto" }}>
@@ -921,7 +925,7 @@ export default function OverviewPage() {
           <>
             <div className="mt-6">
               <div style={{ paddingBottom: 14 }}>
-                <SectionHead>Crisis domains</SectionHead>
+                <SectionHead>Crisis Domains</SectionHead>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)" }}>
                 {domainData.map((d, i) => {
@@ -952,7 +956,7 @@ export default function OverviewPage() {
 
             <div className="mt-6">
               <div style={{ paddingBottom: 14 }}>
-                <SectionHead>Causal stage distribution</SectionHead>
+                <SectionHead>Causal Stage Distribution</SectionHead>
                 <SectionMeta bg="var(--bg2)">What aspects of the crisis do articles focus on?</SectionMeta>
               </div>
               <div>

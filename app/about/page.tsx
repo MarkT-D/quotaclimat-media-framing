@@ -177,8 +177,7 @@ function ClassificationGrid() {
       {/* Frames */}
       <div style={{ background: "var(--bg)", padding: "20px 20px 16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-          <div style={{ width: 10, height: 10, background: "var(--red)", flexShrink: 0 }} />
-          <span style={{ fontFamily: F.plex, fontSize: 11, letterSpacing: "0.04em", color: "var(--t1)" }}>Frames</span>
+          <span style={{ fontFamily: F.plex, fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", color: "var(--t1)" }}>Frames</span>
           <span style={{ fontFamily: F.plex, fontSize: 9, color: "var(--t2)", marginLeft: 2 }}>
             Semetko &amp; Valkenburg (2000)
           </span>
@@ -201,8 +200,7 @@ function ClassificationGrid() {
       {/* Angles */}
       <div style={{ background: "var(--bg)", padding: "20px 20px 16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-          <div style={{ width: 10, height: 10, background: "var(--green)", flexShrink: 0 }} />
-          <span style={{ fontFamily: F.plex, fontSize: 11, letterSpacing: "0.04em", color: "var(--t1)" }}>Angles</span>
+          <span style={{ fontFamily: F.plex, fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", color: "var(--t1)" }}>Angles</span>
           <span style={{ fontFamily: F.plex, fontSize: 9, color: "var(--t2)", marginLeft: 2 }}>
             QuotaClimat taxonomy
           </span>
@@ -248,9 +246,10 @@ export default function AboutPage() {
             background: "var(--t1)",
             display: "flex", justifyContent: "space-between", alignItems: "center",
             height: 34, padding: "0 8px",
+            marginRight: -44,
           }}>
             <span style={{ fontFamily: F.qtc, fontSize: 13, letterSpacing: "0.01em", textTransform: "uppercase", color: "var(--bg)" }}>
-              From the editors
+              From the Editors
             </span>
             <span style={{ fontFamily: F.qtc, fontSize: 13, letterSpacing: "0.01em", textTransform: "uppercase", color: "var(--bg)" }}>
               Amsterdam, the Netherlands
@@ -259,10 +258,10 @@ export default function AboutPage() {
 
           <h1 style={{
             fontFamily: F.playfair, fontWeight: 800,
-            fontSize: 43, lineHeight: "45px",
+            fontSize: 36, lineHeight: "40px",
             color: "var(--t1)", marginTop: 28, marginBottom: 12,
           }}>
-            About the Climate<br />Narrative Lab
+            About the Climate Narrative Lab
           </h1>
 
           <p style={{ fontFamily: F.playfair, fontStyle: "italic", fontSize: 20, lineHeight: "24px", color: "var(--t2)", marginBottom: 24 }}>
@@ -272,22 +271,13 @@ export default function AboutPage() {
           <div style={{ display: "flex", gap: 32, alignItems: "flex-start" }}>
             <div style={{ flex: 1 }}>
               <p style={{ fontFamily: F.serif, fontSize: 15, lineHeight: "20px", color: "var(--t1)", marginBottom: 16 }}>
-                Environmental news coverage is growing faster than the infrastructure to evaluate it.
-                France and Belgium are among the first countries to formally require broadcasters to
-                demonstrate balanced climate reporting — ARCOM, the French media regulator, monitors
-                this in partnership with QuotaClimat. The mandate exists. The data is collected. But
-                it lives in spreadsheets.
+                Environmental journalism shapes how the public understands climate issues they cannot directly observe, yet the quality of that coverage is difficult to assess at scale. France and Belgium are among the first countries to formally require broadcasters to demonstrate balanced climate reporting, and ARCOM, the French media regulator, monitors this in partnership with QuotaClimat. Their current approach captures volume but not context, narrative, or framing, leaving a gap between large-scale media monitoring and the sector-aware insight that environmental journalists and NGOs need for advocacy and accountability work.
               </p>
               <p style={{ fontFamily: F.serif, fontSize: 15, lineHeight: "20px", color: "var(--t1)" }}>
-                The organisations doing accountability work — NGOs, advocacy groups, researchers —
-                want to ask structured questions: is agriculture covered in proportion to its methane
-                output? Which outlets lead on solution-focused staging? Did coverage of the energy
-                sector shift after the 2022 price crisis? None of these questions have easy answers
-                in a spreadsheet. We built this tool to bridge that gap: an open interface that turns
-                classification data into structured, explorable insight.
+                The organisations doing accountability work (NGOs, advocacy groups, researchers) want to ask structured questions about whether agriculture is covered in proportion to its methane output, which outlets lead on solution-focused staging, or how coverage of the energy sector shifted after the 2022 price crisis. These questions are not answerable from keyword counts alone. We built this tool to bridge that gap: a tool that visualises classifications of newspaper articles into actionable insights.
               </p>
             </div>
-            <div style={{ flexShrink: 0, width: 160 }}>
+            <div style={{ flexShrink: 0, width: 230 }}>
               <AccountabilityChainSVG />
             </div>
           </div>
@@ -299,17 +289,12 @@ export default function AboutPage() {
         {/* Right: How we classify + classification grid */}
         <div style={{ flex: 1, paddingLeft: 44, paddingBottom: 44 }}>
           <h2 style={{
-            fontFamily: F.playfair, fontWeight: 400,
-            fontSize: 43, lineHeight: "45px",
+            fontFamily: F.playfair, fontWeight: 500,
+            fontSize: 36, lineHeight: "40px",
             color: "var(--t1)", marginTop: 34, marginBottom: 12,
           }}>
-            How we classify
+            How We Classify
           </h2>
-
-          <p style={{ fontFamily: F.playfair, fontStyle: "italic", fontSize: 20, lineHeight: "24px", color: "var(--t2)", marginBottom: 20 }}>
-            &ldquo;The data exists. The accountability framework exists. What was missing was a
-            tool to make both usable.&rdquo;
-          </p>
 
           <p style={{ fontFamily: F.serif, fontSize: 15, lineHeight: "20px", color: "var(--t1)" }}>
             Each article is analysed along two independent dimensions, drawing on established
@@ -325,10 +310,10 @@ export default function AboutPage() {
 
         <h2 style={{
           fontFamily: F.playfair, fontWeight: 500,
-          fontSize: 43, lineHeight: "45px",
+          fontSize: 36, lineHeight: "40px",
           color: "var(--t1)", marginBottom: 16,
         }}>
-          The five recurring frames papers use to<br />talk about how a story is told.
+          A Frame Typology for Detecting Narrative Patterns in News Coverage
         </h2>
 
         <p style={{ fontFamily: F.playfair, fontStyle: "italic", fontSize: 20, lineHeight: "24px", color: "var(--t2)", marginBottom: 20 }}>
@@ -424,8 +409,8 @@ export default function AboutPage() {
       <div style={{ paddingTop: 52 }}>
         <HRule thick color="var(--t1)" />
 
-        <h2 style={{ fontFamily: F.playfair, fontWeight: 700, fontSize: 43, lineHeight: "45px", color: "var(--t1)", marginTop: 28, marginBottom: 10 }}>
-          Meet the team
+        <h2 style={{ fontFamily: F.playfair, fontWeight: 700, fontSize: 36, lineHeight: "40px", color: "var(--t1)", marginTop: 28, marginBottom: 10 }}>
+          Meet the Team
         </h2>
 
         <p style={{ fontFamily: F.playfair, fontSize: 20, lineHeight: "24px", color: "var(--t2)", marginBottom: 20 }}>

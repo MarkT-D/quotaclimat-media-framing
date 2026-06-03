@@ -311,7 +311,7 @@ export default async function HomePage() {
       Teaser: () => <TeaserReader articles={fallbackArticles} />,
     },
     {
-      label: "Edition III", number: "03", title: "Discrepancy desk", italic: false,
+      label: "Edition III", number: "03", title: "Discrepancy Desk", italic: true,
       desc: "Per-outlet framing patterns and publication statistics.",
       cta: "Open desk", href: "/newspapers", accent: "var(--t1)",
       Teaser: () => <TeaserDiscrepancy outlets={fallbackOutlets} />,
