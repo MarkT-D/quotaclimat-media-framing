@@ -196,7 +196,7 @@ Model checkpoints (`checkpoint-*/`) are not committed to the repo. Store them ou
 
 ## Classifying the full database
 
-`backend/classify_db.py` runs the frame classifier against every article in PostgreSQL and writes the probabilities back to the frame columns.
+`backend/classify_db.py` runs the frame and angle classifiers against every article in PostgreSQL and writes the probabilities back to both sets of columns.
 
 ```bash
 # From backend/
@@ -207,15 +207,15 @@ python classify_db.py --batch-size 16   # reduce if GPU memory is tight
 python classify_db.py --dry-run         # report row count only, no writes
 ```
 
-Set `FRAME_MODEL_PATH` to override the default checkpoint location:
+Default model paths are `../models/finalmodel` (frames) and `../models/finalangle` (angles), resolved relative to the project root. Override with env vars:
 
 ```bash
-FRAME_MODEL_PATH=/path/to/checkpoint python classify_db.py
+FRAME_MODEL_PATH=/path/to/frame_checkpoint \
+ANGLE_MODEL_PATH=/path/to/angle_checkpoint \
+python classify_db.py
 ```
 
-Columns written per article: `frame_attribution`, `frame_human_interest`, `frame_conflict`, `frame_morality`, `frame_economic`, `explanation_frames`, `classified_at`.
-
-Angle classification (`angle_*`, `explanation_angles`) will be added to this script once the angle model is trained — see the `TODO` comments in `classify_db.py`.
+Columns written per article: `frame_attribution`, `frame_human_interest`, `frame_conflict`, `frame_morality`, `frame_economic`, `explanation_frames`, `angle_health`, `angle_economics`, `angle_jobs`, `angle_politics`, `angle_geopolitics`, `angle_purchasing_power`, `explanation_angles`, `classified_at`.
 
 ---
 

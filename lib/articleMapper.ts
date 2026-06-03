@@ -83,12 +83,13 @@ export function mapDbRowToArticle(row: DbRow): Article {
     [row.domain_resources, "Resources"],
   ]);
 
+  const FRAME_THRESHOLD = 0.5;
   const frames = collectTrue<Frame>([
-    [row.frame_attribution != null,    "Attribution of Responsibility"],
-    [row.frame_human_interest != null, "Human Interest"],
-    [row.frame_conflict != null,       "Conflict"],
-    [row.frame_morality != null,       "Morality"],
-    [row.frame_economic != null,       "Economic Consequences"],
+    [(row.frame_attribution ?? 0) >= FRAME_THRESHOLD,    "Attribution of Responsibility"],
+    [(row.frame_human_interest ?? 0) >= FRAME_THRESHOLD, "Human Interest"],
+    [(row.frame_conflict ?? 0) >= FRAME_THRESHOLD,       "Conflict"],
+    [(row.frame_morality ?? 0) >= FRAME_THRESHOLD,       "Morality"],
+    [(row.frame_economic ?? 0) >= FRAME_THRESHOLD,       "Economic Consequences"],
   ]);
 
   const frameScores: Partial<Record<Frame, number>> = {};

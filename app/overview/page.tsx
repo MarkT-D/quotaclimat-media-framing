@@ -56,15 +56,19 @@ function sectorCountsFrom(arts: Article[]) {
   }));
 }
 
-function frameCountsFrom(arts: Article[]) {
-  const counts = Object.fromEntries(FRAMES.map((f) => [f, 0])) as Record<Frame, number>;
-  arts.forEach((a) => { FRAMES.forEach((f) => { if (a.frameScores[f] != null) counts[f]++; }); });
-  return FRAMES.map((f) => ({ frame: f, count: counts[f] }));
+function frameMeansFrom(arts: Article[]) {
+  return FRAMES.map((f) => {
+    const scored = arts.filter((a) => a.frameScores[f] != null);
+    const avg = scored.length
+      ? scored.reduce((s, a) => s + (a.frameScores[f] ?? 0), 0) / scored.length
+      : 0;
+    return { frame: f, avg };
+  });
 }
 
 function frameStatsFrom(arts: Article[]) {
   return FRAMES.map((frame) => {
-    const matching = arts.filter((a) => a.frameScores[frame] != null);
+    const matching = arts.filter((a) => a.frames.includes(frame));
     const count = matching.length;
     const outletMap = new Map<string, number>();
     matching.forEach((a) => outletMap.set(a.outlet, (outletMap.get(a.outlet) ?? 0) + 1));
@@ -223,7 +227,7 @@ const CustomTooltip = ({ active, payload, label }: {
 const RadarTooltip = ({ active, payload }: {
   active?: boolean;
   payload?: { payload?: {
-    fullFrame: string; value: number; count: number;
+    fullFrame: string; value: number;
     outletCount: number; topOutlet: string; topSector: string;
   } }[];
 }) => {
@@ -231,7 +235,7 @@ const RadarTooltip = ({ active, payload }: {
   const d = payload[0].payload;
   if (!d) return null;
   const rows: [string, string, string?][] = [
-    ["Articles",   `${d.count.toLocaleString()} (${d.value}%)`, "var(--t1)"],
+    ["Avg. score",  `${d.value}%`, "var(--t1)"],
     ["Outlets",    String(d.outletCount)],
     ["Top outlet", d.topOutlet],
     ["Top sector", d.topSector],
@@ -452,7 +456,7 @@ export default function OverviewPage() {
   const arts = useMemo(() => filterByCountry(allArticles, country), [allArticles, country]);
 
   const sectorData = useMemo(() => sectorCountsFrom(arts), [arts]);
-  const frameData  = useMemo(() => frameCountsFrom(arts), [arts]);
+  const frameData  = useMemo(() => frameMeansFrom(arts), [arts]);
   const stageData  = useMemo(() => stageCountsFrom(arts), [arts]);
   const domainData = useMemo(() => domainCountsFrom(arts), [arts]);
   const outletData = useMemo(() => outletStatsFrom(arts).sort((a, b) => b.count - a.count).slice(0, 10), [arts]);
@@ -492,13 +496,12 @@ export default function OverviewPage() {
     return {
       frame:       fd.short,
       fullFrame:   fd.key,
-      value:       Math.round(((frameData.find((f) => f.frame === fd.key)?.count ?? 0) / (arts.length || 1)) * 100),
-      count:       stats?.count ?? 0,
+      value:       Math.round((frameData.find((f) => f.frame === fd.key)?.avg ?? 0) * 100),
       outletCount: stats?.outletCount ?? 0,
       topOutlet:   stats?.topOutlet ?? "—",
       topSector:   stats?.topSector ?? "—",
     };
-  }), [frameData, arts.length, frameStats]);
+  }), [frameData, frameStats]);
 
   const totalArts   = arts.length;
   const outletCount = new Set(arts.map((a) => a.outlet)).size;
@@ -732,8 +735,7 @@ export default function OverviewPage() {
               </div>
               <div style={{ flex: "1 1 40%", display: "flex", flexDirection: "column", gap: 8 }}>
                 {FRAME_DEFS.map((fd) => {
-                  const count = frameData.find((f) => f.frame === fd.key)?.count ?? 0;
-                  const pct   = Math.round((count / (totalArts || 1)) * 100);
+                  const pct = Math.round((frameData.find((f) => f.frame === fd.key)?.avg ?? 0) * 100);
                   return (
                     <div key={fd.key} className="flex items-center gap-2"
                       onClick={() => router.push(toSearch({ frame: fd.key }, country))}
