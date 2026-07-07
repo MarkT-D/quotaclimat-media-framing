@@ -95,9 +95,24 @@ Set the paths for the model in .env
 
 ## Data
 
-The article corpus was collected from a licensed news database via institutional
-access. That content is copyrighted and is **not** redistributed with this
-repository, and the collection tooling is not included.
+### How the corpus was collected
+
+The underlying corpus was assembled from a major licensed news database
+accessed through a university subscription. A custom
+[Playwright](https://playwright.dev/) crawler drove authenticated search and
+article retrieval, working through Boolean queries designed per climate sector
+(transport, energy, agriculture, buildings, industry, water, ecosystem,
+resource economy) in English, French, and Dutch. Retrieved articles were
+written to JSONL, de-duplicated, ingested into PostgreSQL (`backend/db/`), and
+then run through the frame/angle classifiers under `backend/analysis/`.
+
+The collection tooling is **not** included in this repository, and the article
+text is **not** redistributed: the corpus is third-party copyrighted content,
+and the crawler was tied to institutional database access whose terms do not
+permit sharing an automated retrieval tool. This repo is the analysis and
+presentation layer plus a synthetic sample so it runs standalone.
+
+### Running with sample data
 
 To try the app locally, load the small synthetic sample seed (fabricated
 articles, no third-party content):
