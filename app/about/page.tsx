@@ -7,13 +7,14 @@ const F = {
   qtc:      "var(--font-quantico)",
 };
 
+// Photos intentionally omitted from the public repo; the card falls back to initials.
 const TEAM = [
-  { name: "Gabriella Beckley",  role: "Stakeholder engagement and data analysis", image: "/team/gabriella.png", zoom: 1.2 },
-  { name: "Emma-Rose Blacher",  role: "Project manager, literature review lead, and UX design", image: "/team/emma-rose.png", zoom: 1.02 },
-  { name: "Elnara Ibrahimli",   role: "Internal comms and design lead", image: "/team/elnara.png", zoom: 1.2 },
-  { name: "Maximilian Koch",    role: "NLP and ML pipeline", image: "/team/max.png", zoom: 1.2 },
-  { name: "David Liebmann",     role: "Ethics and academic writing", image: "/team/david.png", zoom: 1.2 },
-  { name: "Mark Temchenko",     role: "Data pipeline and engineering", image: "/team/mark.png", zoom: 1.2 },
+  { name: "Gabriella Beckley",  role: "Stakeholder engagement and data analysis", image: null, zoom: 1 },
+  { name: "Emma-Rose Blacher",  role: "Project manager, literature review lead, and UX design", image: null, zoom: 1 },
+  { name: "Elnara Ibrahimli",   role: "Internal comms and design lead", image: null, zoom: 1 },
+  { name: "Maximilian Koch",    role: "NLP and ML pipeline", image: null, zoom: 1 },
+  { name: "David Liebmann",     role: "Ethics and academic writing", image: null, zoom: 1 },
+  { name: "Mark Temchenko",     role: "Data pipeline and engineering", image: null, zoom: 1 },
 ];
 
 const FRAMES_LIST = [
