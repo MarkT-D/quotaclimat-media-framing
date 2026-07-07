@@ -92,6 +92,21 @@ The frame/angle classifier models need to be stored outside of this repository, 
 
 Set the paths for the model in .env
 
+### Models
+
+The trained frame/angle classifier weights are **not** distributed with this
+repo (they are large binaries). You only need them to classify *new* text via
+the `/classify` and upload endpoints — the dashboard, search, and the synthetic
+sample data all work without them, since classifications are stored in the
+database.
+
+If you want to run live classification, you can either:
+
+- **Retrain** from the training code and prompts under
+  [`backend/analysis/`](backend/analysis/), or
+- **Request the pretrained weights** — open an issue on this repository and
+  I'll share access.
+
 
 ## Data
 
