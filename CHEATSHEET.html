@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Quota Climate — Project Cheatsheet</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',ui-sans-serif,sans-serif;background:#fafaf8;color:#1a1a18;font-size:13px;line-height:1.5}
+.shell{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;flex-shrink:0;border-right:1px solid #e0e0dc;background:#fff;overflow-y:auto;padding:14px 0}
+.main{flex:1;overflow-y:auto;padding:24px 28px}
+h1{font-size:17px;font-weight:700;margin-bottom:2px;padding:0 14px 10px;border-bottom:1px solid #e0e0dc}
+.nav-section{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#999;padding:12px 14px 4px}
+.nav-item{display:block;padding:6px 14px;font-size:12px;color:#555;cursor:pointer;border-left:2px solid transparent;transition:all .1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-item:hover{background:#f5f5f2;color:#1a1a18}
+.nav-item.active{color:#1a1a18;font-weight:600;border-left-color:#1a1a18;background:#f5f5f2}
+.panel{display:none}.panel.active{display:block}
+h2{font-size:16px;font-weight:700;margin-bottom:6px}
+h3{font-size:13px;font-weight:700;margin:18px 0 8px;color:#1a1a18}
+.desc{font-size:12px;color:#666;margin-bottom:14px;line-height:1.6}
+.card{background:#fff;border:1px solid #e0e0dc;padding:14px 16px;margin-bottom:10px}
+.card-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#999;margin-bottom:8px}
+code,pre{font-family:'Menlo','Consolas',monospace;font-size:11px}
+code{background:#f3f4f6;padding:1px 4px;border-radius:2px;color:#1d4ed8}
+pre{background:#1e1e2e;color:#cdd6f4;padding:12px 14px;border-radius:4px;overflow-x:auto;line-height:1.7;margin:8px 0 12px}
+.kw{color:#cba6f7}.fn{color:#89b4fa}.str{color:#a6e3a1}.cm{color:#6c7086;font-style:italic}.num{color:#fab387}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px}
+th{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:#888;font-weight:700;padding:6px 8px;border-bottom:2px solid #e0e0dc;text-align:left}
+td{padding:8px 8px;border-bottom:1px solid #f0f0ec;vertical-align:top}
+tr:last-child td{border-bottom:none}
+td.mono{font-family:'Menlo','Consolas',monospace;font-size:10.5px;color:#1d4ed8;white-space:nowrap}
+.anno{display:flex;gap:10px;padding:10px 12px;border-left:3px solid #e0e0dc;margin:6px 0;background:#fafaf8}
+.anno.tip{border-color:#86efac}.anno.warn{border-color:#fca5a5}.anno.info{border-color:#93c5fd}
+.anno-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0;width:36px;padding-top:1px}
+.anno.tip .anno-label{color:#15803d}.anno.warn .anno-label{color:#dc2626}.anno.info .anno-label{color:#1d4ed8}
+.anno-body{font-size:12px;color:#333;line-height:1.5}
+.q{display:flex;gap:8px;padding:9px 12px;border:1px solid #e0e0dc;background:#fff;cursor:pointer;margin-bottom:5px;transition:background .1s}
+.q:hover{background:#f5f5f2;border-color:#bbb}
+.q-n{font-size:10px;font-weight:700;color:#ccc;flex-shrink:0;width:20px;padding-top:1px}
+.q-t{font-size:12px;color:#1a1a18;line-height:1.4}
+.tag{display:inline-block;font-size:9px;padding:1px 5px;border-radius:2px;font-weight:700;margin-left:6px;text-transform:uppercase;letter-spacing:.04em;vertical-align:middle}
+.tag-arch{background:#eff6ff;color:#1d4ed8}
+.tag-code{background:#fce7f3;color:#be185d}
+.tag-data{background:#fef9c3;color:#854d0e}
+.tag-ml{background:#dcfce7;color:#15803d}
+.tag-stack{background:#fff7ed;color:#c2410c}
+.section-q{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#aaa;margin:14px 0 6px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<nav class="sidebar">
+  <h1>Cheatsheet</h1>
+  <div class="nav-section">Stack Foundations</div>
+  <div class="nav-item active" onclick="go('nextjs',this)">What is Next.js?</div>
+  <div class="nav-item" onclick="go('react',this)">React &amp; Components</div>
+  <div class="nav-item" onclick="go('typescript',this)">TypeScript</div>
+  <div class="nav-item" onclick="go('tailwind',this)">Tailwind CSS v4</div>
+  <div class="nav-item" onclick="go('postgres',this)">Why PostgreSQL?</div>
+  <div class="nav-item" onclick="go('docker',this)">Why Docker?</div>
+  <div class="nav-item" onclick="go('fastapi',this)">FastAPI &amp; Python</div>
+  <div class="nav-section">Core Code Files</div>
+  <div class="nav-item" onclick="go('articletypes',this)">lib/articleTypes.ts</div>
+  <div class="nav-item" onclick="go('db',this)">lib/db.ts</div>
+  <div class="nav-item" onclick="go('mapper',this)">lib/articleMapper.ts</div>
+  <div class="nav-item" onclick="go('usearticles',this)">lib/useArticles.ts</div>
+  <div class="nav-item" onclick="go('apiroute',this)">api/articles/route.ts</div>
+  <div class="nav-item" onclick="go('mainpy',this)">backend/main.py</div>
+  <div class="nav-section">UI Components</div>
+  <div class="nav-item" onclick="go('layout',this)">app/layout.tsx</div>
+  <div class="nav-item" onclick="go('header',this)">NewspaperHeader.tsx</div>
+  <div class="nav-item" onclick="go('overview',this)">overview/page.tsx</div>
+  <div class="nav-item" onclick="go('search',this)">search/page.tsx</div>
+  <div class="nav-item" onclick="go('upload',this)">UploadPanel.tsx</div>
+  <div class="nav-item" onclick="go('explain',this)">ExplainPanel.tsx</div>
+  <div class="nav-item" onclick="go('articlepage',this)">article/[id]/page.tsx</div>
+  <div class="nav-section">Questions</div>
+  <div class="nav-item" onclick="go('q_stack',this)">Stack questions</div>
+  <div class="nav-item" onclick="go('q_code',this)">Code questions</div>
+  <div class="nav-item" onclick="go('q_data',this)">Data &amp; ML questions</div>
+  <div class="nav-section">Reflection Essay</div>
+  <div class="nav-item" onclick="go('rf_theory',this)">Theory &amp; Concepts</div>
+  <div class="nav-item" onclick="go('rf_intervention',this)">Intervention Decisions</div>
+  <div class="nav-item" onclick="go('rf_skills',this)">Skills &amp; Team</div>
+  <div class="nav-item" onclick="go('q_rf',this)">Reflection Questions</div>
+</nav>
+
+<div class="main">
+
+<!-- NEXT.JS -->
+<div id="nextjs" class="panel active">
+  <h2>What is Next.js?</h2>
+  <p class="desc">Next.js is a <strong>React framework</strong> — it adds routing, a build system, server rendering, and API routes on top of React. You don't need a separate Express server.</p>
+
+  <h3>App Router (used here)</h3>
+  <p class="desc">Every folder under <code>app/</code> with a <code>page.tsx</code> becomes a URL. A folder named <code>article/[id]</code> creates a dynamic route where <code>[id]</code> is a URL parameter.</p>
+  <div class="anno info"><div class="anno-label">KEY</div><div class="anno-body"><code>app/overview/page.tsx</code> → <code>localhost:3000/overview</code>. The <code>app/layout.tsx</code> wraps every page with the shared header — it runs once for the whole session, not per navigation.</div></div>
+
+  <h3>Server vs Client Components</h3>
+  <table>
+    <tr><th>Type</th><th>Default?</th><th>Can do</th><th>Cannot do</th></tr>
+    <tr><td><strong>Server Component</strong></td><td>Yes (App Router default)</td><td>Query DB directly, read env vars, fetch on server</td><td>useState, onClick, browser APIs</td></tr>
+    <tr><td><strong>Client Component</strong></td><td>No — add <code>"use client"</code> at top</td><td>useState, useEffect, event handlers, browser APIs</td><td>Direct DB access</td></tr>
+  </table>
+  <div class="anno warn"><div class="anno-label">HERE</div><div class="anno-body">Almost every file here starts with <code>"use client"</code>. The dashboard is highly interactive (charts, filters, hover states) so it all runs in the browser. The only server-side code is <code>api/articles/route.ts</code>, which queries Postgres.</div></div>
+
+  <h3>API Routes</h3>
+  <p class="desc">Files named <code>route.ts</code> inside <code>app/api/</code> become HTTP endpoints. They export async functions named <code>GET</code>, <code>POST</code>, etc.</p>
+  <pre><span class="cm">// app/api/articles/route.ts</span>
+<span class="kw">export async function</span> <span class="fn">GET</span>() {
+  <span class="cm">// runs on the server, can query Postgres</span>
+  <span class="kw">const</span> rows = <span class="kw">await</span> sql<span class="str">`SELECT * FROM articles`</span>
+  <span class="kw">return</span> NextResponse.<span class="fn">json</span>(rows)
+}
+<span class="kw">export async function</span> <span class="fn">POST</span>(req: Request) {
+  <span class="kw">const</span> body = <span class="kw">await</span> req.<span class="fn">json</span>()
+  <span class="cm">// ... insert into Postgres ...</span>
+}</pre>
+
+  <h3>Turbopack (dev mode)</h3>
+  <div class="anno info"><div class="anno-label">INFO</div><div class="anno-body"><code>npm run dev</code> uses <code>--turbopack</code> — a Rust-based bundler replacing Webpack. Much faster hot-reload. Production builds still use the standard Next.js compiler.</div></div>
+
+  <h3>Why Next.js here?</h3>
+  <div class="g2">
+    <div class="card"><div class="card-title">What it replaces</div>A separate Express server for the API + a separate Vite/CRA setup for the frontend. One repo, one dev command.</div>
+    <div class="card"><div class="card-title">The tradeoff</div>More conventions to learn (file-based routing, server/client boundary), but zero config for common patterns.</div>
+  </div>
+</div>
+
+<!-- REACT -->
+<div id="react" class="panel">
+  <h2>React &amp; Components</h2>
+  <p class="desc">React is a JavaScript library for building UIs from <strong>components</strong> — functions that return JSX and re-render automatically when their data changes.</p>
+
+  <h3>Key hooks used in this project</h3>
+  <table>
+    <tr><th>Hook</th><th>What it does</th><th>Used in</th></tr>
+    <tr><td class="mono">useState</td><td>Holds a value; when changed, re-renders the component</td><td>Every interactive component</td></tr>
+    <tr><td class="mono">useEffect</td><td>Runs a side-effect (fetch, event listener) after render</td><td>useArticles, NewspaperHeader scroll, UploadPanel</td></tr>
+    <tr><td class="mono">useMemo</td><td>Caches an expensive computation, re-runs only when deps change</td><td>overview/page.tsx — all chart aggregations</td></tr>
+    <tr><td class="mono">useRef</td><td>Holds a mutable value that does NOT trigger re-renders (e.g. DOM node, flag)</td><td>NewspaperHeader (hover tracking), UploadPanel file input</td></tr>
+    <tr><td class="mono">useId</td><td>Generates a stable unique ID for accessibility</td><td>Autocomplete in UploadPanel</td></tr>
+    <tr><td class="mono">usePathname</td><td>Next.js hook — returns current URL path</td><td>NewspaperHeader (active nav link)</td></tr>
+    <tr><td class="mono">useSearchParams</td><td>Next.js hook — reads <code>?key=value</code> from URL</td><td>search/page.tsx filter state</td></tr>
+    <tr><td class="mono">useRouter</td><td>Next.js hook — navigate programmatically</td><td>overview/page.tsx chart click-throughs</td></tr>
+  </table>
+
+  <h3>createPortal</h3>
+  <div class="anno info"><div class="anno-label">INFO</div><div class="anno-body"><code>createPortal(jsx, document.body)</code> renders a component outside its parent DOM node. Used in <code>UploadPanel.tsx</code> so the modal overlay covers the full screen even though UploadPanel is inside the header. Without it the modal would be clipped by parent CSS.</div></div>
+</div>
+
+<!-- TYPESCRIPT -->
+<div id="typescript" class="panel">
+  <h2>TypeScript</h2>
+  <p class="desc">TypeScript adds static types to JavaScript. The compiler catches type mismatches at build time. This project uses <strong>strict mode</strong> — all strict checks enabled.</p>
+
+  <h3>Key patterns used here</h3>
+  <table>
+    <tr><th>Pattern</th><th>Example</th><th>Why</th></tr>
+    <tr><td><code>as const</code></td><td><code>const FRAMES = ["Conflict", ...] as const</code></td><td>Makes array values literal types, not just <code>string[]</code>, so TypeScript can derive a union</td></tr>
+    <tr><td><code>typeof X[number]</code></td><td><code>type Frame = typeof FRAMES[number]</code></td><td>Derives a union type from an array — add/remove from array, type updates automatically</td></tr>
+    <tr><td><code>Partial&lt;Record&lt;K,V&gt;&gt;</code></td><td><code>frameScores: Partial&lt;Record&lt;Frame, number&gt;&gt;</code></td><td>A dict where some keys may be missing — DB might not have a score for every frame</td></tr>
+    <tr><td><code>ReturnType&lt;typeof fn&gt;</code></td><td><code>type OutletStat = ReturnType&lt;typeof getOutletStats&gt;[number]</code></td><td>Derive a type from a function's return — stays in sync automatically</td></tr>
+    <tr><td><code>satisfies</code></td><td><code>VIEW_META = {...} satisfies Record&lt;View, ...&gt;</code></td><td>Validates shape without widening the type — preserves literal string values</td></tr>
+  </table>
+
+  <h3>Path alias</h3>
+  <div class="anno info"><div class="anno-label">INFO</div><div class="anno-body"><code>@/*</code> maps to the project root. <code>import { useArticles } from "@/lib/useArticles"</code> works from any file regardless of nesting depth. Configured in <code>tsconfig.json</code>.</div></div>
+</div>
+
+<!-- TAILWIND -->
+<div id="tailwind" class="panel">
+  <h2>Tailwind CSS v4</h2>
+  <p class="desc">Tailwind generates utility CSS classes (<code>flex</code>, <code>text-sm</code>, <code>mt-6</code>) from your JSX. v4 is a major rewrite — it uses a PostCSS plugin instead of a config file.</p>
+
+  <h3>v3 vs v4 — what changed</h3>
+  <table>
+    <tr><th>v3 (old)</th><th>v4 (this project)</th></tr>
+    <tr><td><code>tailwind.config.js</code></td><td>No config file — CSS-first configuration</td></tr>
+    <tr><td><code>@tailwind base/components/utilities</code></td><td><code>@import "tailwindcss"</code> in CSS</td></tr>
+    <tr><td>Plugin: <code>tailwindcss</code> in PostCSS</td><td>Plugin: <code>@tailwindcss/postcss</code></td></tr>
+    <tr><td>Theme tokens in JS config</td><td>CSS custom properties in <code>globals.css</code></td></tr>
+  </table>
+
+  <div class="anno info"><div class="anno-label">HERE</div><div class="anno-body">Colors like <code>var(--red)</code>, <code>var(--bg)</code>, <code>var(--t1)</code>, <code>var(--t2)</code> are defined in <code>app/globals.css</code>. Most styling mixes Tailwind classes (<code>className="flex items-center"</code>) with inline <code>style</code> props referencing CSS variables for colors/fonts.</div></div>
+
+  <h3>Fonts — 6 loaded in layout.tsx</h3>
+  <table>
+    <tr><th>CSS var</th><th>Font</th><th>Used for</th></tr>
+    <tr><td class="mono">--font-playfair</td><td>Playfair Display</td><td>Section headings, large numerics, title text</td></tr>
+    <tr><td class="mono">--font-playfair-sc</td><td>Playfair Display SC</td><td>Masthead — THE CLIMATE NARRATIVE REVIEW</td></tr>
+    <tr><td class="mono">--font-source-serif</td><td>Source Serif 4</td><td>Body/editorial text, subheadings, descriptions</td></tr>
+    <tr><td class="mono">--font-plex-sans</td><td>IBM Plex Sans</td><td>UI labels, nav, data tables, form inputs</td></tr>
+    <tr><td class="mono">--font-podkova</td><td>Podkova</td><td>Accent/decorative uses</td></tr>
+    <tr><td class="mono">--font-quantico</td><td>Quantico</td><td>Field labels in UploadPanel and filter chips</td></tr>
+  </table>
+</div>
+
+<!-- POSTGRES -->
+<div id="postgres" class="panel">
+  <h2>Why PostgreSQL?</h2>
+  <p class="desc">PostgreSQL is an open-source relational database. Data is stored in tables with typed columns; you query it with SQL.</p>
+
+  <h3>Why relational (not MongoDB/Firebase)?</h3>
+  <div class="g2">
+    <div class="card"><div class="card-title">Structured schema</div>Every article has the same columns. A relational DB enforces this. A document DB allows inconsistent shapes — that adds bugs when you compute aggregations.</div>
+    <div class="card"><div class="card-title">Cheap aggregation</div>Counting articles by sector, averaging frame scores per outlet — cheap single-table SQL queries. A document DB would need map-reduce or in-app loops.</div>
+    <div class="card"><div class="card-title">JSONB escape hatch</div><code>explanation_frames</code> / <code>explanation_angles</code> are JSONB — variable-shape attention maps live inside the relational table without a schema migration.</div>
+    <div class="card"><div class="card-title">Transactions</div>An article upload writes all columns atomically. If it fails partway, Postgres rolls back the whole insert.</div>
+  </div>
+
+  <h3>How the project queries it</h3>
+  <div class="anno info"><div class="anno-label">INFO</div><div class="anno-body">The <code>postgres</code> npm package (not Prisma, not pg) is used. Tagged template literals: <code>sql`SELECT * FROM articles WHERE id = ${id}`</code> — values are automatically parameterised, preventing SQL injection. Connection pool (max 10) is a module singleton in <code>lib/db.ts</code>.</div></div>
+</div>
+
+<!-- DOCKER -->
+<div id="docker" class="panel">
+  <h2>Why Docker?</h2>
+  <p class="desc">Docker packages software into a <strong>container</strong> — an isolated environment with its own filesystem, network, and process space that runs identically on every machine.</p>
+
+  <h3>The docker-compose setup</h3>
+  <pre>services:
+  db:
+    image: postgres:16           <span class="cm"># exact Postgres version, reproducible</span>
+    environment:
+      POSTGRES_USER: quota
+      POSTGRES_PASSWORD: changeme
+      POSTGRES_DB: quota_climate
+    ports:
+      - <span class="str">"5432:5432"</span>              <span class="cm"># host:container — localhost:5432 → Postgres</span>
+    volumes:
+      - pgdata:/var/lib/postgresql/data  <span class="cm"># data persists across restarts</span></pre>
+
+  <div class="g2">
+    <div class="card"><div class="card-title">Why not install Postgres directly?</div>No version conflicts across machines. One command starts and stops it. Data lives in a Docker volume, not scattered across the host filesystem.</div>
+    <div class="card"><div class="card-title">The volume</div><code>docker compose down</code> stops the container but data persists. <code>docker compose down -v</code> destroys the volume — full reset. Re-seed with the <code>.sql</code> dump file.</div>
+  </div>
+
+  <h3>Connection string</h3>
+  <pre>DATABASE_URL=postgresql://quota:changeme@localhost:5432/quota_climate
+<span class="cm">#                         user:password @host       :port/dbname</span></pre>
+  <div class="anno warn"><div class="anno-label">NOTE</div><div class="anno-body"><code>@localhost</code> works because Docker maps port 5432 from the container to the host's localhost. Both Next.js and the Python backend connect to <code>localhost:5432</code>.</div></div>
+</div>
+
+<!-- FASTAPI -->
+<div id="fastapi" class="panel">
+  <h2>FastAPI &amp; Python Backend</h2>
+  <p class="desc">FastAPI is a modern Python web framework with automatic OpenAPI docs and Pydantic validation. It runs separately from Next.js on port 8000.</p>
+
+  <h3>Why a separate Python server?</h3>
+  <div class="anno warn"><div class="anno-label">KEY</div><div class="anno-body">The BERT models are PyTorch. PyTorch runs in Python. You cannot run a PyTorch model inside a Node.js process — they're different runtimes. So ML inference lives in Python and Next.js calls it over HTTP.</div></div>
+
+  <h3>Lazy model loading pattern</h3>
+  <pre><span class="cm"># NOT loaded at import time.
+# Loaded lazily on first call, with a lock to prevent double-load.</span>
+_predictor = <span class="kw">None</span>
+_load_lock = threading.<span class="fn">Lock</span>()
+
+<span class="kw">def</span> <span class="fn">_get_predictor</span>():
+    <span class="kw">global</span> _predictor
+    <span class="kw">if</span> _predictor <span class="kw">is not None</span>: <span class="kw">return</span> _predictor
+    <span class="kw">with</span> _load_lock:
+        <span class="kw">if</span> _predictor <span class="kw">is not None</span>: <span class="kw">return</span> _predictor  <span class="cm"># double-check</span>
+        _predictor = <span class="fn">Predictor</span>(checkpoint_path=_checkpoint)
+        <span class="kw">return</span> _predictor</pre>
+  <div class="anno info"><div class="anno-label">WHY</div><div class="anno-body">Loading BERT weights takes ~5–10 seconds. The <code>lifespan</code> context manager starts loading in a background thread so <code>GET /health</code> responds immediately. If checkpoint directory doesn't exist, <code>/classify</code> returns HTTP 503 gracefully.</div></div>
+
+  <h3>Platt scaling calibration</h3>
+  <pre>CALIBRATIONS = {
+    <span class="str">"Conflict"</span>: {<span class="str">"W"</span>: <span class="num">1.0098</span>, <span class="str">"b"</span>: <span class="num">-0.1047</span>},
+    ...
+}
+<span class="cm"># Applied as: calibrated_score = sigmoid(W * raw_logit + b)</span></pre>
+  <div class="anno info"><div class="anno-label">WHY</div><div class="anno-body">Raw BERT softmax probabilities are often poorly calibrated (e.g. always outputs 0.9). Platt scaling fits a linear function on a validation set so "80% confident" actually means 80% accuracy. The angle model has no calibration yet.</div></div>
+</div>
+
+<!-- ARTICLETYPES -->
+<div id="articletypes" class="panel">
+  <h2>lib/articleTypes.ts</h2>
+  <p class="desc">The <strong>single source of truth</strong> for all domain constants and the Article interface. Any component that needs to know what a Frame or Sector is imports from here.</p>
+
+  <pre><span class="kw">export const</span> FRAMES = [
+  <span class="str">"Attribution of Responsibility"</span>,
+  <span class="str">"Human Interest"</span>,
+  <span class="str">"Conflict"</span>,
+  <span class="str">"Morality"</span>,
+  <span class="str">"Economic Consequences"</span>,
+] <span class="kw">as const</span>
+
+<span class="kw">export type</span> Frame = <span class="kw">typeof</span> FRAMES[<span class="kw">number</span>]
+<span class="cm">// Frame = "Attribution of Responsibility" | "Human Interest" | ...</span></pre>
+
+  <div class="anno tip"><div class="anno-label">KEY</div><div class="anno-body">Because <code>Frame</code> is derived from the array, adding a new frame to <code>FRAMES</code> automatically updates the type everywhere. The DB columns and mapper still need a migration though.</div></div>
+
+  <h3>Article interface — key fields</h3>
+  <table>
+    <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+    <tr><td class="mono">sector</td><td><code>Sector | null</code></td><td>Single-label — first truthy DB flag wins</td></tr>
+    <tr><td class="mono">frames[]</td><td><code>Frame[]</code></td><td>Multi-label — all scores ≥ 0.5</td></tr>
+    <tr><td class="mono">primaryFrame</td><td><code>Frame | null</code></td><td>argmax of frameScores regardless of threshold</td></tr>
+    <tr><td class="mono">frameScores</td><td><code>Partial&lt;Record&lt;Frame, number&gt;&gt;</code></td><td>Raw BERT probabilities 0–1</td></tr>
+    <tr><td class="mono">primaryAngle</td><td><code>Angle | null</code></td><td>argmax of angleScores (no threshold used)</td></tr>
+    <tr><td class="mono">explanationFrames</td><td><code>Record&lt;string, number&gt; | null</code></td><td>{wordIndex: attention} from frame BERT</td></tr>
+    <tr><td class="mono">explanationAngles</td><td><code>Record&lt;string, number&gt; | null</code></td><td>{wordIndex: attention} from angle BERT</td></tr>
+    <tr><td class="mono">keywords[]</td><td><code>string[]</code></td><td>Parsed from ln_subject, strips "(75%)" weights</td></tr>
+    <tr><td class="mono">excerpt</td><td><code>string</code></td><td>First 250 chars of body, whitespace-collapsed</td></tr>
+  </table>
+
+  <h3>getOutletStats()</h3>
+  <div class="anno info"><div class="anno-label">INFO</div><div class="anno-body">Exported helper that groups articles by outlet and computes articleCount, avgMisinfoScore, stageDist, frameDist, solutionRate. Used only by <code>/newspapers</code> page. All computation happens in the browser from the cached article list.</div></div>
+</div>
+
+<!-- DB -->
+<div id="db" class="panel">
+  <h2>lib/db.ts</h2>
+  <p class="desc">9 lines. Creates a shared PostgreSQL connection pool used by all API routes.</p>
+
+  <pre><span class="kw">import</span> postgres <span class="kw">from</span> <span class="str">"postgres"</span>
+
+<span class="kw">const</span> sql = <span class="fn">postgres</span>(process.env.DATABASE_URL!, {
+  max: <span class="num">10</span>,              <span class="cm">// max simultaneous connections</span>
+  idle_timeout: <span class="num">30</span>,     <span class="cm">// close idle connections after 30s</span>
+  connect_timeout: <span class="num">10</span>,  <span class="cm">// fail if can't connect within 10s</span>
+})
+
+<span class="kw">export default</span> sql</pre>
+
+  <div class="anno info"><div class="anno-label">POOL</div><div class="anno-body">A connection pool keeps several persistent TCP connections to Postgres open and reuses them. Opening a new DB connection per HTTP request would be ~50–100ms overhead each time. With pooling, connections are already open — queries start immediately.</div></div>
+  <div class="anno warn"><div class="anno-label">!</div><div class="anno-body">The <code>!</code> after <code>DATABASE_URL</code> is a TypeScript non-null assertion — "I know this isn't undefined." If the <code>.env</code> file is missing this variable, the app crashes at startup with a confusing error.</div></div>
+
+  <h3>Usage</h3>
+  <pre><span class="kw">import</span> sql <span class="kw">from</span> <span class="str">"@/lib/db"</span>
+
+<span class="cm">// Values auto-parameterised — no SQL injection possible</span>
+<span class="kw">const</span> rows = <span class="kw">await</span> sql<span class="str">`SELECT * FROM articles WHERE id = ${id}`</span>
+
+<span class="cm">// sql() for raw SQL fragments (dynamic column names)</span>
+sql<span class="str">`INSERT ... ${sql`NOW()`}`</span></pre>
+</div>
+
+<!-- MAPPER -->
+<div id="mapper" class="panel">
+  <h2>lib/articleMapper.ts</h2>
+  <p class="desc">Converts a raw DB row (flat columns) into the rich <code>Article</code> TypeScript interface. The only place where DB column names meet the app's domain model.</p>
+
+  <h3>Key transformations</h3>
+  <table>
+    <tr><th>DB columns</th><th>Article field</th><th>Logic</th></tr>
+    <tr><td class="mono">sector_energy, sector_transport…</td><td class="mono">sector: Sector | null</td><td><code>collectTrue()</code> — first true flag wins, single-label</td></tr>
+    <tr><td class="mono">stage_causes, stage_solutions…</td><td class="mono">stages: Stage[]</td><td><code>collectTrue()</code> — all true flags, multi-label</td></tr>
+    <tr><td class="mono">frame_attribution…frame_economic</td><td class="mono">frames[], frameScores, primaryFrame</td><td>Scores ≥ 0.5 → array; argmax → primaryFrame</td></tr>
+    <tr><td class="mono">angle_health…angle_purchasing_power</td><td class="mono">angleScores, primaryAngle</td><td>No threshold — argmax only</td></tr>
+    <tr><td class="mono">ln_subject</td><td class="mono">keywords: string[]</td><td>Split on <code>;</code>, strip <code>(75%)</code> weight suffixes</td></tr>
+    <tr><td class="mono">body (full text)</td><td class="mono">excerpt</td><td>First 250 chars, whitespace-collapsed</td></tr>
+    <tr><td class="mono">id (integer)</td><td class="mono">id: string</td><td>Formatted as <code>"art-0042"</code></td></tr>
+    <tr><td class="mono">published_at (Date|string)</td><td class="mono">publishedAt: string</td><td>Normalised to ISO <code>"YYYY-MM-DD"</code></td></tr>
+  </table>
+
+  <div class="anno tip"><div class="anno-label">HELPER</div><div class="anno-body"><code>collectTrue(pairs)</code> = <code>pairs.filter(([flag]) =&gt; flag === true).map(([, value]) =&gt; value)</code>. Maps boolean flag arrays to typed value arrays. Used for sectors, stages, crisis domains, and frames.</div></div>
+
+  <pre><span class="cm">// argmax: key with highest value</span>
+<span class="kw">function</span> <span class="fn">argmax</span>(scores: Partial&lt;Record&lt;string, number&gt;&gt;): string | null {
+  <span class="kw">let</span> best = null, bestVal = -Infinity
+  <span class="kw">for</span> (<span class="kw">const</span> [key, val] of Object.<span class="fn">entries</span>(scores)) {
+    <span class="kw">if</span> (val != null &amp;&amp; val &gt; bestVal) { bestVal = val; best = key }
+  }
+  <span class="kw">return</span> best
+}
+
+<span class="cm">// FRAME_THRESHOLD = 0.5</span>
+<span class="cm">// frames[] = collectTrue([score >= 0.5, frameName]) — multi-label</span>
+<span class="cm">// primaryFrame = argmax(frameScores)              — single best label</span></pre>
+</div>
+
+<!-- USEARTICLES -->
+<div id="usearticles" class="panel">
+  <h2>lib/useArticles.ts</h2>
+  <p class="desc">A React hook that fetches all articles once and caches them in a module-level variable for the lifetime of the browser tab.</p>
+
+  <pre><span class="cm">// Module-level — persists across component mounts/unmounts</span>
+<span class="kw">let</span> _cache: Article[] | null = null
+<span class="kw">let</span> _promise: Promise&lt;Article[]&gt; | null = null
+
+<span class="kw">function</span> <span class="fn">fetchArticles</span>(): Promise&lt;Article[]&gt; {
+  <span class="kw">if</span> (_cache) <span class="kw">return</span> Promise.<span class="fn">resolve</span>(_cache)   <span class="cm">// already loaded</span>
+  <span class="kw">if</span> (_promise) <span class="kw">return</span> _promise                   <span class="cm">// in-flight — dedup</span>
+  _promise = <span class="fn">fetch</span>(<span class="str">"/api/articles"</span>)
+    .then(r =&gt; r.<span class="fn">json</span>())
+    .then(data =&gt; { _cache = data; _promise = null; <span class="kw">return</span> data })
+  <span class="kw">return</span> _promise
+}</pre>
+
+  <div class="anno info"><div class="anno-label">WHY</div><div class="anno-body">If 3 components call <code>useArticles()</code> simultaneously (overview page mounts multiple chart sections at once), all 3 get the same <code>_promise</code> — only one HTTP request fires. Once resolved, all future calls return <code>_cache</code> synchronously.</div></div>
+  <div class="anno warn"><div class="anno-label">TRADE</div><div class="anno-body">No cache invalidation. If someone uploads an article via <code>UploadPanel</code>, the cache is stale until a page reload. React Query would handle this, but that's an external dependency the project chose to avoid.</div></div>
+
+  <h3>The hook</h3>
+  <pre><span class="kw">export function</span> <span class="fn">useArticles</span>() {
+  <span class="cm">// Start with cached data if available — avoids loading flash on re-mount</span>
+  <span class="kw">const</span> [articles, setArticles] = <span class="fn">useState</span>&lt;Article[]&gt;(_cache ?? [])
+  <span class="kw">const</span> [loading, setLoading]   = <span class="fn">useState</span>(_cache === null)
+  <span class="kw">const</span> [error, setError]       = <span class="fn">useState</span>&lt;string | null&gt;(null)
+  <span class="cm">// useEffect fetches if not cached</span>
+}</pre>
+</div>
+
+<!-- API ROUTE -->
+<div id="apiroute" class="panel">
+  <h2>app/api/articles/route.ts</h2>
+  <p class="desc">Handles both reading articles (GET) and saving a new one (POST). End of the upload pipeline.</p>
+
+  <h3>GET — fetch all articles</h3>
+  <pre><span class="kw">export async function</span> <span class="fn">GET</span>() {
+  <span class="kw">const</span> rows = <span class="kw">await</span> sql<span class="str">`
+    SELECT id, title, outlet, published_at,
+           frame_attribution, frame_human_interest, ...
+           explanation_frames, explanation_angles
+    FROM articles ORDER BY published_at DESC
+  `</span>
+  <span class="kw">return</span> NextResponse.<span class="fn">json</span>(rows.<span class="fn">map</span>(mapDbRowToArticle))
+}
+
+<span class="kw">export const</span> dynamic = <span class="str">"force-dynamic"</span>
+<span class="cm">// ↑ tell Next.js: never cache this route, always run fresh</span></pre>
+
+  <div class="anno warn"><div class="anno-label">NOTE</div><div class="anno-body"><code>body</code> is deliberately excluded from the GET query — it can be large and is only needed on the article detail page. Overview/search use only metadata and frame scores.</div></div>
+
+  <h3>POST — save uploaded article</h3>
+  <pre><span class="cm">// Sector stored as 8 boolean columns, not a string column
+// → compute which flag is true from the sector name:</span>
+<span class="kw">const</span> sectorCol = p.sector ? SECTOR_COL[p.sector] ?? null : null
+
+sql<span class="str">`INSERT INTO articles (...) VALUES (
+  ...,
+  ${sectorCol === "sector_energy"},      -- true or false
+  ${sectorCol === "sector_transport"},   -- true or false
+  ...
+)`</span>
+
+<span class="cm">// source_id distinguishes uploads from bulk-ingested articles</span>
+<span class="kw">const</span> sourceId = <span class="str">`UPLOAD:${crypto.randomUUID()}`</span></pre>
+</div>
+
+<!-- MAIN.PY -->
+<div id="mainpy" class="panel">
+  <h2>backend/main.py</h2>
+  <p class="desc">The entire Python backend — model loading, text extraction, and classification — in one file.</p>
+
+  <h3>POST /classify</h3>
+  <pre><span class="kw">@app.post</span>(<span class="str">"/classify"</span>)
+<span class="kw">def</span> <span class="fn">classify</span>(req: ClassifyRequest):
+    predictor = <span class="fn">_get_predictor</span>()
+    <span class="kw">if</span> predictor <span class="kw">is None</span>:
+        <span class="kw">raise</span> HTTPException(status_code=<span class="num">503</span>)  <span class="cm"># no checkpoint → graceful fail</span>
+
+    results = predictor.<span class="fn">predict</span>([req.text], batch_size=<span class="num">1</span>, explain=<span class="kw">True</span>)
+    r = results[<span class="num">0</span>]
+    frame_scores = {LABEL_MAP.<span class="fn">get</span>(k, k): v <span class="kw">for</span> k, v <span class="kw">in</span> r[<span class="str">"probabilities"</span>].items()}
+    <span class="cm"># LABEL_MAP renames "Responsibility" → "Attribution of Responsibility"</span>
+    explanation = json.<span class="fn">loads</span>(r.<span class="fn">get</span>(<span class="str">"explanation"</span>, <span class="str">"{}"</span>))
+    <span class="cm"># explanation = {wordIndex: attentionScore}</span></pre>
+
+  <div class="anno tip"><div class="anno-label">FLOW</div><div class="anno-body">The same <code>Predictor</code> class handles both frame and angle models, with different checkpoint paths. Angle model passes <code>calibrations=None</code> — no Platt calibration fitted yet.</div></div>
+
+  <h3>POST /extract-text — LexisNexis detection</h3>
+  <pre><span class="kw">if</span> <span class="str">"LexisNexis"</span> <span class="kw">in</span> full:
+    article_text = <span class="str">"\n"</span>.<span class="fn">join</span>(pages[<span class="num">1</span>:])  <span class="cm"># skip page 0 — metadata header</span>
+    body_m = re.<span class="fn">search</span>(
+        <span class="str">r'\bBody\n(.+?)(?:\nClassification\b|\Z)'</span>,
+        article_text, re.DOTALL
+    )
+    title_m = re.<span class="fn">search</span>(<span class="str">r'Page 1 of \d+\n(.+?)(?:\n|$)'</span>, article_text)</pre>
+  <div class="anno info"><div class="anno-label">WHY</div><div class="anno-body">LexisNexis exports: page 0 is search metadata, page 1 starts the article, article body is delimited by "Body" on its own line. The regex extracts only the article text, stripping all LexisNexis metadata.</div></div>
+
+  <h3>Text normalisation</h3>
+  <pre><span class="kw">def</span> <span class="fn">_normalize_body</span>(text):
+    PARA = <span class="str">"\x01"</span>                               <span class="cm"># temporary sentinel</span>
+    text = re.<span class="fn">sub</span>(<span class="str">r'\n{2,}'</span>, PARA, text)         <span class="cm"># blank lines → sentinel</span>
+    text = re.<span class="fn">sub</span>(<span class="str">r'([.!?])\n'</span>, ..., text)       <span class="cm"># sentence-end newline → sentinel</span>
+    text = re.<span class="fn">sub</span>(<span class="str">r'\n'</span>, <span class="str">' '</span>, text)             <span class="cm"># remaining newlines → space</span>
+    text = text.<span class="fn">replace</span>(PARA, <span class="str">'\n\n'</span>)           <span class="cm"># restore paragraph breaks</span>
+    <span class="kw">return</span> text.<span class="fn">strip</span>()</pre>
+</div>
+
+<!-- LAYOUT -->
+<div id="layout" class="panel">
+  <h2>app/layout.tsx</h2>
+  <p class="desc">Root layout — renders once and wraps every page. Loads fonts and renders the persistent header.</p>
+
+  <h3>localFont() pattern</h3>
+  <pre><span class="kw">const</span> playfairDisplay = <span class="fn">localFont</span>({
+  variable: <span class="str">"--font-playfair"</span>,   <span class="cm">// CSS var used in components</span>
+  src: [
+    { path: <span class="str">"../node_modules/@fontsource/playfair-display/..."</span>,
+      weight: <span class="str">"400"</span>, style: <span class="str">"normal"</span> },
+  ],
+})</pre>
+  <div class="anno info"><div class="anno-label">WHY</div><div class="anno-body">Fonts come from <code>node_modules/@fontsource/*</code> — the packages bundle the actual woff2 files. <code>localFont()</code> generates an optimised CSS <code>@font-face</code> and exposes a CSS variable. No Google Fonts CDN = no third-party request, works offline, no GDPR concern.</div></div>
+  <div class="anno warn"><div class="anno-label">GOTCHA</div><div class="anno-body">All 6 font CSS variables are applied to <code>&lt;html&gt;</code> via <code>className={fontVars}</code>. If you add a component that uses <code>var(--font-podkova)</code> but don't add the font here, the variable won't exist at runtime.</div></div>
+</div>
+
+<!-- HEADER -->
+<div id="header" class="panel">
+  <h2>components/NewspaperHeader.tsx</h2>
+  <p class="desc">Sticky top header with a collapsing masthead. Two visible sections: the masthead (logo + date) and the nav strip. Only the nav strip persists when scrolled down.</p>
+
+  <h3>Collapse logic</h3>
+  <pre><span class="kw">const</span> COLLAPSE_AT = <span class="num">160</span>   <span class="cm">// px scrolled → collapse masthead</span>
+<span class="kw">const</span> EXPAND_AT   = <span class="num">20</span>    <span class="cm">// px scrolled → always expand</span>
+
+<span class="cm">// collapsed drives CSS transition on maxHeight + opacity:</span>
+maxHeight: collapsed ? <span class="num">0</span> : <span class="num">280</span>,
+opacity:   collapsed ? <span class="num">0</span> : <span class="num">1</span>,
+transition: <span class="str">"max-height 0.4s ease, opacity 0.25s ease"</span></pre>
+
+  <div class="anno info"><div class="anno-label">HOVER</div><div class="anno-body"><code>hoveringRef</code> (not state — no re-renders) tracks whether the mouse is over the header. If hovered, scroll events don't collapse it. <code>useRef</code> is used instead of <code>useState</code> because the hover flag is only read inside the scroll handler — it never needs to cause a render.</div></div>
+
+  <h3>Active nav link</h3>
+  <pre><span class="kw">const</span> pathname = <span class="fn">usePathname</span>()
+<span class="kw">const</span> active = link.href === <span class="str">"/"</span>
+  ? pathname === <span class="str">"/"</span>              <span class="cm">// exact match for home</span>
+  : pathname.<span class="fn">startsWith</span>(link.href) <span class="cm">// prefix match for others</span></pre>
+  <div class="anno warn"><div class="anno-label">EDGE</div><div class="anno-body">The <code>"/"</code> special case is necessary — <code>pathname.startsWith("/")</code> would match every route. Home uses exact match; everything else uses prefix match so <code>/article/art-0001</code> doesn't light up Dashboard.</div></div>
+</div>
+
+<!-- OVERVIEW -->
+<div id="overview" class="panel">
+  <h2>app/overview/page.tsx</h2>
+  <p class="desc">Main dashboard, ~1000 lines, entirely client-side. Data from <code>useArticles()</code>, charts computed via <code>useMemo</code>, chart clicks navigate to <code>/search</code> via <code>useRouter</code>.</p>
+
+  <h3>Aggregation helpers (defined at file top)</h3>
+  <table>
+    <tr><th>Function</th><th>Output</th><th>Used by</th></tr>
+    <tr><td class="mono">sectorCountsFrom()</td><td>{sector, count, ghgShare} array</td><td>Pie chart, dot plot</td></tr>
+    <tr><td class="mono">frameMeansFrom()</td><td>{frame, avg} — average score per frame</td><td>Radar chart, legend percentages</td></tr>
+    <tr><td class="mono">frameStatsFrom()</td><td>Count, outletCount, topOutlet, topSector per frame</td><td>Radar tooltip</td></tr>
+    <tr><td class="mono">stageCountsFrom()</td><td>Count per stage (FR-only)</td><td>Causal stage ticks</td></tr>
+    <tr><td class="mono">domainCountsFrom()</td><td>Count per crisis domain (FR-only)</td><td>Crisis domain tiles</td></tr>
+    <tr><td class="mono">outletStatsFrom()</td><td>Per-outlet: count, topFrame, topAngle, framePcts, anglePcts</td><td>Outlet breakdown mini-cards</td></tr>
+    <tr><td class="mono">angleCountsFrom()</td><td>Count per angle</td><td>Editorial angles stacked bar</td></tr>
+    <tr><td class="mono">timeSeriesFrom()</td><td>Article count per calendar month</td><td>Area chart</td></tr>
+  </table>
+
+  <h3>Coverage vs. Emissions dot plot</h3>
+  <pre><span class="kw">const</span> GHG_SHARES: Record&lt;Sector, number&gt; = {
+  Energy: <span class="num">34</span>, Transport: <span class="num">16</span>, Agriculture: <span class="num">11</span>, ...
+}
+<span class="cm">// gap = mediaCoveragePct - ghgSharePct
+// positive gap = sector OVER-covered relative to emissions
+// negative gap = sector UNDER-covered</span></pre>
+  <div class="anno warn"><div class="anno-label">NOTE</div><div class="anno-body">The GHG numbers are <strong>hardcoded constants</strong> from an emissions dataset — not computed from articles. They're the static baseline the media coverage is compared against. This is the core editorial insight of the dashboard.</div></div>
+
+  <h3>Country filter</h3>
+  <div class="anno info"><div class="anno-label">INFO</div><div class="anno-body">Countries with ≥100 articles are shown as filter buttons. Top 3 (GB, FR, NL) get their own buttons; the rest go in a searchable dropdown. On first load, <code>navigator.language</code> auto-selects the user's country if it's in the dataset. Crisis Domains and Causal Stage sections only appear for <code>country === "FR"</code> because those classifications only exist in the French dataset.</div></div>
+</div>
+
+<!-- SEARCH -->
+<div id="search" class="panel">
+  <h2>app/search/page.tsx</h2>
+  <p class="desc">Article browser — filterable by sector, frame, angle, stage, domain, country, language, date range, outlet. URL query params are the source of truth for filter state.</p>
+
+  <h3>URL as filter state</h3>
+  <pre><span class="cm">// Filters live in the URL: /search?frame=Conflict&amp;outlet=Le+Monde</span>
+<span class="kw">const</span> searchParams = <span class="fn">useSearchParams</span>()
+<span class="kw">const</span> frame = searchParams.<span class="fn">get</span>(<span class="str">"frame"</span>) <span class="kw">as</span> Frame | null
+
+<span class="cm">// overview page navigates here on chart click:</span>
+router.<span class="fn">push</span>(<span class="str">`/search?frame=Conflict&amp;country=FR`</span>)</pre>
+  <div class="anno tip"><div class="anno-label">WHY URL</div><div class="anno-body">URL-based filter state survives page refresh, can be bookmarked, and the browser back button restores the previous filter. It also enables cross-page navigation from dashboard charts.</div></div>
+
+  <h3>ChipFilter component</h3>
+  <div class="anno info"><div class="anno-label">INFO</div><div class="anno-body">A generic <code>ChipFilter&lt;T&gt;</code> renders clickable chips for any enum (Frame, Sector, Stage…). Takes a <code>displayFn</code> for cases where display label differs from value ("Attribution" instead of "Attribution of Responsibility").</div></div>
+
+  <h3>CSV export</h3>
+  <div class="anno info"><div class="anno-label">INFO</div><div class="anno-body"><code>exportToCsv()</code> from <code>lib/exportCsv.ts</code> exports the filtered (not paginated) article list. "Export" always exports everything matching current filters, not just the current page.</div></div>
+</div>
+
+<!-- UPLOAD -->
+<div id="upload" class="panel">
+  <h2>components/UploadPanel.tsx</h2>
+  <p class="desc">Article upload and classification UI. Handles the full pipeline: file → text extraction → classify → form modal → save. Rendered as a button in the header.</p>
+
+  <h3>State machine</h3>
+  <table>
+    <tr><th>State</th><th>What it means</th></tr>
+    <tr><td class="mono">file=null, text=null</td><td>Initial — just a button</td></tr>
+    <tr><td class="mono">extracting=true</td><td>Waiting for /extract-text response</td></tr>
+    <tr><td class="mono">text≠null, meta≠null</td><td>Modal open — shows editable form</td></tr>
+    <tr><td class="mono">classifyP (Promise)</td><td>Classification running in background while user fills form</td></tr>
+    <tr><td class="mono">saving=true</td><td>Awaiting /api/articles POST</td></tr>
+    <tr><td class="mono">error≠null</td><td>Modal shows error message</td></tr>
+  </table>
+
+  <h3>Parallel classification trick</h3>
+  <pre><span class="cm">// Classification fires IMMEDIATELY when file is read,
+// but save() only awaits it when the user clicks Save.</span>
+<span class="kw">const</span> p: Promise&lt;ClassifyResult | null&gt; = <span class="fn">fetch</span>(<span class="str">"/api/classify"</span>, {...})
+  .then(r =&gt; r.ok ? r.<span class="fn">json</span>() : null)
+  .catch(() =&gt; null)
+setClassifyP(p)   <span class="cm">// store the in-flight promise</span>
+
+<span class="cm">// In save():</span>
+<span class="kw">const</span> result = classifyP ? <span class="kw">await</span> classifyP : null
+<span class="cm">// By the time user clicks Save, result is usually already resolved.</span></pre>
+
+  <div class="anno tip"><div class="anno-label">SMART</div><div class="anno-body">While the user fills in outlet/date/sector (typically 10–30 seconds), the 2–3 second classification request is already running. Clicking "Save →" feels instant.</div></div>
+
+  <h3>Autocomplete — key detail</h3>
+  <pre><span class="cm">// Dropdown items use onMouseDown not onClick.
+// Why: onBlur on the input fires BEFORE onClick on the dropdown item.
+// onBlur would close the dropdown before the click could register.
+// onMouseDown fires BEFORE onBlur. e.preventDefault() stops onBlur.</span>
+onMouseDown={e =&gt; e.<span class="fn">preventDefault</span>()}</pre>
+
+  <h3>Country/language normalisation</h3>
+  <pre>normLanguage(<span class="str">"fr"</span>)       → <span class="str">"french"</span>
+normLanguage(<span class="str">"Français"</span>) → <span class="str">"french"</span>
+normCountry(<span class="str">"FR"</span>)        → <span class="str">"France"</span>   <span class="cm">// display name</span>
+countryToISO(<span class="str">"France"</span>)  → <span class="str">"FR"</span>        <span class="cm">// stored in DB</span></pre>
+</div>
+
+<!-- EXPLAIN -->
+<div id="explain" class="panel">
+  <h2>components/ExplainPanel.tsx</h2>
+  <p class="desc">Modal panel that renders article text with per-word attention highlights. Two views: Framing (purple) and Misinformation (amber→red).</p>
+
+  <div class="anno warn"><div class="anno-label">STATUS</div><div class="anno-body">The Misinformation view uses <code>mockExplanations</code> — not backed by real data. The Framing view uses real BERT attention scores from the DB when on the article detail page (<code>storedExplanationToTokens()</code>), but this panel still shows mock data.</div></div>
+
+  <h3>Color mapping — weight to RGBA</h3>
+  <pre><span class="kw">function</span> <span class="fn">framingColor</span>(w: number): string {
+  <span class="kw">if</span> (w &lt; 0.06) <span class="kw">return</span> <span class="str">"transparent"</span>  <span class="cm">// hide low-weight words</span>
+  <span class="kw">const</span> a = Math.<span class="fn">min</span>(0.75, w * 0.85)
+  <span class="kw">return</span> <span class="str">`rgba(109,40,217,${a})`</span>      <span class="cm">// purple, opacity = weight</span>
+}</pre>
+
+  <h3>Token interface</h3>
+  <pre><span class="kw">type</span> Token = {
+  text: string
+  misinfoWeight: number    <span class="cm">// 0–1</span>
+  framingWeight: number    <span class="cm">// 0–1, normalised against max</span>
+  angleWeight: number      <span class="cm">// 0–1</span>
+  isWhitespace: boolean    <span class="cm">// spaces/newlines — never highlighted</span>
+}</pre>
+</div>
+
+<!-- ARTICLE PAGE -->
+<div id="articlepage" class="panel">
+  <h2>app/article/[id]/page.tsx</h2>
+  <p class="desc">Article detail page. Shows frame/angle bar charts and word-level highlights using real stored explanation data from the DB.</p>
+
+  <h3>storedExplanationToTokens()</h3>
+  <pre><span class="cm">// explanation_frames = {wordIndex: score}
+// Indices were computed on (title + " " + body) during classification.
+// The body must be split the same way to align indices.</span>
+<span class="kw">const</span> titleWordCount = title.<span class="fn">split</span>(/\s+/).<span class="fn">filter</span>(Boolean).<span class="fn">length</span>
+<span class="kw">let</span> wordIdx = titleWordCount  <span class="cm">// offset body by title word count</span>
+
+normalized.<span class="fn">split</span>(/(\s+)/).<span class="fn">map</span>(part =&gt; {
+  <span class="kw">const</span> idx = String(wordIdx++)
+  <span class="kw">const</span> score = (frameExplanation[idx] ?? <span class="num">0</span>) / frameMax  <span class="cm">// normalise 0–1</span>
+})</pre>
+  <div class="anno warn"><div class="anno-label">CRITICAL</div><div class="anno-body">The tokenisation here (<code>split(/(\s+)/)</code>) must exactly match what the Python classifier used. A mismatch shifts all attention scores to the wrong words. The <code>normalizeBody()</code> function is intentionally duplicated in both Python and TypeScript.</div></div>
+</div>
+
+<!-- STACK QUESTIONS -->
+<div id="q_stack" class="panel">
+  <h2>Stack explainer questions</h2>
+  <div class="section-q">Next.js &amp; React</div>
+  <div class="q"><div class="q-n">1</div><div class="q-t">What is the difference between a Server Component and a Client Component in Next.js App Router, and why does almost every file here use <code>"use client"</code>? <span class="tag tag-stack">Stack</span></div></div>
+  <div class="q"><div class="q-n">2</div><div class="q-t">How does the App Router turn files in <code>app/</code> into URL routes? How does <code>[id]</code> work in <code>article/[id]/page.tsx</code>? <span class="tag tag-stack">Stack</span></div></div>
+  <div class="q"><div class="q-n">3</div><div class="q-t">What is <code>app/layout.tsx</code> for, and how does it differ from a regular page component? <span class="tag tag-stack">Stack</span></div></div>
+  <div class="q"><div class="q-n">4</div><div class="q-t">Why does <code>NewspaperHeader.tsx</code> use <code>useRef</code> for hover tracking instead of <code>useState</code>? <span class="tag tag-stack">Stack</span></div></div>
+  <div class="q"><div class="q-n">5</div><div class="q-t">What does <code>useMemo</code> do and why is it used for every chart aggregation in <code>overview/page.tsx</code>? <span class="tag tag-stack">Stack</span></div></div>
+  <div class="q"><div class="q-n">6</div><div class="q-t">What is <code>createPortal</code> in React and why does <code>UploadPanel.tsx</code> use it for the modal overlay? <span class="tag tag-stack">Stack</span></div></div>
+
+  <div class="section-q">Database &amp; Infrastructure</div>
+  <div class="q"><div class="q-n">7</div><div class="q-t">Why PostgreSQL instead of MongoDB or Firebase? What about article data makes relational better? <span class="tag tag-stack">Stack</span></div></div>
+  <div class="q"><div class="q-n">8</div><div class="q-t">What is a connection pool and why does <code>lib/db.ts</code> configure <code>max: 10</code>? <span class="tag tag-stack">Stack</span></div></div>
+  <div class="q"><div class="q-n">9</div><div class="q-t">What does Docker do, and why run Postgres in a container rather than install it directly? <span class="tag tag-stack">Stack</span></div></div>
+  <div class="q"><div class="q-n">10</div><div class="q-t">What is a Docker volume? What is the difference between <code>docker compose down</code> and <code>docker compose down -v</code>? <span class="tag tag-stack">Stack</span></div></div>
+  <div class="q"><div class="q-n">11</div><div class="q-t">Why does the <code>postgres</code> package use tagged template literals? How does this prevent SQL injection? <span class="tag tag-stack">Stack</span></div></div>
+
+  <div class="section-q">FastAPI &amp; Python</div>
+  <div class="q"><div class="q-n">12</div><div class="q-t">Why a separate Python server? Could the BERT model run inside Next.js? <span class="tag tag-stack">Stack</span></div></div>
+  <div class="q"><div class="q-n">13</div><div class="q-t">What is <code>threading.Lock()</code> in <code>_get_predictor()</code> preventing? What race condition would occur without it? <span class="tag tag-stack">Stack</span></div></div>
+  <div class="q"><div class="q-n">14</div><div class="q-t">What changed in Tailwind v4? Why are there no <code>tailwind.config.js</code> or <code>@tailwind</code> directives? <span class="tag tag-stack">Stack</span></div></div>
+</div>
+
+<!-- CODE QUESTIONS -->
+<div id="q_code" class="panel">
+  <h2>Code deep-dive questions</h2>
+  <div class="section-q">lib/ — data layer</div>
+  <div class="q"><div class="q-n">1</div><div class="q-t">What does <code>as const</code> do to the <code>FRAMES</code> array in <code>articleTypes.ts</code>? What breaks without it? <span class="tag tag-code">Code</span></div></div>
+  <div class="q"><div class="q-n">2</div><div class="q-t">What does <code>collectTrue()</code> do in <code>articleMapper.ts</code>? Why is it a separate function and not inlined? <span class="tag tag-code">Code</span></div></div>
+  <div class="q"><div class="q-n">3</div><div class="q-t">Why is the article cache a module-level variable in <code>useArticles.ts</code> rather than React context or state? <span class="tag tag-code">Code</span></div></div>
+  <div class="q"><div class="q-n">4</div><div class="q-t">Why is <code>_promise</code> stored separately from <code>_cache</code> in <code>useArticles.ts</code>? What problem does it solve? <span class="tag tag-code">Code</span></div></div>
+
+  <div class="section-q">API routes</div>
+  <div class="q"><div class="q-n">5</div><div class="q-t">Why is <code>export const dynamic = "force-dynamic"</code> needed in the articles route? What happens without it? <span class="tag tag-code">Code</span></div></div>
+  <div class="q"><div class="q-n">6</div><div class="q-t">Why is sector stored as 8 boolean columns in the POST handler instead of a single <code>sector</code> string column? <span class="tag tag-code">Code</span></div></div>
+
+  <div class="section-q">Components</div>
+  <div class="q"><div class="q-n">7</div><div class="q-t">What does <code>{ passive: true }</code> on the scroll listener in <code>NewspaperHeader.tsx</code> do for scroll performance? <span class="tag tag-code">Code</span></div></div>
+  <div class="q"><div class="q-n">8</div><div class="q-t">Why does the <code>Autocomplete</code> dropdown use <code>onMouseDown</code> with <code>e.preventDefault()</code> instead of <code>onClick</code>? <span class="tag tag-code">Code</span></div></div>
+  <div class="q"><div class="q-n">9</div><div class="q-t">Why does <code>UploadPanel.tsx</code> fire the classify request immediately and store the Promise rather than awaiting it first? <span class="tag tag-code">Code</span></div></div>
+  <div class="q"><div class="q-n">10</div><div class="q-t">How does clicking a chart segment on the overview page navigate to a filtered search? Walk through <code>toSearch()</code>. <span class="tag tag-code">Code</span></div></div>
+  <div class="q"><div class="q-n">11</div><div class="q-t">Why must the tokenisation in <code>article/[id]/page.tsx</code> exactly match what the Python classifier used? What breaks if they differ? <span class="tag tag-code">Code</span></div></div>
+  <div class="q"><div class="q-n">12</div><div class="q-t">Why do Crisis Domains and Causal Stage only appear for <code>country === "FR"</code>? Is this enforced in the data or just in the UI? <span class="tag tag-code">Code</span></div></div>
+</div>
+
+<!-- DATA & ML QUESTIONS -->
+<div id="q_data" class="panel">
+  <h2>Data &amp; ML questions</h2>
+  <div class="section-q">Data model</div>
+  <div class="q"><div class="q-n">1</div><div class="q-t">An article can have <code>frames: []</code> (empty) but still have a <code>primaryFrame</code>. When would they disagree? <span class="tag tag-data">Data</span></div></div>
+  <div class="q"><div class="q-n">2</div><div class="q-t">Why are word indices in <code>explanation_frames</code> computed on <code>title + " " + body</code> and not just the body? <span class="tag tag-data">Data</span></div></div>
+  <div class="q"><div class="q-n">3</div><div class="q-t">What is <code>ln_subject</code> and where does the <code>(75%)</code> format come from? How is it parsed into <code>keywords[]</code>? <span class="tag tag-data">Data</span></div></div>
+  <div class="q"><div class="q-n">4</div><div class="q-t">Where do the <code>GHG_SHARES</code> percentages come from? Are they France-specific or global emissions data? <span class="tag tag-data">Data</span></div></div>
+
+  <div class="section-q">ML pipeline</div>
+  <div class="q"><div class="q-n">5</div><div class="q-t">What is Platt scaling? What do the <code>W</code> and <code>b</code> values in <code>CALIBRATIONS</code> do to the raw BERT probabilities? <span class="tag tag-ml">ML</span></div></div>
+  <div class="q"><div class="q-n">6</div><div class="q-t">What does <code>Predictor.predict(explain=True)</code> return in its explanation field? How does BERT produce per-word scores? <span class="tag tag-ml">ML</span></div></div>
+  <div class="q"><div class="q-n">7</div><div class="q-t">Why does the frame classifier use a 0.5 multi-label threshold but angle uses argmax (single-label only)? <span class="tag tag-ml">ML</span></div></div>
+  <div class="q"><div class="q-n">8</div><div class="q-t">What is <code>classify_db.py</code> used for? How does bulk classification differ from the <code>/classify</code> API endpoint? <span class="tag tag-ml">ML</span></div></div>
+  <div class="q"><div class="q-n">9</div><div class="q-t">Why does <code>LABEL_MAP</code> rename <code>"Responsibility"</code> → <code>"Attribution of Responsibility"</code>? <span class="tag tag-ml">ML</span></div></div>
+  <div class="q"><div class="q-n">10</div><div class="q-t">If model checkpoint files are missing, what exactly breaks and what still works? Walk through the degradation path. <span class="tag tag-ml">ML</span></div></div>
+</div>
+
+<!-- RF THEORY -->
+<div id="rf_theory" class="panel">
+  <h2>Theory &amp; Core Concepts</h2>
+  <p class="desc">The theoretical backbone of the project. These concepts are what the essay argues about — not just cited, but actively interrogated.</p>
+
+  <h3>Agenda-Setting Theory</h3>
+  <div class="card">
+    <div class="card-title">McCombs &amp; Shaw (1972), McCombs (2004)</div>
+    <p style="font-size:12px;color:#444;line-height:1.6">The media do not tell people <em>what to think</em>, but <em>what to think about</em>. By choosing which stories to cover and how prominently, media set the public agenda. In this project: keyword-based monitoring (what QuotaClimat already had) answers the agenda-setting question — <em>how much</em> climate is covered. The project moves one level deeper to ask <em>how</em> it is framed.</p>
+  </div>
+
+  <h3>Framing Theory</h3>
+  <div class="card">
+    <div class="card-title">Entman (1993)</div>
+    <p style="font-size:12px;color:#444;line-height:1.6">Framing is selecting and salience — choosing which aspects of a perceived reality to make more prominent in a text, promoting a particular problem definition, causal interpretation, moral evaluation, or remedy. A frame is not what is covered; it is <em>how</em> what is covered is packaged for the reader.</p>
+  </div>
+
+  <h3>Meso Level of Media Production</h3>
+  <div class="anno info"><div class="anno-label">KEY</div><div class="anno-body">Three levels: <strong>macro</strong> (structural forces — ownership, politics, economy), <strong>meso</strong> (editorial decisions — what journalists and editors choose to write and how), <strong>micro</strong> (audience effects). The project targets <strong>meso</strong> because that is the only level NGOs and regulators can actually act on. They cannot change macro forces, and they cannot observe micro effects — but they can challenge editorial choices, which leave a trace in the text.</div></div>
+
+  <h3>Semetko &amp; Valkenburg (2000) — Five Generic Frames</h3>
+  <table>
+    <tr><th>Frame</th><th>What it emphasises</th></tr>
+    <tr><td class="mono">Attribution of Responsibility</td><td>Who or what is to blame / who should solve the problem</td></tr>
+    <tr><td class="mono">Human Interest</td><td>A human face or emotional angle on the issue</td></tr>
+    <tr><td class="mono">Conflict</td><td>Disagreement between individuals, groups, or institutions</td></tr>
+    <tr><td class="mono">Morality</td><td>Moral messages, prescriptions for behaviour, social norms</td></tr>
+    <tr><td class="mono">Economic Consequences</td><td>Financial implications for individuals, groups, or society</td></tr>
+  </table>
+  <div class="anno warn"><div class="anno-label">JOURNEY</div><div class="anno-body">The project started with <strong>Guenther et al. (2024)'s 14-frame scheme</strong> — richer, but categories overlapped too much to separate reliably. Only after watching it fail did the team narrow to Semetko &amp; Valkenburg's 5. The essay is honest: the report presents this as a principled choice; the reality is they "reached the principled answer the long way."</div></div>
+
+  <h3>Construct Validity</h3>
+  <div class="card">
+    <div class="card-title">Cronbach &amp; Meehl (1955)</div>
+    <p style="font-size:12px;color:#444;line-height:1.6">The gap between a concept as theory defines it and the thing you can actually measure. A <em>frame</em> is clean as a theoretical construct and slippery as a measurement. This is the essay's through-line: every major difficulty — the typology choice, the discrepancy metric, the explanation feature, the angle classifier — was a construct validity problem, not a theory problem.</p>
+  </div>
+
+  <h3>Krippendorff's Alpha (α)</h3>
+  <div class="anno info"><div class="anno-label">INFO</div><div class="anno-body">A measure of inter-annotator reliability: how consistently do two (or more) annotators label the same text? Scale: 0 = no agreement, 1 = perfect agreement. Generally, α ≥ 0.8 is accepted; α ≥ 0.67 is tentatively acceptable. In this project: most frames reached acceptable levels, but <strong>Attribution of Responsibility — the dominant frame at ~62% of articles — had α = 0.28</strong>, indicating unreliable classification and systematic overprediction. The essay uses this not just as a classifier failure but as evidence that the category itself may not be recoverable from the text at scale.</div></div>
+
+  <h3>LLM as Annotator</h3>
+  <div class="card">
+    <div class="card-title">Törnberg (2023, 2024)</div>
+    <p style="font-size:12px;color:#444;line-height:1.6">An LLM (here GPT, via API) can be a more <em>consistent</em> annotator than a human, because it applies the same criteria across thousands of articles without drifting. Humans drift — they fatigue, reinterpret criteria mid-task, and disagree. This is the theoretical justification for using an LLM to generate training labels (silver labels), rather than relying on human-only annotation. Törnberg (2024) also argues open-source annotators are best-practice for transparency and reproducibility — which is why the team started with an Ollama-hosted model before switching to GPT.</p>
+  </div>
+
+  <h3>Knowledge Distillation</h3>
+  <div class="anno info"><div class="anno-label">INFO</div><div class="anno-body">A technique where a large, capable model (the "teacher" — here GPT) generates labels, and those labels are used to train a smaller, faster model (the "student" — here RoBERTa). The student learns to approximate the teacher's behaviour at much lower inference cost. In this project, GPT labels articles → those labels train a cross-lingual RoBERTa classifier. The essay notes this is "knowledge distillation applied to frame labelling rather than topic classification, which it had been validated on before" — framed as a contribution.</div></div>
+
+  <h3>Attention is not Explanation</h3>
+  <div class="card">
+    <div class="card-title">Jain &amp; Wallace (2019)</div>
+    <p style="font-size:12px;color:#444;line-height:1.6">A well-known NLP paper arguing that attention weights inside a transformer model cannot be straightforwardly interpreted as <em>explanations</em> of why the model made a prediction. High attention on a word does not mean that word caused the output. The project uses attention scores for the word-highlight explanation feature — the essay concedes this is contested and should have been treated as a first-class problem, possibly with a separate dedicated model.</p>
+  </div>
+
+  <h3>Wicked Problems</h3>
+  <div class="card">
+    <div class="card-title">Rittel &amp; Webber (1973)</div>
+    <p style="font-size:12px;color:#444;line-height:1.6">A "wicked problem" has no clean definition, no agreed stopping rule, no right or wrong solution (only better or worse), and every attempt to solve it changes the problem. Used in the conclusion to describe what the CSSci programme is actually training for: not technical problems with known solutions but messy, value-laden, context-dependent interventions where being clever is not enough.</p>
+  </div>
+</div>
+
+<!-- RF INTERVENTION -->
+<div id="rf_intervention" class="panel">
+  <h2>Intervention Decisions</h2>
+  <p class="desc">The essay's evaluation of what the team built — what was right, what was weak, and why.</p>
+
+  <h3>The Bring-Your-Own-Data Architecture</h3>
+  <div class="anno tip"><div class="anno-label">DEFEND</div><div class="anno-body">The essay's strongest defence of a technical decision. Instead of a hosted dashboard consuming a shared dataset, users bring their own licensed news corpus. This solved three problems at once: (1) copyright — no redistribution of licensed articles; (2) political exposure — each NGO runs the analysis on their own data and owns the conclusions; (3) scalability — no hosting/scaling burden on the team. Makes the tool "open-source-ready" so any NGO or journalist can run it on a corpus they've licensed themselves.</div></div>
+
+  <h3>The Discrepancy-First Approach</h3>
+  <div class="anno info"><div class="anno-label">CORE</div><div class="anno-body">Instead of just describing how articles are framed, the tool compares: frames vs sectors, outlets vs each other, media attention vs real GHG emissions per sector. The essay argues this is the "real academic contribution" because it "reframes meso-level framing analysis as comparative rather than descriptive and matches how our users already think." Coverage volume alone is not the lever; the gap between coverage and emissions share is.</div></div>
+
+  <h3>14 Frames → 5 Frames: What happened</h3>
+  <table>
+    <tr><th>Stage</th><th>Decision</th><th>Outcome</th></tr>
+    <tr><td>Start</td><td>Guenther et al. (2024) 14-frame typology, chosen for theoretical richness</td><td>Categories overlapped, classifier couldn't separate them reliably</td></tr>
+    <tr><td>Mid-project</td><td>LLM annotator: started with open-source model via Ollama</td><td>Not strong enough — validated Mark's early concern</td></tr>
+    <tr><td>Switch</td><td>Moved to GPT API (hosted)</td><td>Better annotation quality; cost ~€20 for a pilot that took weeks to reach</td></tr>
+    <tr><td>Final</td><td>Semetko &amp; Valkenburg 5 frames</td><td>Acceptable reliability for most; Attribution of Responsibility still α=0.28</td></tr>
+  </table>
+  <div class="anno warn"><div class="anno-label">LESSON</div><div class="anno-body">The essay's proposed fix: treat typology choice and classifier tractability as <strong>one joint decision</strong>, not sequential. Pilot several candidate schemes through one pipeline on small samples. Let what the classifier can actually separate have equal weight to what is theoretically elegant. A €20 GPT pilot would have told them in days what took weeks.</div></div>
+
+  <h3>The Dashboard — Where the Essay is Least Confident</h3>
+  <div class="anno warn"><div class="anno-label">WEAK</div><div class="anno-body">Feedback was positive but on aesthetics ("how it looks"), not fit ("whether it changes what someone does on a Tuesday afternoon"). The user research was affirming and non-confronting — participants liked what was shown and suggested little new. The essay diagnoses this as possible confirmation bias from the novelty of the tool. No deep-dive into actual user workflows was done. A few walk-throughs with real tasks would have been more valuable than additional polish.</div></div>
+
+  <h3>The Explanation Feature</h3>
+  <div class="anno warn"><div class="anno-label">CRITIQUE</div><div class="anno-body">Highlights words the model's attention scores associate with a frame. Problem: the model learns from token-level statistical patterns; a human reads framing against the whole media landscape. A word the model attends to can be the right signal for the model and meaningless to a person trying to challenge coverage. This is the Jain &amp; Wallace (2019) problem. The essay's honest answer: "The mistake was not the feature but how little attention we gave it." Time crunch is why it wasn't treated as a first-class problem.</div></div>
+
+  <h3>The Angle Classifier</h3>
+  <div class="anno info"><div class="anno-label">INFO</div><div class="anno-body">Angles (Health, Economics, Jobs, Politics, Geopolitics, Purchasing Power) are what the partner actually reasons in day-to-day. Including them was right — leaving them out would make the tool less useful. The critique: hand-labelling for training data was postponed too long (same pattern as the 14-frame detour: deliberating on theory before testing against labelled data). The time this ate left the angle classifier and the explanation feature under-resourced.</div></div>
+
+  <h3>Open-Source vs. Hosted API Annotator</h3>
+  <table>
+    <tr><th></th><th>Open-source (Ollama)</th><th>Hosted GPT API</th></tr>
+    <tr><td><strong>Pro</strong></td><td>Transparency, reproducibility (Törnberg 2024), data stays local, no cost</td><td>Better annotation quality, fast to test</td></tr>
+    <tr><td><strong>Con</strong></td><td>Not strong enough for this task</td><td>Data leaves premises, cost, less reproducible</td></tr>
+    <tr><td><strong>Decision</strong></td><td>Started here (principled default)</td><td>Switched after weeks — a €20 pilot would have shown this in days</td></tr>
+  </table>
+
+  <h3>Partner Change</h3>
+  <div class="anno info"><div class="anno-label">CONTEXT</div><div class="anno-body">The team changed partner about a month into the project. Not elaborated in detail in the essay, but cited as shaping much of what followed — particularly the time pressure and prioritisation decisions that led to the angle classifier and explanation feature being under-resourced.</div></div>
+
+  <h3>Legal Architecture</h3>
+  <div class="anno info"><div class="anno-label">INFO</div><div class="anno-body">Mark researched what the team could scrape, store, and redistribute under the sources' copyright and licensing terms. This turned a legal constraint into a design principle: the bring-your-own-data architecture. Framed in the essay as "changemaking expertise" — turning a constraint into a feature rather than a blocker.</div></div>
+</div>
+
+<!-- RF SKILLS -->
+<div id="rf_skills" class="panel">
+  <h2>Skills &amp; Team Reflection</h2>
+  <p class="desc">How Mark assesses his own contribution across the four CSSci tracks, and what he learned about teamwork.</p>
+
+  <h3>The Four CSSci Tracks</h3>
+  <table>
+    <tr><th>Track</th><th>Self-assessment</th><th>What was new</th></tr>
+    <tr><td><strong>Data Expertise (DE)</strong></td><td>Strongest — most hands-on work here</td><td>ML Python tooling (PyTorch stack), robust scraping against Nexis</td></tr>
+    <tr><td><strong>Research Expertise (RE)</strong></td><td>More targeted — second pair of eyes on modelling</td><td>LLM as consistent annotator; reading Krippendorff's alpha as category recoverability test</td></tr>
+    <tr><td><strong>Changemaking Expertise (CE)</strong></td><td>High — "most highly rated" skill from this project</td><td>Turning literature into operationalisable tool; legal research into architecture; civil-society vs commercial client mindset</td></tr>
+    <tr><td><strong>SSH Expertise (SSHE)</strong></td><td>Lightest — others led theoretical work</td><td>Working understanding of framing theory; how coverage is compared; fed back into the build</td></tr>
+  </table>
+
+  <h3>The Nexis Scraper — Technical Detail</h3>
+  <div class="anno info"><div class="anno-label">DETAIL</div><div class="anno-body">Nexis writes the first page of results into a page array that, on later pages, still holds the previous page's data — so parsing the DOM silently returns stale results. The accepted date format also varied with the interface language. Duplicates were constant. Query behaviour was unreliable, creating downstream integrity problems that required repair scripts. The essay describes this as a new skill: "building a robust scraper against a hostile source."</div></div>
+
+  <h3>Ownership and Role Deference</h3>
+  <div class="card">
+    <div class="card-title">Key teamwork lesson #1</div>
+    <p style="font-size:12px;color:#444;line-height:1.6">Multiple points where Mark had a firm view on something outside his lane (modelling, typology, design, report). Pattern each time: voiced the concern, then let the person who owned that area decide — even when he would have gone the other way. The lesson: "the difference between caring about the right outcome and needing to be the one who delivers it." Trusting someone else to own work you care about is a learnable skill. The cost is sometimes weeks of rework; the benefit is a functioning team and freed attention.</p>
+  </div>
+
+  <div class="anno warn"><div class="anno-label">EXAMPLE</div><div class="anno-body">He raised a concern early that the open-source model might not be strong enough. Max (the ML lead) said it would be fine. Mark conceded. The concern turned out to be correct — but conceding was the right team process. The essay doesn't frame this as "I was right"; it frames it as a learning about when to push and when to defer.</div></div>
+
+  <h3>Process Friction — Notion</h3>
+  <div class="anno info"><div class="anno-label">INFO</div><div class="anno-body">The team ran a heavy Notion system suited to a longer project. On their timeline — especially after the partner change created time pressure — it felt like friction. The lesson: process tools should match the project's actual timeline and pace. Would push for something lighter next time.</div></div>
+
+  <h3>Communication Under Stress</h3>
+  <div class="card">
+    <div class="card-title">Key teamwork lesson #2</div>
+    <p style="font-size:12px;color:#444;line-height:1.6">Capstone was long and intense. Several team members dealing with personal difficulty alongside the project. There was a stretch where the strain showed on calls. Mark's approach: pick up tension rather than let it fester, follow up with people who were struggling, be honest about his own bandwidth. The reflection: "conflict resolution is not separate from the work; it is part of it."</p>
+  </div>
+
+  <h3>What Changed for Mark Professionally</h3>
+  <div class="anno info"><div class="anno-label">HONEST</div><div class="anno-body">Many obvious answers don't apply — he already worked as a forward-deployed engineer, been through startups, talks to non-technical people, runs his own business. What actually shifted: caring more about the ethical and scientific side of what he builds; better at finding common ground with researchers and academics (not commercially minded, brilliant in ways the commercial world rarely rewards). The part he wants to carry forward: more time building alongside people who are in it for something other than a market.</div></div>
+
+  <h3>Engineering Value vs. Research Contribution</h3>
+  <div class="anno tip"><div class="anno-label">KEY</div><div class="anno-body">The report's headline is the discrepancy-first analytical approach and two "firsts" (first LLM frame labelling of a French environmental corpus; knowledge distillation applied to frame labelling). Mark's personal pride is in something more mundane: building an extensible platform someone else can pick up and run. His argument: a tool that lowers the cost of comparative framing analysis enables more of it to get done, on more corpora, so patterns that would go unexamined get a chance to surface as research questions. Indirect academic value through platform provision.</div></div>
+</div>
+
+<!-- REFLECTION QUESTIONS -->
+<div id="q_rf" class="panel">
+  <h2>Reflection Essay Questions</h2>
+  <p class="desc">Questions likely to come up based on the essay's arguments and the concepts it engages with.</p>
+
+  <div class="section-q">Theory &amp; Construct Validity</div>
+  <div class="q"><div class="q-n">1</div><div class="q-t">What is the difference between agenda-setting and framing? Why does the project claim to go "beyond" what QuotaClimat already had? <span class="tag tag-arch">Theory</span></div></div>
+  <div class="q"><div class="q-n">2</div><div class="q-t">What does "meso level of media production" mean? Why does targeting that level matter for the tool's practical impact? <span class="tag tag-arch">Theory</span></div></div>
+  <div class="q"><div class="q-n">3</div><div class="q-t">What is construct validity and why does the essay use it as a through-line? Give one example from the project where the construct-to-measurement gap was the real problem. <span class="tag tag-arch">Theory</span></div></div>
+  <div class="q"><div class="q-n">4</div><div class="q-t">What are Semetko &amp; Valkenburg's five frames? Why were they chosen over Guenther et al.'s fourteen? What does that choice reveal about the relationship between theoretical richness and computational tractability? <span class="tag tag-arch">Theory</span></div></div>
+  <div class="q"><div class="q-n">5</div><div class="q-t">What is Krippendorff's alpha measuring and how should you interpret α = 0.28 for Attribution of Responsibility? What does low alpha say about the category, not just the classifier? <span class="tag tag-data">Data/ML</span></div></div>
+  <div class="q"><div class="q-n">6</div><div class="q-t">The essay argues "Attribution of Responsibility" is both the dominant frame (62% of articles) and the most unreliable (α = 0.28). How do you reconcile those two facts? <span class="tag tag-data">Data/ML</span></div></div>
+  <div class="q"><div class="q-n">7</div><div class="q-t">What is knowledge distillation in the context of this project? Why is it significant that it was applied to frame labelling rather than topic classification? <span class="tag tag-ml">ML</span></div></div>
+  <div class="q"><div class="q-n">8</div><div class="q-t">Törnberg (2023) argues an LLM can be a more consistent annotator than a human. What does that mean and what are the limits of that claim? <span class="tag tag-ml">ML</span></div></div>
+  <div class="q"><div class="q-n">9</div><div class="q-t">What does Jain &amp; Wallace (2019) "Attention is not Explanation" argue? Why is this directly relevant to the ExplainPanel feature in this project? <span class="tag tag-ml">ML</span></div></div>
+  <div class="q"><div class="q-n">10</div><div class="q-t">What is a wicked problem (Rittel &amp; Webber 1973)? Why does the essay apply this concept to the Capstone project specifically, not just to climate change in general? <span class="tag tag-arch">Theory</span></div></div>
+
+  <div class="section-q">Intervention &amp; Design Decisions</div>
+  <div class="q"><div class="q-n">11</div><div class="q-t">What is the bring-your-own-data architecture and what three problems does it solve simultaneously? <span class="tag tag-code">Design</span></div></div>
+  <div class="q"><div class="q-n">12</div><div class="q-t">What is the "discrepancy-first" approach? Why does the essay call it the project's real academic contribution — more than the LLM firsts? <span class="tag tag-code">Design</span></div></div>
+  <div class="q"><div class="q-n">13</div><div class="q-t">The essay says the dashboard is where it is "least confident." Why — and what kind of evidence would have made it more confident? <span class="tag tag-code">Design</span></div></div>
+  <div class="q"><div class="q-n">14</div><div class="q-t">What is the difference between "how it looks" and "whether it fits how our users work" as feedback? Why is the distinction important for evaluating the dashboard? <span class="tag tag-code">Design</span></div></div>
+  <div class="q"><div class="q-n">15</div><div class="q-t">What went wrong with the open-source annotator (Ollama) and why did switching to GPT API only happen after weeks rather than days? What would you do differently? <span class="tag tag-ml">ML</span></div></div>
+  <div class="q"><div class="q-n">16</div><div class="q-t">The essay says the typology and classifier should be treated as "one joint decision." What does that mean in practice? How would you pilot typology tractability? <span class="tag tag-ml">ML</span></div></div>
+  <div class="q"><div class="q-n">17</div><div class="q-t">Why did the angle classifier end up under-resourced? What is the common pattern the essay identifies between this and the 14-frame detour? <span class="tag tag-ml">ML</span></div></div>
+  <div class="q"><div class="q-n">18</div><div class="q-t">The essay says "what works for stakeholders and what works computationally lined up more often than people credit, even if we reached that by accident." What does that mean concretely in this project? <span class="tag tag-arch">Theory</span></div></div>
+
+  <div class="section-q">Personal &amp; Team Reflection</div>
+  <div class="q"><div class="q-n">19</div><div class="q-t">The essay distinguishes between "caring about the right outcome and needing to be the one who delivers it." Describe a specific situation where that distinction mattered in the project. <span class="tag tag-stack">Personal</span></div></div>
+  <div class="q"><div class="q-n">20</div><div class="q-t">You conceded on the open-source model when you had a concern. In hindsight, was that the right call? What does the essay say about when to defer vs. when to push harder? <span class="tag tag-stack">Personal</span></div></div>
+  <div class="q"><div class="q-n">21</div><div class="q-t">What was the Nexis scraper technically difficult about? What skill does the essay say you didn't have at that level before? <span class="tag tag-code">Technical</span></div></div>
+  <div class="q"><div class="q-n">22</div><div class="q-t">You describe your SSHE track contribution as the lightest. How did your understanding of framing theory feed back into the build even without leading the theoretical work? <span class="tag tag-stack">Personal</span></div></div>
+  <div class="q"><div class="q-n">23</div><div class="q-t">What is the difference between working for a civil-society partner vs. a commercial client? What specifically shifted in your approach? <span class="tag tag-stack">Personal</span></div></div>
+  <div class="q"><div class="q-n">24</div><div class="q-t">The essay says you are most proud of building "a basic, extensible platform someone else can pick up" — more than the academic firsts. How do you argue that engineering value has indirect academic value? <span class="tag tag-stack">Personal</span></div></div>
+  <div class="q"><div class="q-n">25</div><div class="q-t">The essay says "conflict resolution is not separate from the work; it is part of it." What does that mean in a cross-functional team under deadline pressure? <span class="tag tag-stack">Personal</span></div></div>
+  <div class="q"><div class="q-n">26</div><div class="q-t">Many of the "obvious" professional takeaways didn't apply to you because of your background. What did the experience actually change and why is that more valuable than what it didn't change? <span class="tag tag-stack">Personal</span></div></div>
+  <div class="q"><div class="q-n">27</div><div class="q-t">The essay says the partner change "shaped much of what follows." Without going into the detail, what kinds of downstream effects does a mid-project partner change typically cause? <span class="tag tag-stack">Personal</span></div></div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+function go(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+</script>
+</body>
+</html>

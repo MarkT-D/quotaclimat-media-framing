@@ -23,12 +23,11 @@ cp .env.example .env #copy on Windows
 # Start the database
 docker compose up -d
 
-#Load database on Mac/Linux, IF not loaded before:
-docker compose exec -T db psql -U quota quota_climate < backend/analysis/datasets/quota_climate_dump.sql
-
-#Load database on Windows in PowerShell, IF not loaded before: 
-#if this throws an error, check instructions further below
-Get-Content backend/analysis/datasets/quota_climate_dump.sql | docker compose exec -T db psql -U quota quota_climate
+#Load the synthetic sample data so the app has something to show
+#Mac/Linux:
+docker compose exec -T db psql -U quota quota_climate < backend/db/seed_demo.sql
+#Windows PowerShell:
+#Get-Content backend/db/seed_demo.sql | docker compose exec -T db psql -U quota quota_climate
 
 # Start dev servers (Next.js + Python backend)
 npm run dev:full
@@ -94,18 +93,20 @@ The frame/angle classifier models need to be stored outside of this repository, 
 Set the paths for the model in .env
 
 
-## Scraper
+## Data
 
-See [`backend/scraper/README.md`](backend/scraper/README.md) for full instructions.
+The article corpus was collected from a licensed news database via institutional
+access. That content is copyrighted and is **not** redistributed with this
+repository, and the collection tooling is not included.
+
+To try the app locally, load the small synthetic sample seed (fabricated
+articles, no third-party content):
 
 ```bash
-cd backend
-
-# Authenticate (once per account)
-python -m scraper.scraper --login
-
-# Scrape articles
-python -m scraper.scraper --query-file scraper/queries/transport_query.txt --language English --max 500
+docker compose up -d
+docker compose exec -T db psql -U quota quota_climate < backend/db/seed_demo.sql
+# Windows PowerShell:
+# Get-Content backend/db/seed_demo.sql | docker compose exec -T db psql -U quota quota_climate
 ```
 
 ## Frontend commands

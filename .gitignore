@@ -48,10 +48,14 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# database dumps (too large for GitHub — keep locally or share via Drive)
+# database dumps & bulk data (copyrighted corpus — never publish)
 *.sql
 *.zip
-backend/db/*.csv
+*.csv
+# ...but keep the schema and the small synthetic seed files
+!backend/db/schema.sql
+!backend/db/seed_angles.sql
+!backend/db/seed_demo.sql
 
 # ML model checkpoints — keep outside the project directory
 *.safetensors
