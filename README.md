@@ -13,14 +13,16 @@ A dashboard and classification pipeline that tracks **how news outlets frame env
 ---
 
 <p align="center">
-  <img src="docs/screenshots/dashboard.png" alt="Dashboard: frame distribution and coverage overview" width="100%">
+  <img src="docs/screenshots/dashboard.png" alt="Dashboard: coverage over time, frame distribution, editorial angles and sectors" width="100%">
 </p>
 
-| The Reader: filter and search articles | Article view: classifier output and highlighted signals |
+| Article view: frame and angle probabilities with highlighted signal words | The Reader: filter articles by sector, angle, frame and outlet |
 |---|---|
-| ![Reader](docs/screenshots/reader.png) | ![Article view](docs/screenshots/article.png) |
+| ![Article view](docs/screenshots/article.png) | ![The Reader](docs/screenshots/reader.png) |
+| **Discrepancy Desk:** compare framing across outlets and countries | **Coverage vs. emissions:** media share against each sector's GHG share |
+| ![Discrepancy Desk](docs/screenshots/discrepancy-desk.png) | ![Coverage vs emissions](docs/screenshots/coverage-vs-emissions.png) |
 
-<sub>Screenshots use the synthetic demo dataset included in the repo.</sub>
+<sub>Screenshots show synthetic sample data, not the licensed corpus.</sub>
 
 ---
 
