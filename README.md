@@ -12,6 +12,18 @@ A dashboard and classification pipeline that tracks **how news outlets frame env
 
 ---
 
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" alt="Dashboard: frame distribution and coverage overview" width="100%">
+</p>
+
+| The Reader: filter and search articles | Article view: classifier output and highlighted signals |
+|---|---|
+| ![Reader](docs/screenshots/reader.png) | ![Article view](docs/screenshots/article.png) |
+
+<sub>Screenshots use the synthetic demo dataset included in the repo.</sub>
+
+---
+
 ## How it works
 
 ```mermaid
