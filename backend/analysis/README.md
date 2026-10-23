@@ -2,7 +2,7 @@ Pipeline for classifying climate news articles into frames and angles.
 Uses `gpt-5-mini` to generate ground-truth labels, then distils them into `XLM-RoBERTa-Longformer` classifier.
 
 
-Pipeline overview:´
+Pipeline overview:
 ```
 Articles (CSV)
       │
